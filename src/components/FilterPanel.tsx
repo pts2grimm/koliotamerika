@@ -25,7 +25,7 @@ export function FilterPanel({ children, count }: { children: ReactNode; count: n
   <button className="button button-dark filter-trigger" type="button" onClick={() => setOpen(true)} aria-haspopup="dialog"><SlidersHorizontal size={18} />Филтри{count > 0 && <span>{count}</span>}</button>
   <span>Открий точния автомобил</span>
   <dialog ref={dialog} className="filter-dialog" aria-label="Филтри за търговете" onCancel={() => setOpen(false)} onClose={() => setOpen(false)} onClick={event => { if (event.target === event.currentTarget) setOpen(false) }}>
-   <div className="filter-dialog-inner"><header><span>ТВОЯТ ИЗБОР</span><button type="button" className="filter-close" aria-label="Затвори филтрите" onClick={() => setOpen(false)} autoFocus><X size={23} /></button></header>{children}</div>
+   <div className="filter-dialog-inner"><header><h2>Филтри</h2><button type="button" className="filter-close" aria-label="Затвори филтрите" onClick={() => setOpen(false)} autoFocus><X size={23} /></button></header>{children}</div>
   </dialog>
  </div>
 }

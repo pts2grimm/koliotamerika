@@ -13,7 +13,8 @@ export function AuctionFilters({ makes, initial }: { makes: Record<string, strin
   const advancedCount = ['status', 'fuel', 'seller_type'].filter(key => initial[key]).length + (initial.site && initial.site !== '1,2' ? 1 : 0)
 
   return <FilterPanel count={Object.keys(initial).length}><form key={resetCount} className="auction-filters" action="/targove" aria-label="Филтри за автомобили">
-    <div className="filter-panel-heading"><h2><SlidersHorizontal size={19} />Намери точния автомобил</h2><Link href="/targove" className="filter-reset" onClick={event => { if (!Object.keys(initial).length) { event.preventDefault(); setYearFrom(''); setYearTo(''); setResetCount(value => value + 1) } }}><RotateCcw size={14} />Изчисти</Link></div>
+    <div className="filter-scroll">
+    <div className="filter-panel-heading"><span className="filter-group-name">Автомобил</span><h2><SlidersHorizontal size={19} />Намери точния автомобил</h2><Link href="/targove" className="filter-reset" onClick={event => { if (!Object.keys(initial).length) { event.preventDefault(); setYearFrom(''); setYearTo(''); setResetCount(value => value + 1) } }}><RotateCcw size={14} />Изчисти</Link></div>
     <div className="filter-primary">
       <MakeModelFields makes={makes} initialMake={initial.make} initialModel={initial.model} />
       <label><span>Година от</span><input type="number" name="year_from" min="1900" max={yearTo || 2100} value={yearFrom} onChange={event => setYearFrom(event.target.value)} placeholder="Всички" /></label>
@@ -28,6 +29,7 @@ export function AuctionFilters({ makes, initial }: { makes: Record<string, strin
         <label>Продавач<select name="seller_type" defaultValue={initial.seller_type || ''}><option value="">Всички</option><option value="insurance">Застраховател</option><option value="dealer">Частно лице</option></select></label>
       </div>
     </details>
+    </div>
     <div className="filter-actions"><span>Промените се прилагат с бутона.</span><button className="button button-dark" type="submit"><Search size={18} />Намери автомобил</button></div>
   </form></FilterPanel>
 }
