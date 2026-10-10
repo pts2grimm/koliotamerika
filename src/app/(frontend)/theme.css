@@ -55,3 +55,9 @@
 [data-theme='dark'] .status-done { background:#14393c; color:#b1e9df; }
 [data-theme='dark'] .catalogue-section .section-heading>.text-link { background:var(--paper); border-color:var(--line); }
 [data-theme='dark'] .car-card:hover .card-detail-arrow { background:var(--orange); color:#082129; }
+
+/* Long Bulgarian labels and the quote button must wrap on small phones. */
+.calculator-grid > * { min-width:0; }
+.calculator-result .button { white-space:normal; }
+.calculator-result .button svg { flex-shrink:0; }
+@media(max-width:380px) { .calculator-result { padding:22px; } }
