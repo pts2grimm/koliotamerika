@@ -12,3 +12,5 @@
 @media(max-width:760px){.brand>img{width:155px}.service-directory{padding-bottom:55px}}
 .lot-search{display:flex;gap:16px;align-items:flex-end;margin-bottom:24px}.lot-search label{display:block;font-size:11px;font-weight:700;flex:1;max-width:430px}.lot-search input{display:block;width:100%;margin-top:9px;padding:13px;border:1px solid var(--line);border-radius:3px;min-height:49px}
 .share-actions{display:flex;flex-wrap:wrap;gap:10px;margin:20px 0}.share-actions .button{min-height:42px;padding:10px 16px;gap:10px;font-size:10px}.share-actions p{font-size:11px}.quote-price{padding:16px;background:var(--soft);border-left:3px solid var(--orange);font-size:24px;font-weight:750;color:var(--ink)}.quote-price small{display:block;font-size:10px;font-weight:500;margin-top:5px;color:var(--muted)}
+
+.preview-notice{padding:12px 20px;background:#e8f3f5;color:#153243;text-align:center;font-size:13px;line-height:1.5}.inquiry-fields{display:contents;border:0;padding:0;margin:0;min-width:0}.inquiry-fields:disabled input,.inquiry-fields:disabled textarea,.inquiry-fields:disabled select{opacity:.65}.inquiry-fields:disabled button{opacity:.6;cursor:not-allowed}

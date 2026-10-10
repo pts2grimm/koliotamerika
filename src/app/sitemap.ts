@@ -1,8 +1,9 @@
 import type { MetadataRoute } from 'next'
 import { cms, siteURL } from '@/lib/data'
+import { isPreview } from '@/lib/preview'
 export const dynamic = 'force-dynamic'
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
- if (process.env.SITE_INDEXABLE !== 'true') return []
+ if (isPreview() || process.env.SITE_INDEXABLE !== 'true') return []
  const payload = await cms(); const base = siteURL()
  const redirects = await payload.find({ collection: 'redirects', pagination: false, limit: 0, depth: 0 }); const redirectedPaths = new Set(redirects.docs.map(rule => rule.from))
  const output: MetadataRoute.Sitemap = ['/', '/avtomobili', '/kontakti', '/targove', '/kalkulator', '/blog'].map(path => ({ url: `${base}${path}`, changeFrequency: 'weekly', priority: path === '/' ? 1 : 0.8 }))

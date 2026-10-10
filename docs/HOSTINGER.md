@@ -2,7 +2,21 @@
 
 Този пакет е за Node.js приложение (Next.js + Payload), не за качване като WordPress тема. Снимката от hPanel потвърждава екран за Web App с Git импорт и Upload your files. Постоянният диск и командите при deployment все още трябва да се потвърдят в конкретния план.
 
-## Стъпки в панела
+## Публикуване само за разглеждане — без постоянна база
+
+За първия визуален преглед добавете **`PREVIEW_MODE=true`** в Hostinger преди Deploy. Оставете Next.js preset, branch `hostinger-preview`, Node 22.x (22.13+) или 24, root `./` и стандартния build `npm run build`.
+
+Не са нужни `DATABASE_URI`, `MEDIA_DIR` или `hosting:prepare` за този режим. При първа заявка приложението само създава временна SQLite база в системната temp директория, прилага включените миграции и импортира публичните страници. Наличен `DATABASE_URI` се игнорира в демото, за да не бъде променена работна база.
+
+Необходими настройки: `PAYLOAD_SECRET` (секрет), `NEXT_PUBLIC_SERVER_URL=https://papayawhip-ram-220810.hostingersite.com`, `SITE_INDEXABLE=false`, `PREVIEW_MODE=true`. За директните реални търгове добавете и `APICAR_API_KEY` (секрет), `AUCTION_PROVIDER=apicar`, `APICAR_VIN_ENABLED=false`. Не копирайте secret placeholder от Codex — въведете реалния ключ отделно в Hostinger.
+
+Демонстрационният режим показва обозначение на всяка страница, изключва формата за запитвания и блокира всички публични API/admin маршрути и HTTP записи, включително първоначална регистрация на администратор. Принудително връща noindex, robots Disallow и празен sitemap дори при погрешно `SITE_INDEXABLE=true`. Публичният frontend, статии, калкулатор и търгове могат да се разглеждат; CRM и админ редакциите не се използват в демото. Данните се възстановяват от публичната снимка при нов процес. Това не замества бъдещото постоянно съхранение.
+
+Проверка в cloud средата: `PREVIEW_MODE=true NEXT_DIST_DIR=.next-preview npm run build`, след това `node scripts/check-preview.mjs`. Проверява два отделни старта, публично съдържание, неактивна форма, блокирани записи/админ, noindex и недокосната постоянна база. Hostinger runtime се проверява отделно след Deploy.
+
+## Пълна версия с CRM и админ — след потвърден постоянен диск
+
+За пълната версия `PREVIEW_MODE` трябва да е `false` или да липсва, след като бъдат изпълнени следващите стъпки.
 
 1. След качване на кода в GitHub изберете **Connect with GitHub**, разрешете достъп до `pts2grimm/koliotamerika` и изберете branch `hostinger-preview`. `package.json` е в корена на репозитория. Алтернатива при работещо изтегляне: **Upload your files → Continue** и ZIP пакетът.
 2. На следващия екран проверете автоматично открития **Next.js**, Node **24** (или 22.13+), package manager **npm**, build `npm run build` и start `npm start`. Ако има поле за инсталиране, използвайте `npm ci --include=dev` — TypeScript и подготовката на базата изискват devDependencies.

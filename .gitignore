@@ -9,3 +9,4 @@ playwright-report/
 test-results/
 .next-test/
 .next-debug/
+.next-preview/

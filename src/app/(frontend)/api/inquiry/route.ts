@@ -2,7 +2,9 @@ import { NextResponse } from 'next/server'
 import { createHmac } from 'node:crypto'
 import { cms, siteURL } from '@/lib/data'
 import { validateInquiry } from '@/lib/inquiry-validation'
+import { isPreview } from '@/lib/preview'
 export async function POST(request: Request) {
+ if (isPreview()) return NextResponse.json({ error: 'Запитванията са изключени в демонстрационната версия.' }, { status: 403 })
  const origin = request.headers.get('origin')
  if (origin && origin !== new URL(siteURL()).origin) return NextResponse.json({ error: 'Невалиден източник на заявката.' }, { status: 403 })
  if (!request.headers.get('content-type')?.includes('application/json')) return NextResponse.json({ error: 'Очакват се JSON данни.' }, { status: 415 })
