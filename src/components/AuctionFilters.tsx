@@ -20,7 +20,7 @@ export function AuctionFilters({ makes, initial }: { makes: Record<string, strin
       <label><span>Година до</span><input type="number" name="year_to" min={yearFrom || 1900} max="2100" value={yearTo} onChange={event => setYearTo(event.target.value)} placeholder="Всички" /></label>
     </div>
     <details className="filter-advanced" open={advancedCount > 0 ? true : undefined}>
-      <summary><span>Още филтри{advancedCount > 0 && <span className="filter-count">{advancedCount}</span>}</span><ChevronDown size={17} /></summary>
+      <summary><span><strong>Още филтри{advancedCount > 0 && <span className="filter-count">{advancedCount}</span>}</strong><small>Аукцион, състояние, гориво и продавач</small></span><ChevronDown size={18} /></summary>
       <div className="filter-secondary">
         <label>Аукцион<select name="site" defaultValue={initial.site || '1,2'}><option value="1,2">Copart и IAAI</option><option value="1">Copart</option><option value="2">IAAI</option></select></label>
         <label>Състояние<select name="status" defaultValue={initial.status || ''}><option value="">Всички</option><option value="Run & Drive">Движи се (Run & Drive)</option><option value="Starts">Запалва (Starts)</option><option value="Stationary">Не се движи (Stationary)</option><option value="Can't test">Не е тестван</option></select></label>
@@ -28,6 +28,6 @@ export function AuctionFilters({ makes, initial }: { makes: Record<string, strin
         <label>Продавач<select name="seller_type" defaultValue={initial.seller_type || ''}><option value="">Всички</option><option value="insurance">Застраховател</option><option value="dealer">Частно лице</option></select></label>
       </div>
     </details>
-    <div className="filter-actions"><span>Избери критерии и разгледай предложенията.</span><button className="button button-dark" type="submit"><Search size={18} />Намери автомобил</button></div>
+    <div className="filter-actions"><span>Промените се прилагат с бутона.</span><button className="button button-dark" type="submit"><Search size={18} />Намери автомобил</button></div>
   </form></FilterPanel>
 }
