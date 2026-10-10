@@ -1,5 +1,7 @@
 import 'server-only'
 import { cache } from 'react'
+import { createHash, randomUUID } from 'node:crypto'
+import { createRequestCoalescer } from './coalesce-requests'
 import { unstable_cache } from 'next/cache'
 import { EnvHttpProxyAgent, fetch as proxyFetch } from 'undici'
 import { createApiCarProvider } from './auction-providers/apicar'
@@ -7,6 +9,8 @@ import { createLegacyProvider } from './auction-providers/legacy'
 import type { AuctionCar,AuctionTransport } from './auction-providers/types'
 export type { AuctionCar,AuctionSearch } from './auction-providers/types'
 const dispatcher=new EnvHttpProxyAgent()
+const coalesce=createRequestCoalescer()
+const instance=randomUUID().slice(0,8)
 let blockedUntil=0
 let windowStart=0,requests=0
 function transport(provider:'apicar'|'legacy'):AuctionTransport{return async(path,params)=>{
@@ -24,16 +28,16 @@ function transport(provider:'apicar'|'legacy'):AuctionTransport{return async(pat
   if(!response.ok){await response.body?.cancel();if(direct&&(status===401||status===403||status===429))blockedUntil=Date.now()+(status===429?60000:30*60000);throw new Error(`Auction provider HTTP ${status}`)}
   return await response.json()
  }finally{
-  // Log operation/status/latency only, never headers, credentials, URLs or response bodies.
-  if(process.env.AUCTION_LOGGING==='true')console.info(JSON.stringify({service:'auctions',provider,operation:/\/cars\/\d+$/.test(path)?'/cars/:lot':path,status,durationMs:Date.now()-start}))
+  // Log operational fields and a query fingerprint, never credentials, raw filter text, VINs, URLs or bodies.
+  if(process.env.AUCTION_LOGGING==='true')console.info(JSON.stringify({service:'auctions',instance,provider,queryHash:createHash('sha256').update(JSON.stringify([provider,path,[...params].sort()])).digest('hex').slice(0,16),site:params.get('site'),page:params.get('page'),size:params.get('size'),operation:/\/cars\/\d+$/.test(path)?'/cars/:lot':path,status,durationMs:Date.now()-start}))
  }
 }}
 export function auctionProviderName(){return process.env.AUCTION_PROVIDER|| (process.env.APICAR_API_KEY?'apicar':'legacy')}
 function provider(){const name=auctionProviderName();if(name==='apicar')return createApiCarProvider(transport('apicar'),process.env.APICAR_VIN_ENABLED==='true');if(name==='legacy')return createLegacyProvider(transport('legacy'));throw new Error(`Unsupported auction provider: ${name}`)}
-const cachedSearch=unstable_cache(async(_provider:string,params:string)=>provider().search(new URLSearchParams(params)),['auction-search-v2'],{revalidate:60})
-const cachedMakes=unstable_cache(async(_provider:string)=>provider().makes(),['auction-makes-v2'],{revalidate:3600})
-const cachedCar=unstable_cache(async(_provider:string,lot:string,site:string)=>provider().detail(lot,site),['auction-car-v2'],{revalidate:60})
-const cachedLookup=unstable_cache(async(_provider:string,q:string)=>provider().lookup(q),['auction-lookup-v2'],{revalidate:60})
+const cachedSearch=unstable_cache(async(_provider:string,params:string)=>coalesce(JSON.stringify(['search',_provider,params]),()=>provider().search(new URLSearchParams(params))),['auction-search-v2'],{revalidate:60})
+const cachedMakes=unstable_cache(async(_provider:string)=>coalesce(JSON.stringify(['makes',_provider]),()=>provider().makes()),['auction-makes-v2'],{revalidate:3600})
+const cachedCar=unstable_cache(async(_provider:string,lot:string,site:string)=>coalesce(JSON.stringify(['car',_provider,lot,site]),()=>provider().detail(lot,site)),['auction-car-v2'],{revalidate:60})
+const cachedLookup=unstable_cache(async(_provider:string,q:string)=>coalesce(JSON.stringify(['lookup',_provider,q]),()=>provider().lookup(q)),['auction-lookup-v2'],{revalidate:60})
 export const searchAuctions=(params:string)=>{const sorted=new URLSearchParams(params);sorted.sort();return cachedSearch(auctionProviderName(),sorted.toString())}
 export const auctionMakes=()=>cachedMakes(auctionProviderName())
 // Metadata and page content can request the same lot concurrently on a cold cache.

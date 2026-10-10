@@ -9,13 +9,19 @@ import { chromium } from '@playwright/test'
 const dist = process.env.NEXT_DIST_DIR || '.next-preview'
 assert.ok(/^\.next-[a-z-]+$/.test(dist))
 await rm(`${dist}/cache/fetch-cache`, { recursive: true, force: true })
-const fixture = spawn(process.execPath, ['tests/fixtures/auction-server.mjs'], { stdio: 'pipe' })
+const fixture = spawn(process.execPath, ['tests/fixtures/auction-server.mjs'], { env: { ...process.env, FIXTURE_AUCTION_DELAY_MS: '200' }, stdio: 'pipe' })
 const app = spawn(process.execPath, ['node_modules/next/dist/bin/next', 'start', '--hostname', '127.0.0.1', '--port', '3400'], {
- env: { ...process.env, NEXT_DIST_DIR: dist, PREVIEW_MODE: 'true', AUCTION_PROVIDER: 'legacy', AUCTION_API_BASE_URL: 'http://127.0.0.1:3199', NEXT_PUBLIC_SERVER_URL: 'http://127.0.0.1:3400', PAYLOAD_SECRET: randomBytes(48).toString('hex') }, stdio: 'pipe',
+ env: { ...process.env, NEXT_DIST_DIR: dist, PREVIEW_MODE: 'true', AUCTION_PROVIDER: 'legacy', AUCTION_LOGGING: 'true', AUCTION_API_BASE_URL: 'http://127.0.0.1:3199', NEXT_PUBLIC_SERVER_URL: 'http://127.0.0.1:3400', PAYLOAD_SECRET: randomBytes(48).toString('hex') }, stdio: 'pipe',
 })
 const exits = [once(fixture, 'exit'), once(app, 'exit')]
 let diagnostics = ''; for (const child of [fixture, app]) child.stderr.on('data', chunk => { diagnostics += chunk })
 let browser
+const events = []; let logBuffer = ''
+app.stdout.on('data', chunk => {
+ logBuffer += chunk.toString()
+ const lines = logBuffer.split('\n'); logBuffer = lines.pop() || ''
+ for (const line of lines) { try { const event = JSON.parse(line); if (event.service === 'auctions') events.push(event) } catch {} }
+})
 const counts = async () => { const { requests } = await (await fetch('http://127.0.0.1:3199/test-requests')).json(); return { searches: requests.filter(r => r.path === '/search').length, details: requests.filter(r => r.path === '/car').length, makes: requests.filter(r => r.path === '/makes-models').length } }
 try {
  for (let i = 0; i < 120; i++) { if (app.exitCode !== null || fixture.exitCode !== null) throw new Error(diagnostics); try { if ((await fetch('http://127.0.0.1:3400/registracia')).ok) break } catch {} await new Promise(r => setTimeout(r, 250)) }
@@ -33,11 +39,38 @@ try {
  const detail = await counts(); console.log('After opening one car:', detail)
  await page.reload({ waitUntil: 'networkidle' }); await page.waitForTimeout(500)
  const repeat = await counts(); console.log('After reloading the same car:', repeat)
+ const parallelBefore = await counts()
+ await Promise.all(Array.from({ length: 8 }, async () => {
+  const response = await fetch('http://127.0.0.1:3400/targove?make=Ford&model=Mustang&year_from=2021')
+  assert.equal(response.status, 200); await response.text()
+ }))
+ const parallelAfter = await counts()
+ const parallelSearches = parallelAfter.searches - parallelBefore.searches
+ console.log('Eight concurrent visitors, same uncached filter:', { searches: parallelSearches })
+ // Cross the real 60-second cache interval while the tab stays idle.
+ for (let i = 0; i < 7; i++) { await page.waitForTimeout(10000); console.log(`Idle observation: ${(i + 1) * 10}s`) }
+ const idle = await counts(); console.log('Idle page:', { additionalSearches: idle.searches - parallelAfter.searches })
+ await Promise.all(Array.from({ length: 8 }, async () => {
+  const response = await fetch('http://127.0.0.1:3400/targove?make=Ford&model=Mustang&year_from=2021')
+  assert.equal(response.status, 200); await response.text()
+ }))
+ // Stale-while-revalidate can finish after the HTML response.
+ await page.waitForTimeout(1000)
+ const renewed = await counts()
+ console.log('Eight concurrent visitors after cache expiry:', { searches: renewed.searches - idle.searches })
  if (!process.argv.includes('--baseline')) {
   assert.deepEqual(before, { searches: 2, details: 0, makes: 1 })
   assert.deepEqual(second, { searches: 4, details: 0, makes: 1 })
   assert.deepEqual(detail, { searches: 4, details: 1, makes: 1 }) // Related BMW/X5 result reuses page 1.
   assert.deepEqual(repeat, detail)
+  assert.equal(parallelSearches, 2)
+  assert.deepEqual(idle, parallelAfter)
+  assert.equal(renewed.searches - idle.searches, 2)
+  assert.equal(events.filter(event => event.operation === '/search').length, renewed.searches)
+  for (const event of events) {
+   assert.match(event.queryHash, /^[a-f0-9]{16}$/); assert.match(event.instance, /^[a-f0-9]{8}$/)
+   assert.deepEqual(Object.keys(event).sort(), ['service', 'instance', 'provider', 'queryHash', 'site', 'page', 'size', 'operation', 'status', 'durationMs'].sort())
+  }
   console.log('PASS: no speculative lot or pagination calls; one detail call shared by metadata/content; repeat navigation uses cache.')
  }
 } finally {

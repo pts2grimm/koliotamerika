@@ -12,10 +12,11 @@ const cars = Array.from({ length: 30 }, (_, index) => ({
  link_img_hd: images, link_img_small: images,
 }))
 cars.push({ ...cars[0], lot_id: 80000000, make: 'Ford', model: 'Mustang', title: '2022 Ford Mustang', vin: 'FORDTEST000000001' })
-createServer((req, res) => {
+createServer(async (req, res) => {
  const url = new URL(req.url, 'http://localhost')
  const params = url.searchParams
  if (['/search', '/car', '/makes-models', '/lookup'].includes(url.pathname)) requests.push({ path: url.pathname, params: Object.fromEntries(params) })
+ if (process.env.FIXTURE_AUCTION_DELAY_MS && ['/search', '/car', '/makes-models'].includes(url.pathname)) await new Promise(resolve => setTimeout(resolve, Number(process.env.FIXTURE_AUCTION_DELAY_MS)))
  let body = { success: true }
  if (url.pathname === '/test-requests') body = { requests }
  else if (url.pathname === '/test-mail') body = { messages }
