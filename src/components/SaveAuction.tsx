@@ -1,7 +1,13 @@
 'use client'
-import { useEffect,useState } from 'react'
+import { useState } from 'react'
 import { Heart } from 'lucide-react'
-export type SavedCar={lot:string;site:string;title:string}
-export const savedKey='koa-saved-auctions'
-export function readSaved():SavedCar[]{try{const data=JSON.parse(localStorage.getItem(savedKey)||'[]');return Array.isArray(data)?data.filter(x=>x&&/^\d+$/.test(x.lot)&&['1','2'].includes(x.site)&&typeof x.title==='string').slice(0,100):[]}catch{return []}}
-export function SaveAuction({lot,site,title}:SavedCar){const [saved,setSaved]=useState(false);useEffect(()=>{const update=()=>setSaved(readSaved().some(c=>c.lot===lot&&c.site===site));update();window.addEventListener('koa-saved',update);window.addEventListener('storage',update);return()=>{window.removeEventListener('koa-saved',update);window.removeEventListener('storage',update)}},[lot,site]);return <button className={`save-auction ${saved?'saved':''}`} aria-label={saved?'Премахни от запазените':'Запази автомобила'} aria-pressed={saved} onClick={()=>{try{const cars=readSaved();localStorage.setItem(savedKey,JSON.stringify(saved?cars.filter(c=>c.lot!==lot||c.site!==site):[...cars.slice(-99),{lot,site,title}]));setSaved(!saved);window.dispatchEvent(new Event('koa-saved'))}catch{}}}><Heart size={17} fill={saved?'currentColor':'none'}/></button>}
+import { useAccount } from './AccountProvider'
+import { vehicleKey, type SavedVehicle } from '@/lib/account-validation'
+export { readSaved, savedKey } from './AccountProvider'
+export type SavedCar = { lot: string; site: string; title: string }
+export function SaveVehicle({ vehicle }: { vehicle: SavedVehicle }) {
+ const account = useAccount(); const [busy, setBusy] = useState(false); const [error, setError] = useState('')
+ const saved = account.saved.some(v => vehicleKey(v) === vehicleKey(vehicle))
+ return <span className="save-control"><button type="button" className={`save-auction ${saved ? 'saved' : ''}`} disabled={!account.ready || busy} title={account.error || (account.user ? 'Запазване в профила' : 'Запазване на това устройство')} aria-label={saved ? 'Премахни от запазените' : 'Запази автомобила'} aria-pressed={saved} onClick={async () => { setBusy(true); setError(''); try { await account.toggle(vehicle) } catch (e) { setError(e instanceof Error ? e.message : 'Неуспешно запазване.') } finally { setBusy(false) } }}><Heart size={17} fill={saved ? 'currentColor' : 'none'} /></button>{error && <span className="save-error" role="alert">{error}</span>}</span>
+}
+export function SaveAuction(props: SavedCar) { return <SaveVehicle vehicle={{ kind: 'auction', ...props }} /> }

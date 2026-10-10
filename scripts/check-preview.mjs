@@ -47,12 +47,15 @@ try {
       assert.equal(auctions.status(), 200)
       assert.equal(auctions.headers()['x-robots-tag'], 'noindex, nofollow')
       assert.equal(await page.locator('meta[name="robots"]').getAttribute('content'), 'noindex, nofollow')
+      await page.goto(`${base}/registracia`, { waitUntil: 'networkidle' })
+      assert.equal(await page.getByRole('button', { name: 'Създай профил' }).isDisabled(), true)
+      assert.ok((await page.getByRole('note').allTextContents()).some(text => text.includes('Клиентските акаунти се подготвят')))
       assert.deepEqual(errors, [])
       await page.close()
       for (const route of ['/admin', '/admin/create-first-user', '/api/pages']) {
         assert.equal((await fetch(base + route)).status, 403)
       }
-      for (const route of ['/api/inquiry', '/api/users/first-register', '/']) {
+      for (const route of ['/api/inquiry', '/api/users/first-register', '/api/customers/first-register', '/api/account/register', '/api/account/login', '/']) {
         const response = await fetch(base + route, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' })
         assert.equal(response.status, 403)
       }
@@ -64,7 +67,7 @@ try {
       const db = createClient({ url: `file:${previewDB}` })
       try {
         assert.equal(Number((await db.execute('SELECT count(*) AS n FROM pages')).rows[0].n), 46)
-        for (const table of ['users', 'inquiries']) assert.equal(Number((await db.execute(`SELECT count(*) AS n FROM ${table}`)).rows[0].n), 0)
+        for (const table of ['users', 'customers', 'saved_vehicles', 'inquiries']) assert.equal(Number((await db.execute(`SELECT count(*) AS n FROM ${table}`)).rows[0].n), 0)
       } finally { db.close() }
       console.log(`Preview run ${run}: fresh startup, content, disabled forms/admin/API writes and noindex passed.`)
     } finally {

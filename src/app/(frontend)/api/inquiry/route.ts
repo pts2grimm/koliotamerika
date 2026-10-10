@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { createHmac } from 'node:crypto'
 import { cms, siteURL } from '@/lib/data'
 import { validateInquiry } from '@/lib/inquiry-validation'
+import { customerFromRequest } from '@/lib/account-server'
 import { isPreview } from '@/lib/preview'
 export async function POST(request: Request) {
  if (isPreview()) return NextResponse.json({ error: 'Запитванията са изключени в демонстрационната версия.' }, { status: 403 })
@@ -24,7 +25,8 @@ export async function POST(request: Request) {
    const cutoff = new Date(Date.now() - 60 * 60 * 1000).toISOString()
    const recent = await payload.count({ collection: 'submission-limits', where: { and: [{ key: { equals: key } }, { createdAt: { greater_than: cutoff } }] } })
    if (recent.totalDocs >= (client === 'shared' ? 30 : 5)) return NextResponse.json({ error: 'Твърде много запитвания. Опитай отново след час.' }, { status: 429, headers: { 'Retry-After': '3600' } })
-   await payload.create({ collection: 'inquiries', data: result.data })
+   const customer = await customerFromRequest(request)
+   await payload.create({ collection: 'inquiries', data: { ...result.data, ...(customer ? { customer: customer.id, email: customer.email } : {}) } })
    await payload.create({ collection: 'submission-limits', data: { key } })
    await payload.delete({ collection: 'submission-limits', where: { createdAt: { less_than: cutoff } } })
    return NextResponse.json({ success: true }, { status: 201 })

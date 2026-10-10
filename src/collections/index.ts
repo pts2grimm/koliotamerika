@@ -1,7 +1,8 @@
+import { Forbidden } from 'payload'
 import type { Access, CollectionConfig, Field } from 'payload'
 import path from 'node:path'
-const staff: Access = ({ req }) => Boolean(req.user)
-const published: Access = ({ req }) => req.user ? true : { status: { equals: 'published' } }
+const staff: Access = ({ req }) => req.user?.collection === 'users'
+const published: Access = ({ req }) => req.user?.collection === 'users' ? true : { status: { equals: 'published' } }
 export const seoFields: Field[] = [{ name: 'seo', label: 'SEO и споделяне', type: 'group', fields: [
   { name: 'title', label: 'SEO заглавие', type: 'text', maxLength: 70 },
   { name: 'description', label: 'SEO описание', type: 'textarea', maxLength: 180 },
@@ -11,7 +12,7 @@ export const seoFields: Field[] = [{ name: 'seo', label: 'SEO и споделя�
 const slug: Field = { name: 'slug', label: 'URL адрес', type: 'text', required: true, unique: true, index: true,
   validate: (value: unknown) => typeof value === 'string' && /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(value) ? true : 'Използвайте малки латински букви, цифри и тирета.' }
 const status: Field = { name: 'status', label: 'Публикуване', type: 'select', required: true, defaultValue: 'draft', options: [{ label: 'Чернова', value: 'draft' }, { label: 'Публикувано', value: 'published' }], admin: { position: 'sidebar' } }
-export const Users: CollectionConfig = { slug: 'users', labels: { singular: 'Администратор', plural: 'Администратори' }, auth: { maxLoginAttempts: 5, lockTime: 600000 }, admin: { useAsTitle: 'email' }, access: { create: staff, read: staff, update: staff, delete: staff }, fields: [{ name: 'name', label: 'Име', type: 'text' }] }
+export const Users: CollectionConfig = { slug: 'users', endpoints: process.env.CUSTOMER_ACCOUNTS_ENABLED === 'true' && process.env.ALLOW_ADMIN_SETUP !== 'true' ? [{ path: '/first-register', method: 'post', handler: () => Response.json({ error: 'Administrator setup is disabled.' }, { status: 403 }) }] : [], labels: { singular: 'Администратор', plural: 'Администратори' }, auth: { maxLoginAttempts: 5, lockTime: 600000 }, hooks: { beforeOperation: [({ operation, req }) => { if (operation === 'create' && req.user?.collection === 'customers') throw new Forbidden() }] }, admin: { useAsTitle: 'email' }, access: { create: staff, read: staff, update: staff, delete: staff }, fields: [{ name: 'name', label: 'Име', type: 'text' }] }
 export const Media: CollectionConfig = { slug: 'media', labels: { singular: 'Снимка', plural: 'Медия' }, access: { read: () => true, create: staff, update: staff, delete: staff }, upload: { staticDir: path.resolve(process.env.MEDIA_DIR || path.join(process.cwd(), 'public/media')), mimeTypes: ['image/jpeg', 'image/png', 'image/webp', 'image/avif'], imageSizes: [{ name: 'card', width: 800, height: 550, fit: 'cover' }], adminThumbnail: 'card' }, fields: [{ name: 'alt', label: 'Описание на изображението (SEO)', type: 'text', required: true }] }
 export const Cars: CollectionConfig = { slug: 'cars', labels: { singular: 'Автомобил', plural: 'Автомобили' }, admin: { useAsTitle: 'title', defaultColumns: ['title', 'price', 'availability', 'status'] }, access: { read: published, create: staff, update: staff, delete: staff }, fields: [
   { name: 'title', label: 'Заглавие', type: 'text', required: true }, slug, status,
@@ -26,7 +27,7 @@ export const Cars: CollectionConfig = { slug: 'cars', labels: { singular: 'Ав�
   { name: 'features', label: 'Оборудване', type: 'array', fields: [{ name: 'label', label: 'Екстра', type: 'text', required: true }] }, ...seoFields
 ] }
 export const Pages: CollectionConfig = { slug: 'pages', labels: { singular: 'Страница', plural: 'Страници и статии' }, admin: { useAsTitle: 'title' }, access: { read: published, create: staff, update: staff, delete: staff }, fields: [
-  { name: 'title', label: 'Заглавие', type: 'text', required: true }, { ...slug, validate: (value: unknown) => typeof value === 'string' && /^[a-z0-9]+(?:[-/][a-z0-9]+)*$/.test(value) && !['admin', 'api', 'avtomobili', 'kontakti', 'sitemap', 'robots'].includes(value) ? true : 'Невалиден или запазен URL адрес.' }, status,
+  { name: 'title', label: 'Заглавие', type: 'text', required: true }, { ...slug, validate: (value: unknown) => typeof value === 'string' && /^[a-z0-9]+(?:[-/][a-z0-9]+)*$/.test(value) && !['admin', 'api', 'avtomobili', 'kontakti', 'sitemap', 'robots', 'profil', 'vhod', 'registracia', 'zabravena-parola', 'nova-parola'].includes(value) ? true : 'Невалиден или запазен URL адрес.' }, status,
   { name: 'kind', label: 'Тип', type: 'select', defaultValue: 'page', options: [{ label: 'Страница', value: 'page' }, { label: 'Статия', value: 'article' }] },
   { name: 'eyebrow', label: 'Кратък надпис', type: 'text' },
   { name: 'intro', label: 'Въведение', type: 'textarea', required: true },
@@ -38,6 +39,7 @@ export const Pages: CollectionConfig = { slug: 'pages', labels: { singular: 'С�
   { name: 'sections', label: 'Секции на страницата', type: 'array', fields: [{ name: 'heading', label: 'Заглавие', type: 'text', required: true }, { name: 'body', label: 'Текст (празен ред за нов абзац)', type: 'textarea', required: true }] }, ...seoFields
 ] }
 export const Inquiries: CollectionConfig = { slug: 'inquiries', labels: { singular: 'Запитване', plural: 'Запитвания' }, admin: { useAsTitle: 'name', defaultColumns: ['name', 'email', 'status', 'createdAt'] }, access: { create: () => false, read: staff, update: staff, delete: staff }, fields: [
+  { name: 'customer', label: 'Клиентски профил', type: 'relationship', relationTo: 'customers', index: true, admin: { readOnly: true } },
   { name: 'name', label: 'Име', type: 'text', required: true }, { name: 'email', label: 'Имейл', type: 'email', required: true },
   { name: 'phone', label: 'Телефон', type: 'text', required: true }, { name: 'car', label: 'Желан автомобил', type: 'text' },
   { name: 'budget', label: 'Бюджет', type: 'text' }, { name: 'message', label: 'Съобщение', type: 'textarea', required: true },

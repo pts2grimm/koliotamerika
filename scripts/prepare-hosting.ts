@@ -6,11 +6,13 @@ for (const name of ['PAYLOAD_SECRET', 'DATABASE_URI', 'MEDIA_DIR', 'NEXT_PUBLIC_
   if (!process.env[name]) throw new Error(`Set ${name} in the hosting environment before initialization.`)
 }
 const database = process.env.DATABASE_URI!
-if (!database.startsWith('file:') || !path.isAbsolute(database.slice(5))) {
-  throw new Error('DATABASE_URI must be file:/absolute/path/on/persistent/storage/payload.db')
+const remote = database.startsWith('libsql://')
+if (remote && !process.env.DATABASE_AUTH_TOKEN) throw new Error('Set DATABASE_AUTH_TOKEN for the remote database.')
+if (!remote && (!database.startsWith('file:') || !path.isAbsolute(database.slice(5)))) {
+  throw new Error('DATABASE_URI must be libsql://your-database or file:/absolute/path/on/persistent/storage/payload.db')
 }
 if (!path.isAbsolute(process.env.MEDIA_DIR!)) throw new Error('MEDIA_DIR must be an absolute persistent directory.')
-await mkdir(path.dirname(database.slice(5)), { recursive: true })
+if (!remote) await mkdir(path.dirname(database.slice(5)), { recursive: true })
 await mkdir(process.env.MEDIA_DIR!, { recursive: true })
 Object.assign(process.env, { NODE_ENV: 'production', PAYLOAD_MIGRATING: 'true' })
 const { getPayload } = await import('payload')
