@@ -6,6 +6,7 @@ const cars = Array.from({ length: 30 }, (_, index) => ({
  make: 'BMW', model: 'X5', year: 2022 + index % 3, title: `${2022 + index % 3} BMW X5`,
  vin: `TESTVIN${String(index).padStart(10, '0')}`, fuel: 'Gasoline', seller_type: 'insurance',
  status: 'Run & Drive', damage_pr: 'Front End', current_bid: 5500 + index * 100, odometer: 45000,
+ auction_date: index === 1 ? undefined : index === 2 ? 'invalid-date' : index === 3 ? '2020-10-12T14:00:00.000Z' : '2030-10-12T14:00:00.000Z',
  link_img_hd: images, link_img_small: images,
 }))
 cars.push({ ...cars[0], lot_id: 80000000, make: 'Ford', model: 'Mustang', title: '2022 Ford Mustang', vin: 'FORDTEST000000001' })
