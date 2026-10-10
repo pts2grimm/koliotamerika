@@ -11,6 +11,10 @@ const cars = Array.from({ length: 30 }, (_, index) => ({
  auction_date: index === 1 ? undefined : index === 2 ? 'invalid-date' : index === 3 ? '2020-10-12T14:00:00.000Z' : '2030-10-12T14:00:00.000Z',
  link_img_hd: images, link_img_small: images,
 }))
+cars[4].video_url = ['https://cs.copart.com/test-engine.mp4']
+cars[5].videoLink = 'https://youtu.be/abcdefghijk'
+cars[6].video = 'https://cs.copart.com/test-engine-broken.mp4'
+cars[7].video = 'https://cs.copart.com/test-engine.mp4'; cars[7].link_img_hd = []; cars[7].link_img_small = []
 cars.push({ ...cars[0], lot_id: 80000000, make: 'Ford', model: 'Mustang', title: '2022 Ford Mustang', vin: 'FORDTEST000000001' })
 createServer(async (req, res) => {
  const url = new URL(req.url, 'http://localhost')
