@@ -1,0 +1,53 @@
+{
+  "name": "koliotamerika",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "next dev --webpack --hostname 0.0.0.0",
+    "build": "next build --webpack",
+    "start": "next start --hostname 0.0.0.0",
+    "typecheck": "tsc --noEmit",
+    "payload": "payload",
+    "generate:types": "payload generate:types",
+    "generate:importmap": "payload generate:importmap",
+    "test": "tsx --test tests/*.test.ts",
+    "test:e2e": "playwright test",
+    "setup": "node scripts/setup.mjs",
+    "import:content": "node --env-file=.env --import tsx scripts/import-content.ts",
+    "hosting:prepare": "node --import tsx scripts/prepare-hosting.ts"
+  },
+  "dependencies": {
+    "@fontsource-variable/manrope": "^5.3.0",
+    "@payloadcms/db-sqlite": "3.90.2",
+    "@payloadcms/next": "3.90.2",
+    "@payloadcms/richtext-lexical": "^3.90.2",
+    "@payloadcms/ui": "3.90.2",
+    "graphql": "^16.11.0",
+    "jsdom": "^30.1.2",
+    "lucide-react": "^0.468.0",
+    "next": "16.4.0",
+    "payload": "3.90.2",
+    "react": "19.1.9",
+    "react-dom": "19.1.9",
+    "sharp": "0.35.5",
+    "undici": "^7.30.0"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.56.0",
+    "@types/jsdom": "^30.0.0",
+    "@types/node": "^24.0.0",
+    "@types/react": "^19.1.0",
+    "@types/react-dom": "^19.1.0",
+    "tsx": "^4.20.0",
+    "typescript": "^5.9.0"
+  },
+  "engines": {
+    "node": ">=22.13.0"
+  },
+  "overrides": {
+    "sharp": "$sharp",
+    "sass": "1.105.1",
+    "undici": "^7.30.0"
+  }
+}

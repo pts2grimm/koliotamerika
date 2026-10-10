@@ -1,0 +1,8 @@
+import Link from 'next/link'
+import { ArrowUpRight } from 'lucide-react'
+import { Brand } from './Header'
+import { settings } from '@/lib/data'
+export async function Footer() {
+  const site = await settings()
+  return <footer className="footer"><div className="container"><div className="footer-top"><div><Brand /><p>Големите възможности<br />нямат граници.</p></div><div><span className="footer-label">РАЗГЛЕДАЙ</span><Link href="/targove">Търгове</Link><Link href="/avtomobili">Наши автомобили</Link><Link href="/kalkulator">Калкулатор за внос</Link><Link href="/kak-rabotim">Как работим</Link><Link href="/uslugi">Услуги</Link></div><div><span className="footer-label">ЗА КОМПАНИЯТА</span><Link href="/za-nas">За нас</Link><Link href="/kontakti">Контакти</Link><Link href="/zashtita-na-lichni-danni">Поверителност</Link><Link href="/obshti-usloviya">Общи условия</Link><Link href="/blog">Блог</Link></div><div><span className="footer-label">ДА ПОГОВОРИМ</span>{site.phone && <a href={`tel:${site.phone.replace(/[^+\d]/g, '')}`}>{site.phone}</a>}{site.email && <a href={`mailto:${site.email}`}>{site.email}</a>}<Link className="footer-contact" href="/kontakti">Изпрати запитване <ArrowUpRight size={18} /></Link>{site.address && <p>{site.address}</p>}{site.workingHours && <p>{site.workingHours}</p>}<div className="social-links">{site.viberURL && <a href={site.viberURL} target="_blank" rel="noreferrer">Viber</a>}{site.facebookURL && <a href={site.facebookURL} target="_blank" rel="noreferrer">Facebook</a>}</div></div></div><div className="footer-bottom"><span>© {new Date().getFullYear()} {site.brand}. Всички права запазени.</span><span>САЩ · КАНАДА → БЪЛГАРИЯ</span></div></div></footer>
+}

@@ -1,0 +1,4 @@
+'use client'
+import { useState } from 'react'
+import { Copy,Share2,Check } from 'lucide-react'
+export function ShareAuction({title,text}:{title:string;text:string}){const[copied,setCopied]=useState(false),[error,setError]=useState('');async function copy(){try{await navigator.clipboard.writeText(`${text}\n${location.href}`);setCopied(true);setError('')}catch{setError('Копирай адреса от адресната лента на браузъра.')}}return <div className="share-actions"><button className="button button-outline" onClick={copy}>{copied?<Check size={16}/>:<Copy size={16}/>} {copied?'Копирано':'Копирай обявата'}</button><button className="button button-outline" onClick={()=>{const url=new URL('https://www.facebook.com/sharer/sharer.php');url.searchParams.set('u',location.href);window.open(url,'_blank','noopener,noreferrer')}}><Share2 size={16}/>Facebook</button>{error&&<p role="status">{error}</p>}</div>}

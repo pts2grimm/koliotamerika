@@ -1,0 +1,11 @@
+'use client'
+import { useState } from 'react'
+import Link from 'next/link'
+import { ArrowUpRight, Calculator } from 'lucide-react'
+import { calculateImport, type CalculatorConfig } from '@/lib/calculate'
+export function ImportCalculator({config}:{config:CalculatorConfig}) {
+ const [price,setPrice]=useState('4000'),[inland,setInland]=useState(String(config.defaultInland ?? 500)),[shipping,setShipping]=useState(String(config.defaultShipping ?? 800))
+ const total=price&&inland&&shipping?calculateImport(Number(price),Number(inland),Number(shipping),config):null
+ const format=(n:number,currency:string)=>new Intl.NumberFormat('bg-BG',{style:'currency',currency,maximumFractionDigits:2}).format(n)
+ return <section id="calc" className="container calculator-section"><div className="section-heading"><div><span className="eyebrow orange">ПЛАНИРАЙ СЛЕДВАЩАТА СТЪПКА</span><h2>Колко ще струва вносът?</h2></div><Calculator size={30} strokeWidth={1.4}/></div><div className="calculator-grid"><div className="calculator-inputs">{[['Цена на автомобила на търг (USD)',price,setPrice,500000],['Вътрешен транспорт (USD)',inland,setInland,100000],['Морски транспорт / контейнер (USD)',shipping,setShipping,100000]].map(([label,value,set,max],i)=><label key={i}>{label as string}<input type="number" min={i===0?1:0} max={max as number} step="1" value={value as string} onChange={e=>(set as (v:string)=>void)(e.target.value)}/></label>)}<p>{config.note}</p></div><div className="calculator-result" aria-live="polite"><span className="eyebrow">ОРИЕНТИРОВЪЧНА КРАЙНА СТОЙНОСТ</span>{total?<><strong>{format(total.totalEur,'EUR')}</strong><span className="calculator-bgn">{format(total.totalBgn,'BGN')} по изходната тарифа</span><dl><div><dt>Автомобил + такса + транспорт</dt><dd>{format(total.vehicleBgn,'BGN')}</dd></div><div><dt>Допълнителни разходи по тарифата</dt><dd>{format(total.extra,'BGN')}</dd></div></dl><p>USD/BGN: {config.usdToBgn.toFixed(2)} · EUR/BGN: 1.95583<br/>Крайната оферта се потвърждава индивидуално.</p></>:<p>Въведи валидни положителни стойности.</p>}<Link href="/kontakti" className="button button-orange">Поискай индивидуална оферта <ArrowUpRight size={18}/></Link></div></div></section>
+}

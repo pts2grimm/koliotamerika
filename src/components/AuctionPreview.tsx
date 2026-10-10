@@ -1,0 +1,5 @@
+import Link from 'next/link'
+import { ArrowUpRight } from 'lucide-react'
+import { searchAuctions } from '@/lib/auctions'
+import { AuctionCard } from './AuctionCard'
+export async function AuctionPreview(){try{const data=await searchAuctions('page=1&size=12&site=1%2C2&vehicle_type=Automobile');return <><div className="car-grid">{data.items.slice(0,3).map(car=><AuctionCard key={car.id} car={car}/>)}</div><p className="auction-preview-note">Текущите залози не включват разходите за внос. Данните се обновяват периодично.</p></>}catch{return <div className="discovery-card"><div><span className="eyebrow">ТОЧНИЯТ МОДЕЛ. ПО ТВОИТЕ ПРАВИЛА.</span><h3>Имаш автомобил наум?</h3><p>Разгледай търговете от Copart и IAAI или ни изпрати модела, който търсиш.</p><Link href="/targove" className="button button-dark">Разгледай търговете <ArrowUpRight size={18}/></Link></div><div className="discovery-art" aria-hidden="true"><span className="outline-word">DRIVE</span><ArrowUpRight/></div></div>}}
