@@ -131,6 +131,7 @@
   list-style: none;
 }
 .auction-filters .filter-advanced summary::-webkit-details-marker { display: none; }
+.auction-filters .filter-advanced summary > span { display: block; min-width: 0; }
 .auction-filters .filter-advanced summary strong {
   display: flex;
   align-items: center;
@@ -155,7 +156,7 @@
   border-radius: 50%;
 }
 .auction-filters .filter-advanced[open] summary > svg { transform: rotate(180deg); }
-:is(.catalogue-sidebar,.filter-dialog) .filter-actions {
+:root body :is(.catalogue-sidebar,.filter-dialog) .filter-actions {
   display: flex;
   flex-direction: column;
   align-items: stretch;
