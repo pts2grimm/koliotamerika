@@ -1,6 +1,6 @@
 import { SaveVehicle } from './SaveAuction'
 import { CardPhotos } from './CardPhotos'
-import Link from 'next/link'
+import { SiteLink as Link } from '@/components/SiteLink'
 import { ArrowUpRight, Gauge, CalendarDays, Fuel } from 'lucide-react'
 import type { Car } from '@/payload-types'
 import { mediaUrl, money } from '@/lib/data'

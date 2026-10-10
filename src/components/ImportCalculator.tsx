@@ -1,6 +1,6 @@
 'use client'
 import { useState } from 'react'
-import Link from 'next/link'
+import { SiteLink as Link } from '@/components/SiteLink'
 import { ArrowUpRight, Calculator } from 'lucide-react'
 import { calculateImport, type CalculatorConfig } from '@/lib/calculate'
 export function ImportCalculator({config}:{config:CalculatorConfig}) {

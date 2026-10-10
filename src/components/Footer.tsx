@@ -1,4 +1,4 @@
-import Link from 'next/link'
+import { SiteLink as Link } from '@/components/SiteLink'
 import { ArrowUpRight } from 'lucide-react'
 import { Brand } from './Header'
 import { settings } from '@/lib/data'

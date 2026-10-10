@@ -1,4 +1,4 @@
-import Link from 'next/link'
+import { SiteLink as Link } from '@/components/SiteLink'
 import { ArrowUpRight, CalendarDays, Gauge, Fuel } from 'lucide-react'
 import { auctionCurrency, auctionImages, type AuctionCar } from '@/lib/auctions'
 import { SaveAuction } from './SaveAuction'

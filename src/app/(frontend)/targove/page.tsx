@@ -1,4 +1,4 @@
-import Link from 'next/link'
+import { SiteLink as Link } from '@/components/SiteLink'
 import type { Metadata } from 'next'
 import { redirect } from 'next/navigation'
 import { Heart, Search, X } from 'lucide-react'

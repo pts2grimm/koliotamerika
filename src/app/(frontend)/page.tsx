@@ -1,5 +1,5 @@
 import Image from 'next/image'
-import Link from 'next/link'
+import { SiteLink as Link } from '@/components/SiteLink'
 import { ArrowUpRight, Check, Search, ShieldCheck, Ship } from 'lucide-react'
 import { cms, mediaUrl, imageAlt, settings } from '@/lib/data'
 import { CTA } from '@/components/CTA'

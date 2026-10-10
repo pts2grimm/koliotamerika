@@ -1,5 +1,5 @@
 'use client'
-import Link from 'next/link'
+import { SiteLink as Link } from '@/components/SiteLink'
 import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 import { useState } from 'react'

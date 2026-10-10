@@ -1,6 +1,6 @@
 'use client'
 import { useAccount } from './AccountProvider'
-import Link from 'next/link'
+import { SiteLink as Link } from '@/components/SiteLink'
 import { useEffect, useRef, useState } from 'react'
 import { ArrowUpRight, CircleCheck, LoaderCircle } from 'lucide-react'
 export function InquiryForm({ car = '', preview = false }: { car?: string; preview?: boolean }) {

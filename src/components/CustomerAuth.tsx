@@ -1,6 +1,6 @@
 'use client'
 import { useState } from 'react'
-import Link from 'next/link'
+import { SiteLink as Link } from '@/components/SiteLink'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { accountAction, announceAccountChange, useAccount } from './AccountProvider'
 type Mode = 'login' | 'register' | 'forgot' | 'reset'

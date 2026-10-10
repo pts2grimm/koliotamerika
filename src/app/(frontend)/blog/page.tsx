@@ -1,5 +1,5 @@
 import Image from 'next/image'
-import Link from 'next/link'
+import { SiteLink as Link } from '@/components/SiteLink'
 import { ArrowUpRight } from 'lucide-react'
 import { cms,mediaUrl } from '@/lib/data'
 export const metadata={title:'Блог за внос на коли от САЩ',description:'Съвети, новини и полезна информация за покупка и внос на автомобили от Америка.',alternates:{canonical:'/blog'}}

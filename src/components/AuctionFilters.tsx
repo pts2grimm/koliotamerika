@@ -1,6 +1,6 @@
 'use client'
 
-import Link from 'next/link'
+import { SiteLink as Link } from '@/components/SiteLink'
 import { useState } from 'react'
 import { ChevronDown, RotateCcw, Search, SlidersHorizontal } from 'lucide-react'
 import { FilterPanel } from './FilterPanel'

@@ -1,6 +1,6 @@
 'use client'
 import { useEffect, useState } from 'react'
-import Link from 'next/link'
+import { SiteLink as Link } from '@/components/SiteLink'
 import { accountAction, announceAccountChange, readSaved, savedKey, useAccount } from './AccountProvider'
 import { SavedAuctions } from './SavedAuctions'
 type Inquiry = { id: number; car?: string; message: string; status: 'new' | 'progress' | 'done'; createdAt: string }

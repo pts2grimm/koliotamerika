@@ -1,4 +1,4 @@
-import Link from 'next/link'
+import { SiteLink as Link } from '@/components/SiteLink'
 
 export function AuctionSEO() {
   return <section className="auction-seo" aria-labelledby="auction-seo-title">

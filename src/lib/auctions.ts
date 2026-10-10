@@ -1,4 +1,5 @@
 import 'server-only'
+import { cache } from 'react'
 import { unstable_cache } from 'next/cache'
 import { EnvHttpProxyAgent, fetch as proxyFetch } from 'undici'
 import { createApiCarProvider } from './auction-providers/apicar'
@@ -35,7 +36,8 @@ const cachedCar=unstable_cache(async(_provider:string,lot:string,site:string)=>p
 const cachedLookup=unstable_cache(async(_provider:string,q:string)=>provider().lookup(q),['auction-lookup-v2'],{revalidate:60})
 export const searchAuctions=(params:string)=>{const sorted=new URLSearchParams(params);sorted.sort();return cachedSearch(auctionProviderName(),sorted.toString())}
 export const auctionMakes=()=>cachedMakes(auctionProviderName())
-export const auctionCar=(lot:string,site:string)=>cachedCar(auctionProviderName(),lot,site)
+// Metadata and page content can request the same lot concurrently on a cold cache.
+export const auctionCar=cache((lot:string,site:string)=>cachedCar(auctionProviderName(),lot,site))
 export const lookupAuction=(q:string)=>cachedLookup(auctionProviderName(),q)
 export function auctionImages(car:AuctionCar) {
  const safe=(value:string)=>{try{const url=new URL(value);return url.protocol==='https:'&&['cs.copart.com','vis.iaai.com'].includes(url.hostname)}catch{return false}}

@@ -1,6 +1,7 @@
 // Isolated upstream for browser tests; never calls the real auction provider.
 import { createServer } from 'node:http'
 import { messages } from './mail-server.mjs'
+const requests = []
 const images = [1, 2, 3].map(n => `https://cs.copart.com/test-gallery-${n}.jpg`)
 const cars = Array.from({ length: 30 }, (_, index) => ({
  lot_id: 70000000 + index, site: index < 15 ? 1 : 2,
@@ -14,8 +15,10 @@ cars.push({ ...cars[0], lot_id: 80000000, make: 'Ford', model: 'Mustang', title:
 createServer((req, res) => {
  const url = new URL(req.url, 'http://localhost')
  const params = url.searchParams
+ if (['/search', '/car', '/makes-models', '/lookup'].includes(url.pathname)) requests.push({ path: url.pathname, params: Object.fromEntries(params) })
  let body = { success: true }
- if (url.pathname === '/test-mail') body = { messages }
+ if (url.pathname === '/test-requests') body = { requests }
+ else if (url.pathname === '/test-mail') body = { messages }
  else if (url.pathname === '/makes-models') body.map = { BMW: ['X3', 'X5'], Ford: ['Mustang'], Toyota: ['RAV4'] }
  else if (url.pathname === '/search') {
   const items = cars.filter(car => ['site', 'make', 'model', 'status', 'fuel', 'seller_type'].every(key => !params.get(key) || String(car[key]) === params.get(key)) && (!params.get('year_from') || car.year >= Number(params.get('year_from'))) && (!params.get('year_to') || car.year <= Number(params.get('year_to'))))

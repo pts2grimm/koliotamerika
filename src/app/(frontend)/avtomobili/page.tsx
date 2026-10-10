@@ -1,4 +1,4 @@
-import Link from 'next/link'
+import { SiteLink as Link } from '@/components/SiteLink'
 import type { Where } from 'payload'
 import { ArrowRight, Search, X } from 'lucide-react'
 import { cms } from '@/lib/data'

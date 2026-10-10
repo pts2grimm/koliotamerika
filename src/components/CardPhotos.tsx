@@ -1,6 +1,6 @@
 'use client'
 
-import Link from 'next/link'
+import { SiteLink as Link } from '@/components/SiteLink'
 import Image from 'next/image'
 import { useEffect, useState } from 'react'
 import { ChevronLeft, ChevronRight, Images } from 'lucide-react'
