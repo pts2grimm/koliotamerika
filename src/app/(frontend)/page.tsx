@@ -1,17 +1,19 @@
 import Image from 'next/image'
 import Link from 'next/link'
-import { ArrowDown, ArrowRight, ArrowUpRight, Check, Search, ShieldCheck, Ship, SlidersHorizontal } from 'lucide-react'
+import { ArrowDown, ArrowRight, ArrowUpRight, Check, Search, ShieldCheck, Ship } from 'lucide-react'
 import { cms, mediaUrl, settings } from '@/lib/data'
 import { CTA } from '@/components/CTA'
 import { CarCard } from '@/components/CarCard'
 import { AuctionPreview } from '@/components/AuctionPreview'
+import { HomeSearch } from '@/components/HomeSearch'
+import { auctionMakes } from '@/lib/auctions'
 export const metadata = { alternates: { canonical: '/' } }
 export default async function Home() {
- const site = await settings()
+ const [site, makes] = await Promise.all([settings(), auctionMakes().catch(() => ({}))])
  const cars = await (await cms()).find({ collection: 'cars', overrideAccess: false, limit: 3, sort: '-createdAt' })
  return <>
   <section className="hero"><Image className="hero-photo" src={mediaUrl(site.heroImage) || '/images/hero.png'} alt="Илюстративен автомобил на пристанище при изгрев" fill priority sizes="100vw" /><div className="hero-shade" /><div className="container hero-content"><span className="eyebrow hero-eyebrow"><span className="tiny-line" />САЩ И КАНАДА. ПО-БЛИЗО ОТ ВСЯКОГА.</span><h1>{(site.heroTitle || '').split('\n').map((line, i) => <span key={i}>{line}</span>)}</h1><p>{site.heroDescription}</p><div className="hero-actions"><Link href="/targove" className="button button-orange">Разгледай търговете <ArrowUpRight size={20} /></Link><Link href="/kak-rabotim" className="hero-secondary">Как работи вносът <ArrowRight size={18} /></Link></div><div className="hero-bottom"><span><span className="status-dot" />ТВОЯТ ПЪТ ЗАПОЧВА ТУК</span><a href="#discover" aria-label="Разгледай повече"><ArrowDown size={21} /></a></div></div><span className="photo-note">Илюстративно изображение</span></section>
-  <div className="container finder-wrap" id="discover"><form className="finder" action="/targove"><div className="finder-heading"><SlidersHorizontal size={23} /><div><strong>Какво ще караш утре?</strong><span>Открий своя автомобил.</span></div></div><label><span>МАРКА АВТОМОБИЛ</span><select name="make" defaultValue=""><option value="">Всички марки</option>{["Audi","BMW","Chevrolet","Dodge","Ford","Honda","Hyundai","Jeep","Kia","Lexus","Mazda","Mercedes-Benz","Nissan","Porsche","Tesla","Toyota","Volkswagen","Volvo"].map(make => <option key={make}>{make}</option>)}</select></label><label><span>ГОДИНА ОТ</span><select name="year_from" defaultValue=""><option value="">Без ограничение</option>{[2025,2024,2022,2020,2018,2015,2010].map(year => <option key={year}>{year}</option>)}</select></label><button className="button button-dark" type="submit"><Search size={19} />Разгледай</button></form></div>
+  <HomeSearch makes={makes} />
   <section className="container intro-section"><div className="section-heading"><div><span className="eyebrow orange">ПОВЕЧЕ ВЪЗМОЖНОСТИ. ТВОЯТ ИЗБОР.</span><h2>Друг пазар.<br /><span className="muted">Нови възможности.</span></h2></div><p>Търсиш точния модел, повече оборудване или нещо различно? Погледни отвъд познатото. Ние сме тук, за да обсъдим пътя до твоя следващ автомобил.</p></div><div className="benefit-grid">{[
    { Icon: Search, title: 'Изборът започва от теб', text: 'Марка, модел, характер. Кажи ни какво е важно за теб и с какъв бюджет разполагаш.', num: '01' },
    { Icon: ShieldCheck, title: 'Информация преди решение', text: 'История, състояние и очаквани разходи — въпросите, които задаваме преди следващата стъпка.', num: '02' },

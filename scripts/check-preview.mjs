@@ -43,6 +43,10 @@ try {
       const article = await page.goto(`${base}/vnos-na-koli-ot-usa`, { waitUntil: 'networkidle' })
       assert.equal(article.status(), 200)
       assert.ok((await page.locator('article').textContent()).includes('Безплатна консултация'))
+      const auctions = await page.goto(`${base}/targove?make=BMW&model=X5`, { waitUntil: 'domcontentloaded' })
+      assert.equal(auctions.status(), 200)
+      assert.equal(auctions.headers()['x-robots-tag'], 'noindex, nofollow')
+      assert.equal(await page.locator('meta[name="robots"]').getAttribute('content'), 'noindex, nofollow')
       assert.deepEqual(errors, [])
       await page.close()
       for (const route of ['/admin', '/admin/create-first-user', '/api/pages']) {

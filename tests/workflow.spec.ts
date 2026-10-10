@@ -14,8 +14,10 @@ test.beforeAll(async ({ request }) => {
  const imageId = (await image.json()).doc.id
  const car = await request.post('/api/cars', { headers: auth(), data: { title: 'Тестов BMW X5', slug: 'test-bmw-x5', make: 'BMW', model: 'X5', year: 2022, mileage: 45000, price: 35000, description: 'Тестов автомобил за проверка на каталога и запитванията.', status: 'published', image: imageId, seo: { title: 'BMW X5 тестова оферта', description: 'Тестово SEO описание на автомобила за проверка.' } } })
  expect(car.status()).toBe(201); carId = (await car.json()).doc.id
- const draft = await request.post('/api/cars', { headers: auth(), data: { title: 'Непубликуван автомобил', slug: 'draft-car', make: 'Ford', model: 'Mustang', year: 2020, description: 'Това е чернова и не трябва да се показва.', status: 'draft' } })
+ const draft = await request.post('/api/cars', { headers: auth(), data: { title: 'Непубликуван автомобил', slug: 'draft-car', make: 'BMW', model: 'X5', year: 2020, description: 'Това е чернова и не трябва да се показва.', status: 'draft' } })
  expect(draft.status()).toBe(201)
+ const related = await request.post('/api/cars', { headers: auth(), data: { title: 'Свързан BMW X3', slug: 'related-bmw-x3', make: 'BMW', model: 'X3', year: 2021, price: 45000, description: 'Публикуван автомобил за проверка на свързаните предложения.', status: 'published', image: imageId } })
+ expect(related.status()).toBe(201)
 })
 test('homepage and mobile navigation render without horizontal overflow', async ({ page }) => {
  await page.goto('/'); await expect(page.getByRole('heading', { level: 1 })).toContainText('Следващата ти кола')
@@ -34,6 +36,15 @@ test('catalogue filters, car metadata and draft restrictions work', async ({ pag
  await page.goto('/avtomobili/test-bmw-x5'); await expect(page).toHaveTitle(/BMW X5 тестова оферта/)
  await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href', 'http://localhost:3100/avtomobili/test-bmw-x5')
  await expect(page.locator('meta[name="description"]')).toHaveAttribute('content', 'Тестово SEO описание на автомобила за проверка.')
+ await page.getByRole('button', { name: 'Увеличи снимка 1' }).click()
+ await expect(page.getByRole('dialog')).toBeVisible()
+ await expect(page.getByRole('dialog').getByRole('button', { name: 'Следваща снимка' })).toHaveCount(0)
+ await page.keyboard.press('Escape')
+ await expect(page.getByRole('dialog')).not.toBeVisible()
+ const related = page.getByRole('region', { name: 'Свързани автомобили' })
+ await expect(related.getByRole('heading', { name: 'Свързан BMW X3' })).toBeVisible()
+ await expect(related.getByText('Непубликуван автомобил')).toHaveCount(0)
+ await expect(related.getByText('Тестов BMW X5')).toHaveCount(0)
  const draft = await request.get('/avtomobili/draft-car'); expect(draft.status()).toBe(404)
  const privateData = await request.get('/api/inquiries'); expect([401, 403]).toContain(privateData.status())
  const anonymousWrite = await request.patch(`/api/cars/${carId}`, { data: { price: 1 } }); expect([401, 403]).toContain(anonymousWrite.status())

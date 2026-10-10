@@ -37,5 +37,10 @@ export const searchAuctions=(params:string)=>{const sorted=new URLSearchParams(p
 export const auctionMakes=()=>cachedMakes(auctionProviderName())
 export const auctionCar=(lot:string,site:string)=>cachedCar(auctionProviderName(),lot,site)
 export const lookupAuction=(q:string)=>cachedLookup(auctionProviderName(),q)
-export function auctionImage(car:AuctionCar){const value=car.link_img_hd?.[0]||car.link_img_small?.[0];if(!value)return undefined;try{const u=new URL(value);return u.protocol==='https:'&&['cs.copart.com','vis.iaai.com'].includes(u.hostname)?value:undefined}catch{return undefined}}
+export function auctionImages(car:AuctionCar) {
+ const safe=(value:string)=>{try{const url=new URL(value);return url.protocol==='https:'&&['cs.copart.com','vis.iaai.com'].includes(url.hostname)}catch{return false}}
+ const hd=(car.link_img_hd||[]).filter(safe)
+ return [...new Set(hd.length?hd:(car.link_img_small||[]).filter(safe))]
+}
+export function auctionImage(car:AuctionCar){return auctionImages(car)[0]}
 export function auctionCurrency(value:number,currency='USD'){return new Intl.NumberFormat('bg-BG',{style:'currency',currency:['USD','CAD','EUR','BGN'].includes(currency.toUpperCase())?currency.toUpperCase():'USD',maximumFractionDigits:0}).format(value)}
