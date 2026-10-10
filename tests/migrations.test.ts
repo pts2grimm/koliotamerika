@@ -12,7 +12,7 @@ const accounts = readFileSync(path.join(root, 'src/migrations/20261010_135337_cu
 
 // Use the real schema to reproduce deployments interrupted between SQL statements.
 function statements(source: string) {
-  return [...source.split('export async function down')[0].matchAll(/await db\.run\(sql`([\s\S]*?)`\)/g)]
+  return [...source.split('export async function down')[0].matchAll(/await db\.run\(sql`((?:\\[\s\S]|[^`])*)`\)/g)]
     .map(match => match[1].replaceAll('\\`', '`'))
 }
 function sandbox() {
