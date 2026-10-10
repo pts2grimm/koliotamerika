@@ -1,7 +1,9 @@
 import { MigrateUpArgs, MigrateDownArgs, sql } from '@payloadcms/db-sqlite'
 
-export async function up({ db, payload, req }: MigrateUpArgs): Promise<void> {
-  await db.run(sql`CREATE TABLE \`customers_sessions\` (
+// These migrations may be retried after a remote connection was interrupted.
+// Keep existing rows; only create missing schema objects.
+export async function up({ db }: MigrateUpArgs): Promise<void> {
+  await db.run(sql`CREATE TABLE IF NOT EXISTS \`customers_sessions\` (
   	\`_order\` integer NOT NULL,
   	\`_parent_id\` integer NOT NULL,
   	\`id\` text PRIMARY KEY NOT NULL,
@@ -10,9 +12,9 @@ export async function up({ db, payload, req }: MigrateUpArgs): Promise<void> {
   	FOREIGN KEY (\`_parent_id\`) REFERENCES \`customers\`(\`id\`) ON UPDATE no action ON DELETE cascade
   );
   `)
-  await db.run(sql`CREATE INDEX \`customers_sessions_order_idx\` ON \`customers_sessions\` (\`_order\`);`)
-  await db.run(sql`CREATE INDEX \`customers_sessions_parent_id_idx\` ON \`customers_sessions\` (\`_parent_id\`);`)
-  await db.run(sql`CREATE TABLE \`customers\` (
+  await db.run(sql`CREATE INDEX IF NOT EXISTS \`customers_sessions_order_idx\` ON \`customers_sessions\` (\`_order\`);`)
+  await db.run(sql`CREATE INDEX IF NOT EXISTS \`customers_sessions_parent_id_idx\` ON \`customers_sessions\` (\`_parent_id\`);`)
+  await db.run(sql`CREATE TABLE IF NOT EXISTS \`customers\` (
   	\`id\` integer PRIMARY KEY NOT NULL,
   	\`name\` text NOT NULL,
   	\`phone\` text,
@@ -29,10 +31,10 @@ export async function up({ db, payload, req }: MigrateUpArgs): Promise<void> {
   	\`lock_until\` text
   );
   `)
-  await db.run(sql`CREATE INDEX \`customers_updated_at_idx\` ON \`customers\` (\`updated_at\`);`)
-  await db.run(sql`CREATE INDEX \`customers_created_at_idx\` ON \`customers\` (\`created_at\`);`)
-  await db.run(sql`CREATE UNIQUE INDEX \`customers_email_idx\` ON \`customers\` (\`email\`);`)
-  await db.run(sql`CREATE TABLE \`saved_vehicles\` (
+  await db.run(sql`CREATE INDEX IF NOT EXISTS \`customers_updated_at_idx\` ON \`customers\` (\`updated_at\`);`)
+  await db.run(sql`CREATE INDEX IF NOT EXISTS \`customers_created_at_idx\` ON \`customers\` (\`created_at\`);`)
+  await db.run(sql`CREATE UNIQUE INDEX IF NOT EXISTS \`customers_email_idx\` ON \`customers\` (\`email\`);`)
+  await db.run(sql`CREATE TABLE IF NOT EXISTS \`saved_vehicles\` (
   	\`id\` integer PRIMARY KEY NOT NULL,
   	\`customer_id\` integer NOT NULL,
   	\`key\` text NOT NULL,
@@ -46,18 +48,26 @@ export async function up({ db, payload, req }: MigrateUpArgs): Promise<void> {
   	FOREIGN KEY (\`customer_id\`) REFERENCES \`customers\`(\`id\`) ON UPDATE no action ON DELETE set null
   );
   `)
-  await db.run(sql`CREATE INDEX \`saved_vehicles_customer_idx\` ON \`saved_vehicles\` (\`customer_id\`);`)
-  await db.run(sql`CREATE UNIQUE INDEX \`saved_vehicles_key_idx\` ON \`saved_vehicles\` (\`key\`);`)
-  await db.run(sql`CREATE INDEX \`saved_vehicles_updated_at_idx\` ON \`saved_vehicles\` (\`updated_at\`);`)
-  await db.run(sql`CREATE INDEX \`saved_vehicles_created_at_idx\` ON \`saved_vehicles\` (\`created_at\`);`)
-  await db.run(sql`ALTER TABLE \`inquiries\` ADD \`customer_id\` integer REFERENCES customers(id) ON DELETE set null ON UPDATE no action;`)
-  await db.run(sql`CREATE INDEX \`inquiries_customer_idx\` ON \`inquiries\` (\`customer_id\`);`)
-  await db.run(sql`ALTER TABLE \`payload_locked_documents_rels\` ADD \`customers_id\` integer REFERENCES customers(id) ON DELETE cascade ON UPDATE no action;`)
-  await db.run(sql`ALTER TABLE \`payload_locked_documents_rels\` ADD \`saved_vehicles_id\` integer REFERENCES saved_vehicles(id) ON DELETE cascade ON UPDATE no action;`)
-  await db.run(sql`CREATE INDEX \`payload_locked_documents_rels_customers_id_idx\` ON \`payload_locked_documents_rels\` (\`customers_id\`);`)
-  await db.run(sql`CREATE INDEX \`payload_locked_documents_rels_saved_vehicles_id_idx\` ON \`payload_locked_documents_rels\` (\`saved_vehicles_id\`);`)
-  await db.run(sql`ALTER TABLE \`payload_preferences_rels\` ADD \`customers_id\` integer REFERENCES customers(id) ON DELETE cascade ON UPDATE no action;`)
-  await db.run(sql`CREATE INDEX \`payload_preferences_rels_customers_id_idx\` ON \`payload_preferences_rels\` (\`customers_id\`);`)
+  await db.run(sql`CREATE INDEX IF NOT EXISTS \`saved_vehicles_customer_idx\` ON \`saved_vehicles\` (\`customer_id\`);`)
+  await db.run(sql`CREATE UNIQUE INDEX IF NOT EXISTS \`saved_vehicles_key_idx\` ON \`saved_vehicles\` (\`key\`);`)
+  await db.run(sql`CREATE INDEX IF NOT EXISTS \`saved_vehicles_updated_at_idx\` ON \`saved_vehicles\` (\`updated_at\`);`)
+  await db.run(sql`CREATE INDEX IF NOT EXISTS \`saved_vehicles_created_at_idx\` ON \`saved_vehicles\` (\`created_at\`);`)
+  if (!(await db.all<{ name: string }>(sql`PRAGMA table_info("inquiries")`)).some(column => column.name === 'customer_id')) {
+    await db.run(sql`ALTER TABLE \`inquiries\` ADD \`customer_id\` integer REFERENCES customers(id) ON DELETE set null ON UPDATE no action;`)
+  }
+  await db.run(sql`CREATE INDEX IF NOT EXISTS \`inquiries_customer_idx\` ON \`inquiries\` (\`customer_id\`);`)
+  if (!(await db.all<{ name: string }>(sql`PRAGMA table_info("payload_locked_documents_rels")`)).some(column => column.name === 'customers_id')) {
+    await db.run(sql`ALTER TABLE \`payload_locked_documents_rels\` ADD \`customers_id\` integer REFERENCES customers(id) ON DELETE cascade ON UPDATE no action;`)
+  }
+  if (!(await db.all<{ name: string }>(sql`PRAGMA table_info("payload_locked_documents_rels")`)).some(column => column.name === 'saved_vehicles_id')) {
+    await db.run(sql`ALTER TABLE \`payload_locked_documents_rels\` ADD \`saved_vehicles_id\` integer REFERENCES saved_vehicles(id) ON DELETE cascade ON UPDATE no action;`)
+  }
+  await db.run(sql`CREATE INDEX IF NOT EXISTS \`payload_locked_documents_rels_customers_id_idx\` ON \`payload_locked_documents_rels\` (\`customers_id\`);`)
+  await db.run(sql`CREATE INDEX IF NOT EXISTS \`payload_locked_documents_rels_saved_vehicles_id_idx\` ON \`payload_locked_documents_rels\` (\`saved_vehicles_id\`);`)
+  if (!(await db.all<{ name: string }>(sql`PRAGMA table_info("payload_preferences_rels")`)).some(column => column.name === 'customers_id')) {
+    await db.run(sql`ALTER TABLE \`payload_preferences_rels\` ADD \`customers_id\` integer REFERENCES customers(id) ON DELETE cascade ON UPDATE no action;`)
+  }
+  await db.run(sql`CREATE INDEX IF NOT EXISTS \`payload_preferences_rels_customers_id_idx\` ON \`payload_preferences_rels\` (\`customers_id\`);`)
 }
 
 export async function down({ db, payload, req }: MigrateDownArgs): Promise<void> {

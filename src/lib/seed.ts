@@ -23,7 +23,8 @@ export async function seed(payload: Payload) {
     ] }
   ]
   for (const page of pages) await payload.create({ collection: 'pages', data: { ...page, kind: 'page', status: 'published' } })
-  await payload.updateGlobal({ slug: 'site-settings', data: { faq: [
+  const site = await payload.findGlobal({ slug: 'site-settings' })
+  if (!site.id) await payload.updateGlobal({ slug: 'site-settings', data: { faq: [
     { question: 'Как се изчислява крайната цена?', answer: 'Цената зависи от автомобила, таксите при покупка, транспорта, данъците и необходимите допълнителни услуги. Изпрати запитване за индивидуална оферта с разбивка на разходите.' },
     { question: 'Колко време отнема доставката?', answer: 'Срокът зависи от местоположението на автомобила, транспортния график и документите. Ориентировъчен срок се уточнява за конкретната поръчка.' },
     { question: 'Мога ли да поръчам конкретен модел?', answer: 'Посочи предпочитания модел, година, оборудване и бюджет във формата за запитване. Това е отправната точка за обсъждане на възможностите.' },

@@ -11,10 +11,13 @@ import { tmpdir } from 'node:os'
 import { AuctionQuotes, Cars, Inquiries, Media, Pages, RateLimits, Redirects, Users } from './collections'
 import { CalculatorSettings } from './globals/CalculatorSettings'
 import { SiteSettings } from './globals/SiteSettings'
-import { seed } from './lib/seed'
+import { initializeContent } from './lib/initialize-content'
 import { isPreview } from './lib/preview'
 import { migrations } from './migrations'
 const preview = isPreview()
+const remote = !preview && /^(libsql|https?):\/\//i.test(process.env.DATABASE_URI || '')
+const migrating = process.env.PAYLOAD_MIGRATING === 'true'
+if (remote && !process.env.DATABASE_AUTH_TOKEN) throw new Error('DATABASE_AUTH_TOKEN is required for the remote database.')
 if (!process.env.PAYLOAD_SECRET) throw new Error('PAYLOAD_SECRET is required. Run npm run setup for local development.')
 export default buildConfig({
   secret: process.env.PAYLOAD_SECRET,
@@ -27,20 +30,15 @@ export default buildConfig({
   ...(process.env.SMTP_HOST && process.env.SMTP_FROM ? { email: nodemailerAdapter({ defaultFromAddress: process.env.SMTP_FROM, defaultFromName: 'Коли от Америка', skipVerify: true, transportOptions: { host: process.env.SMTP_HOST, port: Number(process.env.SMTP_PORT || 587), secure: process.env.SMTP_PORT === '465', ...(process.env.SMTP_USER ? { auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASSWORD } } : {}) } }) } : {}),
   db: sqliteAdapter({
     client: { url: preview ? `file:${path.join(tmpdir(), `koa-preview-${process.pid}.db`)}` : process.env.DATABASE_URI || 'file:./.data/payload.db', ...(!preview && process.env.DATABASE_AUTH_TOKEN ? { authToken: process.env.DATABASE_AUTH_TOKEN } : {}) },
-    ...((preview || process.env.DATABASE_URI?.startsWith('libsql://')) ? { prodMigrations: migrations } : {}),
+    // Never run development schema push against the persistent remote database.
+    ...(remote ? { push: false } : {}),
+    // The explicit preparation script runs this same list exactly once itself.
+    ...(!migrating ? { prodMigrations: migrations } : {}),
   }),
   sharp,
   editor: lexicalEditor(),
   typescript: { outputFile: path.resolve(process.cwd(), 'src/payload-types.ts') },
   onInit: async payload => {
-    if (!preview && process.env.INITIAL_ADMIN_EMAIL && process.env.INITIAL_ADMIN_PASSWORD && !(await payload.count({ collection: 'users' })).totalDocs) {
-      if (process.env.INITIAL_ADMIN_PASSWORD.length < 16) throw new Error('INITIAL_ADMIN_PASSWORD must have at least 16 characters.')
-      await payload.create({ collection: 'users', data: { email: process.env.INITIAL_ADMIN_EMAIL, password: process.env.INITIAL_ADMIN_PASSWORD, name: 'Администратор' } })
-    }
-    await seed(payload)
-    if (preview || process.env.DATABASE_URI?.startsWith('libsql://')) {
-      const { importContent } = await import('./lib/import-content')
-      await importContent(payload)
-    }
+    await initializeContent(payload, { preview, importLegacy: preview || remote })
   }
 })

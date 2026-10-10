@@ -1,0 +1,27 @@
+name: Database initialization
+on:
+  push:
+    branches: [hostinger-preview, codex/turso-initialization-repair]
+  pull_request:
+    branches: [hostinger-preview]
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci --include=dev
+      - run: npm test
+      - run: npm run build
+        env:
+          PAYLOAD_SECRET: isolated-ci-build-secret-not-for-deployment
+          PREVIEW_MODE: 'true'
+          NEXT_PUBLIC_SERVER_URL: http://localhost:3000
+          SITE_INDEXABLE: 'false'
+      - run: npm run typecheck
