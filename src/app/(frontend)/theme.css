@@ -1,0 +1,46 @@
+/* Public-site theme; the Payload administration interface manages its own theme. */
+:root { color-scheme: light; }
+.theme-toggle { display:flex; align-items:center; justify-content:center; width:44px; height:44px; flex-shrink:0; padding:0; border:1px solid var(--line); border-radius:50%; color:var(--ink); background:var(--paper); }
+.theme-toggle:hover { background:var(--soft); border-color:var(--orange); }
+.theme-sun { display:none; }
+[data-theme='dark'] { color-scheme:dark; --ink:#e5eff6; --muted:#a9bac5; --paper:#0d161c; --soft:#162630; --line:#30434e; --orange:#7ad7dc; }
+[data-theme='dark'] .theme-moon { display:none; }
+[data-theme='dark'] .theme-sun { display:block; }
+[data-theme='dark'] :is(.site-header,.nav-links,.finder,.car-card,.benefit-card,.account-panel,.inquiry-history article,.filter-dialog,.filter-actions,.home-benefit-grid article,.home-testimonial-grid article,.home-testimonials article) { background:var(--paper); border-color:var(--line); }
+[data-theme='dark'] :is(.catalogue-section,.market-strip,.discovery-card,.form-card,.site-footer,.auction-filters,.catalogue-sidebar,.vehicle-facts,.vehicle-seo,.home-benefits,.home-testimonials,.car-image,.card-photos,.gallery-stage,.gallery-thumbnails,.account-nav,.filter-close) { background:var(--soft); border-color:var(--line); }
+[data-theme='dark'] :is(input,select,textarea) { background:var(--paper); color:var(--ink); border-color:var(--line); }
+[data-theme='dark'] :is(input,textarea)::placeholder { color:var(--muted); opacity:1; }
+[data-theme='dark'] select:disabled { background:var(--soft); }
+[data-theme='dark'] :is(.muted,.account-intro p,.account-guest p,.inquiry-meta,.vehicle-facts dt,.vehicle-seo p,.home-copy,.home-partners li,.footer-links a,.car-specs,.car-meta) { color:var(--muted); }
+[data-theme='dark'] :is(.car-badge,.car-arrow,.save-auction,.card-detail-arrow,.section-heading .text-link) { background:var(--soft); color:var(--ink); border-color:var(--line); }
+[data-theme='dark'] :is(.button-orange,.hero-showcase .finder .button) { background:var(--orange); color:#082129; }
+[data-theme='dark'] .button-orange:hover { background:#a1e7ea; }
+[data-theme='dark'] :is(.button-dark,.button-white,.filter-count) { background:#e5eff6; color:#153243; }
+[data-theme='dark'] .button-dark:hover { background:#fff; }
+[data-theme='dark'] .cta-box { background:#164653; color:#fff; }
+[data-theme='dark'] .calculator-result { background:#163744; color:#fff; }
+[data-theme='dark'] :is(.preview-notice,.account-notice,.auction-schedule,.hint-good,.status-new) { background:#14393c; color:#b1e9df; border-color:#346367; }
+[data-theme='dark'] :is(.auction-schedule.past,.auction-schedule.unknown,.hint-neutral) { background:var(--soft); color:var(--muted); }
+[data-theme='dark'] :is(.hint-warn,.status-processing) { background:#44351e; color:#f3d59b; }
+[data-theme='dark'] :is(.form-error,.save-error,.hint-bad) { background:#42252b; color:#ffb9bf; border-color:#79434d; }
+[data-theme='dark'] :is(.active-filters button,.vehicle-facts > div,.home-news-grid article,.home-partners li,.inquiry-history article,.account-links) { border-color:var(--line); }
+[data-theme='dark'] .home-community .home-copy { color:#d5e5ee; }
+/* Preserve the original logo artwork on a small light backing. */
+[data-theme='dark'] .brand img { background:#fff; border-radius:5px; padding:5px; }
+@media(max-width:1050px) {
+ .nav-links { display:none; position:absolute; top:92px; left:0; right:0; padding:20px 24px; background:var(--paper); border-bottom:1px solid var(--line); }
+ .nav-links.open { display:flex; flex-direction:column; align-items:flex-start; gap:20px; }
+ .menu-button { display:flex; align-items:center; justify-content:center; width:44px; height:44px; flex-shrink:0; padding:0; color:var(--ink); }
+ .theme-toggle { margin-left:auto; }
+ .account-nav { margin-left:0; }
+}
+@media(max-width:760px) { .nav-links { top:76px; } }
+@media(max-width:480px) {
+ .nav-wrap { gap:6px; }
+ .account-nav { width:44px; height:44px; padding:0; justify-content:center; flex-shrink:0; }
+ .account-nav span { display:none; }
+ .nav-wrap .brand { flex-shrink:1; min-width:0; }
+}
+
+[data-theme='dark'] .home-review-grid figure { background:var(--paper); border-color:var(--line); }
+[data-theme='dark'] .home-review-grid figcaption span { color:var(--muted); }

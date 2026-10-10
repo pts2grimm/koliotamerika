@@ -1,3 +1,4 @@
+import { enforcePasswordPolicy } from '../lib/password-hook'
 import type { Access, CollectionConfig } from 'payload'
 const staff: Access = ({ req }) => req.user?.collection === 'users'
 const blocked = () => Response.json({ error: 'Използвайте страницата за клиентски вход.' }, { status: 403 })
@@ -11,7 +12,7 @@ export const Customers: CollectionConfig = {
    return `<h1>Нова парола</h1><p>Използвай връзката до 1 час:</p><p><a href="${url.toString().replace(/&/g, '&amp;')}">Избери нова парола</a></p><p>Ако не си поискал промяната, игнорирай това писмо.</p>`
   } },
  },
- hooks: { beforeDelete: [async ({ id, req }) => { await req.payload.delete({ collection: 'saved-vehicles', where: { customer: { equals: id } }, req }) }] },
+ hooks: { beforeOperation: [enforcePasswordPolicy], beforeDelete: [async ({ id, req }) => { await req.payload.delete({ collection: 'saved-vehicles', where: { customer: { equals: id } }, req }) }] },
  access: { unlock: staff, admin: () => false, create: staff, read: staff, update: staff, delete: staff },
  endpoints: ['/first-register', '/login', '/forgot-password', '/reset-password', '/refresh-token', '/verify/:id'].map(path => ({ path, method: 'post', handler: blocked })),
  fields: [

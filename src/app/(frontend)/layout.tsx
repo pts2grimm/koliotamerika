@@ -4,6 +4,8 @@ import './styles.css'
 import './showcase.css'
 import './accounts.css'
 import './experience.css'
+import './theme.css'
+import { themeInitScript } from '@/lib/theme'
 import { AccountProvider } from '@/components/AccountProvider'
 import { accountsEnabled, passwordRecoveryEnabled } from '@/lib/accounts-enabled'
 import { Header } from '@/components/Header'
@@ -20,5 +22,5 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function Layout({ children }: { children: React.ReactNode }) {
  const site = await settings()
  const json = { '@context': 'https://schema.org', '@type': 'Organization', name: site.brand, url: siteURL(), ...(site.phone ? { telephone: site.phone } : {}), ...(site.email ? { email: site.email } : {}) }
- return <html lang="bg" data-scroll-behavior="smooth"><body><AccountProvider enabled={accountsEnabled()} recovery={passwordRecoveryEnabled()}><a className="skip-link" href="#main">Към съдържанието</a><Header />{isPreview() && <div className="preview-notice" role="note">Демонстрационна версия · Разгледай сайта. Изпращането на запитвания е изключено.</div>}<main id="main">{children}</main><Footer /><script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(json).replace(/</g, '\\u003c') }} /></AccountProvider></body></html>
+ return <html lang="bg" data-scroll-behavior="smooth" suppressHydrationWarning><head><script id="theme-init" dangerouslySetInnerHTML={{ __html: themeInitScript }} /></head><body><AccountProvider enabled={accountsEnabled()} recovery={passwordRecoveryEnabled()}><a className="skip-link" href="#main">Към съдържанието</a><Header />{isPreview() && <div className="preview-notice" role="note">Демонстрационна версия · Разгледай сайта. Изпращането на запитвания е изключено.</div>}<main id="main">{children}</main><Footer /><script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(json).replace(/</g, '\\u003c') }} /></AccountProvider></body></html>
 }

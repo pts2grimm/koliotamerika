@@ -10,5 +10,5 @@ export function vehicleInput(value: unknown): SavedVehicle | null {
 }
 export const vehicleKey = (v: SavedVehicle) => v.kind === 'car' ? `car:${v.slug}` : `auction:${v.site}:${v.lot}`
 export const vehicleURL = (v: SavedVehicle) => v.kind === 'car' ? `/avtomobili/${v.slug}` : `/targove/kola?lot=${v.lot}&site=${v.site}`
-export const validPassword = (v: unknown): v is string => typeof v === 'string' && v.length >= 12 && v.length <= 128
+export { validPassword } from './password-policy'
 export const accountEmail = (v: unknown) => typeof v === 'string' && v.length <= 254 && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim()) ? v.trim().toLowerCase() : null

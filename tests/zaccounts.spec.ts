@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test'
 import { randomBytes } from 'node:crypto'
-const password = randomBytes(24).toString('base64url')
+const password = randomBytes(6).toString('base64url')
 const origin = { origin: 'http://localhost:3100' }
 test.beforeAll(async ({ request }) => {
  const response = await request.post('/api/users/first-register', { data: { email: 'account-admin@example.test', password } })
@@ -88,7 +88,7 @@ test('customer registration, device sync, private inquiries, access boundaries a
   const decoded = mailHeaders.includes('Content-Transfer-Encoding: base64') ? Buffer.from(parts.join('\r\n\r\n'), 'base64').toString('utf8') : parts.join('\r\n\r\n').replace(/=\r\n/g, '').replace(/=3D/g, '=')
   const resetToken = decoded.match(/token=([a-f0-9]{40})/)?.[1]
   expect(resetToken).toBeTruthy()
-  const newPassword = randomBytes(24).toString('base64url')
+  const newPassword = randomBytes(6).toString('base64url')
   const reset = await alice.request.post('/api/account/reset', { headers: origin, data: { token: resetToken, password: newPassword } })
   expect(reset.status()).toBe(200)
   expect((await (await device.request.get('/api/account')).json()).user).toBeNull()

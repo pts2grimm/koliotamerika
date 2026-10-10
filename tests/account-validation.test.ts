@@ -12,5 +12,5 @@ test('favorite destinations are restricted to valid local cars and auction lots'
 test('account input bounds reject invalid emails and short or oversized passwords', () => {
  assert.equal(accountEmail(' Alice@Example.com '), 'alice@example.com')
  assert.equal(accountEmail('x\n@y.z'), null); assert.equal(accountEmail('not-an-email'), null)
- assert.equal(validPassword('a'.repeat(11)), false); assert.equal(validPassword('a'.repeat(12)), true); assert.equal(validPassword('a'.repeat(129)), false)
+ assert.equal(validPassword('a'.repeat(7)), false); assert.equal(validPassword('a'.repeat(8)), true); assert.equal(validPassword('a'.repeat(129)), false)
 })

@@ -31,7 +31,7 @@ export async function POST(request: Request, { params }: Context) {
     return accountResponse({ success: true })
    }
    if (action === 'reset') {
-    if (!validPassword(body.password) || typeof body.token !== 'string' || !/^[a-f0-9]{40}$/.test(body.token)) throw new AccountError('Невалидна връзка или парола. Паролата трябва да е между 12 и 128 символа.')
+    if (!validPassword(body.password) || typeof body.token !== 'string' || !/^[a-f0-9]{40}$/.test(body.token)) throw new AccountError('Невалидна връзка или парола. Паролата трябва да е между 8 и 128 символа.')
     try {
      const result = await payload.resetPassword({ collection: 'customers', data: { token: body.token, password: body.password }, overrideAccess: true })
      if (!result.token) throw new Error('Missing session')
@@ -39,7 +39,7 @@ export async function POST(request: Request, { params }: Context) {
     } catch { throw new AccountError('Връзката е невалидна или е изтекла. Поискай нова.') }
    }
    if (action === 'register') {
-    if (!validPassword(body.password) || typeof body.name !== 'string' || body.name.trim().length < 2 || body.name.length > 120 || body.consent !== true || (body.phone != null && (typeof body.phone !== 'string' || body.phone.length > 40))) throw new AccountError('Попълни името, приeми политиката и избери парола между 12 и 128 символа.')
+    if (!validPassword(body.password) || typeof body.name !== 'string' || body.name.trim().length < 2 || body.name.length > 120 || body.consent !== true || (body.phone != null && (typeof body.phone !== 'string' || body.phone.length > 40))) throw new AccountError('Попълни името, приeми политиката и избери парола между 8 и 128 символа.')
     // Registration is enabled only after the administrator has been provisioned.
     if (!(await payload.count({ collection: 'users' })).totalDocs) throw new AccountError('Регистрацията още не е активирана от екипа.', 503)
     try { await payload.create({ collection: 'customers', data: { email: email!, password: body.password, name: body.name.trim(), phone: typeof body.phone === 'string' ? body.phone.trim() : '', consentedAt: new Date().toISOString() } }) }
