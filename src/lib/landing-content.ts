@@ -14,11 +14,11 @@ export function landingSections(page: Pick<Page, 'body' | 'sections'>): LandingS
  const sections: LandingSection[] = []
  if (page.body) {
   const body = page.body
-  let title = 'В детайли'
+  let title: string | null = null
   let nodes: Node[] = []
   const flush = () => {
-   if (!nodes.length && title === 'В детайли') return
-   sections.push({ id: 'topic-' + (sections.length + 1), title, rich: { ...body, root: { ...body.root, children: nodes } } })
+   if (!nodes.length && title === null) return
+   sections.push({ id: 'topic-' + (sections.length + 1), title: title ?? 'В детайли', rich: { ...body, root: { ...body.root, children: nodes } } })
    nodes = []
   }
   for (const node of body.root.children) {

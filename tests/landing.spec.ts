@@ -59,7 +59,7 @@ test('contact prefill and submitting an inquiry still work', async ({ page }) =>
  await page.goto('/kontakti?car=BMW%20X5')
  await expect(page.locator('[name=car]')).toHaveValue('BMW X5')
  await page.getByLabel('Име', { exact: false }).first().fill('Дизайн Тест')
- await page.getByLabel('Имейл', { exact: true }).fill('landing@example.test')
+ await page.locator('[name=email]').fill('landing@example.test')
  await page.getByLabel('Телефон', { exact: false }).fill('+359888123456')
  await page.getByLabel('Какво търсиш?').fill('Търся BMW X5 с индивидуална оферта за внос.')
  await page.locator('[name=consent]').check()
