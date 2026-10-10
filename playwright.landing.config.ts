@@ -7,7 +7,9 @@ export default defineConfig({
  timeout: 180000,
  webServer: [servers[0], {
   ...servers[1],
-  command: 'node --import tsx scripts/prepare-hosting.ts && npm run dev -- --port 3100',
+  // Exercise the built site; development schema push must not touch the migrated fixture.
+  command: 'node --import tsx scripts/prepare-hosting.ts && npm run start -- --port 3100',
+  env: { ...servers[1].env, NEXT_DIST_DIR: '.next' },
   timeout: 180000,
  }],
 })
