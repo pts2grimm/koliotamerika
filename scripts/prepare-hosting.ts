@@ -23,7 +23,12 @@ const { migrations } = await import('../src/migrations')
 const { initializeContent } = await import('../src/lib/initialize-content')
 const payload = await getPayload({ config, disableOnInit: true })
 try {
-  await payload.db.migrate({ migrations })
+  // Payload's generic migrate API accepts unknown args; this config uses SQLite.
+  await payload.db.migrate({ migrations: migrations.map(migration => ({
+    name: migration.name,
+    up: (args: unknown) => migration.up(args as Parameters<typeof migration.up>[0]),
+    down: (args: unknown) => migration.down(args as Parameters<typeof migration.down>[0]),
+  })) })
   await initializeContent(payload, { preview: false, importLegacy: true })
   console.log('Hosting database ready.')
 } finally {

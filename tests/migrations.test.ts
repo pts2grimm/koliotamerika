@@ -20,7 +20,7 @@ function sandbox() {
   const filename = path.join(dir, 'payload.db')
   mkdirSync(path.join(dir, 'media'))
   // Explicit environment: never inherit live database credentials or API keys.
-  const env = {
+  const env: NodeJS.ProcessEnv = {
     PATH: process.env.PATH,
     NODE_ENV: 'production',
     PREVIEW_MODE: 'false',
