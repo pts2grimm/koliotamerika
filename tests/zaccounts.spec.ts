@@ -3,8 +3,21 @@ import { randomBytes } from 'node:crypto'
 const password = randomBytes(6).toString('base64url')
 const origin = { origin: 'http://localhost:3100' }
 test.beforeAll(async ({ request }) => {
+ const short = await request.post('/api/users/first-register', { data: { email: 'short-admin@example.test', password: 'short77' } })
+ expect(short.status()).toBe(400)
  const response = await request.post('/api/users/first-register', { data: { email: 'account-admin@example.test', password } })
- expect([200, 403]).toContain(response.status())
+ expect(response.status()).toBe(200)
+ const login = await request.post('/api/users/login', { data: { email: 'account-admin@example.test', password } })
+ expect(login.status()).toBe(200)
+ const { token, user } = await login.json()
+ const headers = { Authorization: 'JWT ' + token }
+ expect((await request.patch('/api/users/' + user.id, { headers, data: { password: 'short77' } })).status()).toBe(400)
+ expect((await request.patch('/api/users/' + user.id, { headers, data: { name: 'Admin test', password } })).status()).toBe(200)
+ expect((await request.patch('/api/users/' + user.id, { headers, data: { name: 'Renamed admin' } })).status()).toBe(200)
+ expect((await request.post('/api/users', { headers, data: { email: 'short@example.test', password: 'short77' } })).status()).toBe(400)
+ expect((await request.post('/api/users', { headers, data: { email: 'eight@example.test', password } })).status()).toBe(201)
+ const shortCustomer = await request.post('/api/account/register', { headers: origin, data: { email: 'short-customer@example.test', name: 'Test Person', password: 'short77', consent: true } })
+ expect(shortCustomer.status()).toBe(400)
 })
 const vehicle = { kind: 'auction', lot: '12345678', site: '1', title: 'BMW X5 — запазен' }
 test('customer registration, device sync, private inquiries, access boundaries and logout', async ({ browser }) => {
@@ -89,7 +102,8 @@ test('customer registration, device sync, private inquiries, access boundaries a
   const resetToken = decoded.match(/token=([a-f0-9]{40})/)?.[1]
   expect(resetToken).toBeTruthy()
   const newPassword = randomBytes(6).toString('base64url')
-  const reset = await alice.request.post('/api/account/reset', { headers: origin, data: { token: resetToken, password: newPassword } })
+  expect((await alice.request.post('/api/account/reset', { headers: origin, data: { token: resetToken, password: 'short77' } })).status()).toBe(400)
+ const reset = await alice.request.post('/api/account/reset', { headers: origin, data: { token: resetToken, password: newPassword } })
   expect(reset.status()).toBe(200)
   expect((await (await device.request.get('/api/account')).json()).user).toBeNull()
   expect((await alice.request.post('/api/account/reset', { headers: origin, data: { token: resetToken, password: newPassword } })).status()).toBe(400)

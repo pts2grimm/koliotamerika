@@ -29,7 +29,7 @@ function sandbox() {
     PAYLOAD_SECRET: 'isolated-migration-regression-secret-only',
     NEXT_PUBLIC_SERVER_URL: 'http://localhost:3000',
     INITIAL_ADMIN_EMAIL: 'new-admin@example.test',
-    INITIAL_ADMIN_PASSWORD: 'isolated-test-password-12345',
+    INITIAL_ADMIN_PASSWORD: 'eight888',
   }
   const run = (script = 'scripts/prepare-hosting.ts') => {
     const result = spawnSync(process.execPath, ['--import', 'tsx', script], {
@@ -133,4 +133,9 @@ test('interrupted customer migration resumes after already-added columns', { tim
     assert.equal(db.prepare('SELECT message FROM inquiries WHERE id = 10').get()?.message, 'Keep inquiry')
     db.close()
   } finally { rmSync(dir, { recursive: true, force: true }) }
+})
+
+test('both auth collections enforce eight characters for create, update and reset', { timeout: 120_000 }, () => {
+ const { dir, run } = sandbox()
+ try { run('tests/fixtures/password-policy.ts') } finally { rmSync(dir, { recursive: true, force: true }) }
 })

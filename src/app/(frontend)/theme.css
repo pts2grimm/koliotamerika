@@ -44,3 +44,14 @@
 
 [data-theme='dark'] .home-review-grid figure { background:var(--paper); border-color:var(--line); }
 [data-theme='dark'] .home-review-grid figcaption span { color:var(--muted); }
+
+[data-theme='dark'] :is(.footer,.vehicle-gallery-stage,.gallery-thumbnails button) { background:var(--soft); }
+[data-theme='dark'] :is(.inquiry-history,.skip-link) { background:var(--paper); color:var(--ink); border-color:var(--line); }
+[data-theme='dark'] :is(.finder,.auction-filters,.catalogue-filter,.inquiry-form) :is(input:not([type=checkbox]),select,textarea) { background:var(--paper); color:var(--ink); border-color:var(--line); }
+[data-theme='dark'] :is(.account-panel small,.auction-damage,.auction-schedule small,.discovery-card .eyebrow,.footer-top>div>a:not(.brand),.image-placeholder) { color:var(--muted); }
+[data-theme='dark'] :is(.auction-schedule-past,.auction-schedule-unknown) { background:var(--soft); color:var(--muted); border-color:var(--line); }
+[data-theme='dark'] .inquiry-status { background:#203b60; color:#c2dcff; }
+[data-theme='dark'] .status-progress { background:#44351e; color:#f3d59b; }
+[data-theme='dark'] .status-done { background:#14393c; color:#b1e9df; }
+[data-theme='dark'] .catalogue-section .section-heading>.text-link { background:var(--paper); border-color:var(--line); }
+[data-theme='dark'] .car-card:hover .card-detail-arrow { background:var(--orange); color:#082129; }
