@@ -136,7 +136,7 @@
  .landing-aside nav { margin:0; }
  .landing-aside .landing-help { display:none; }
  .landing-next { gap:36px; }
- .landing-contact .contact-section { grid-template-columns:1fr 1fr; gap:28px; }
+ .landing-contact .contact-section { grid-template-columns:1fr; gap:32px; }
  .landing-contact .contact-intro h1 { font-size:44px; }
  .landing-contact .form-card > h2 { font-size:27px; }
 }
@@ -215,3 +215,7 @@
  .landing-journal .blog-grid { grid-template-columns:1fr; }
  .journal-list-heading h2 { font-size:25px; }
 }
+
+.landing-contact .form-row { grid-template-columns:repeat(2,minmax(0,1fr)); }
+.landing-contact .form-row label { min-width:0; }
+@media(max-width:760px) { .landing-contact .form-row { grid-template-columns:1fr; } }

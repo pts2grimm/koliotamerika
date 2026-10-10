@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test'
 const routes = ['/vnos-na-koli-ot-usa', '/uslugi', '/kak-rabotim', '/homologacia', '/vnos-na-motori-ot-sasht', '/vnos-na-koli-ot-usa/vnos-na-koli-ot-amerika-cena', '/amerikanski-sajt-za-koli', '/chesto-zadavani-vuprosi', '/proverka-na-istoriya-na-avtomobil', '/kalkulator', '/kontakti', '/blog']
-for (const theme of ['light', 'dark'] as const) for (const width of [390, 1440]) {
+for (const theme of ['light', 'dark'] as const) for (const width of [390, 768, 1440]) {
  test(theme + ' interior pages at ' + width, async ({ page }, info) => {
   const errors: string[] = []
   page.on('pageerror', e => errors.push(e.message))
