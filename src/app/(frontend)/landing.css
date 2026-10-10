@@ -1,6 +1,6 @@
 /* Interior marketing pages: all rules are scoped away from the homepage. */
-.landing-page { --landing-surface: #f1f6f5; --landing-deep: #143b43; --landing-accent: #c6e8df; }
-[data-theme='dark'] .landing-page { --landing-surface: #12232a; --landing-deep: #102e37; --landing-accent: #b3e4de; }
+.landing-page { --muted:#616e72; --landing-surface: #f1f6f5; --landing-deep: #143b43; --landing-accent: #c6e8df; }
+[data-theme='dark'] .landing-page { --muted:#a9bac5; --landing-surface: #12232a; --landing-deep: #102e37; --landing-accent: #b3e4de; }
 .landing-hero { background:var(--landing-surface); padding-bottom:64px; border-bottom:1px solid var(--line); }
 .landing-breadcrumbs { display:flex; align-items:center; gap:12px; flex-wrap:wrap; padding-block:26px; font-size:12px; color:var(--muted); }
 .landing-breadcrumbs a:hover { color:var(--orange); }
