@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import '@fontsource-variable/manrope'
 import './styles.css'
+import './showcase.css'
 import { Header } from '@/components/Header'
 import { Footer } from '@/components/Footer'
 import { settings, siteURL } from '@/lib/data'

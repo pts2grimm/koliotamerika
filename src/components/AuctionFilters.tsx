@@ -3,19 +3,21 @@
 import Link from 'next/link'
 import { useState } from 'react'
 import { ChevronDown, RotateCcw, Search, SlidersHorizontal } from 'lucide-react'
+import { FilterPanel } from './FilterPanel'
 import { MakeModelFields } from './MakeModelFields'
 
 export function AuctionFilters({ makes, initial }: { makes: Record<string, string[]>; initial: Record<string, string> }) {
+  const [resetCount, setResetCount] = useState(0)
   const [yearFrom, setYearFrom] = useState(initial.year_from || '')
   const [yearTo, setYearTo] = useState(initial.year_to || '')
   const advancedCount = ['status', 'fuel', 'seller_type'].filter(key => initial[key]).length + (initial.site && initial.site !== '1,2' ? 1 : 0)
 
-  return <form className="auction-filters" action="/targove" aria-label="Филтри за автомобили">
-    <div className="filter-panel-heading"><h2><SlidersHorizontal size={19} />Намери точния автомобил</h2><Link href="/targove" className="filter-reset"><RotateCcw size={14} />Изчисти</Link></div>
+  return <FilterPanel count={Object.keys(initial).length}><form key={resetCount} className="auction-filters" action="/targove" aria-label="Филтри за автомобили">
+    <div className="filter-panel-heading"><h2><SlidersHorizontal size={19} />Намери точния автомобил</h2><Link href="/targove" className="filter-reset" onClick={event => { if (!Object.keys(initial).length) { event.preventDefault(); setYearFrom(''); setYearTo(''); setResetCount(value => value + 1) } }}><RotateCcw size={14} />Изчисти</Link></div>
     <div className="filter-primary">
       <MakeModelFields makes={makes} initialMake={initial.make} initialModel={initial.model} />
-      <label><span>Година от</span><input type="number" name="year_from" min="1900" max={yearTo || 2100} value={yearFrom} onChange={event => setYearFrom(event.target.value)} placeholder="Без ограничение" /></label>
-      <label><span>Година до</span><input type="number" name="year_to" min={yearFrom || 1900} max="2100" value={yearTo} onChange={event => setYearTo(event.target.value)} placeholder="Без ограничение" /></label>
+      <label><span>Година от</span><input type="number" name="year_from" min="1900" max={yearTo || 2100} value={yearFrom} onChange={event => setYearFrom(event.target.value)} placeholder="Всички" /></label>
+      <label><span>Година до</span><input type="number" name="year_to" min={yearFrom || 1900} max="2100" value={yearTo} onChange={event => setYearTo(event.target.value)} placeholder="Всички" /></label>
     </div>
     <details className="filter-advanced" open={advancedCount > 0 ? true : undefined}>
       <summary><span>Още филтри{advancedCount > 0 && <span className="filter-count">{advancedCount}</span>}</span><ChevronDown size={17} /></summary>
@@ -27,5 +29,5 @@ export function AuctionFilters({ makes, initial }: { makes: Record<string, strin
       </div>
     </details>
     <div className="filter-actions"><span>Избери критерии и разгледай предложенията.</span><button className="button button-dark" type="submit"><Search size={18} />Намери автомобил</button></div>
-  </form>
+  </form></FilterPanel>
 }

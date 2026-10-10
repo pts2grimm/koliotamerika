@@ -55,14 +55,15 @@ export default async function Auctions({ searchParams }: Props) {
   }
   return <>
     <section className="page-heading container auction-heading"><div><span className="eyebrow orange">COPART / IAAI</span><h1>Търгове за коли от Америка</h1><p>Избери марка и модел. Сравни автомобилите и планирай следващата стъпка.</p></div><Link className="text-link" href="/targove/zapazeni"><Heart size={17} />Запазени автомобили</Link></section>
-    <section className="container catalogue-list">
+    <section className="container catalogue-list auction-catalogue">
       <form className="lot-search" action="/targove" aria-label="Търсене по номер"><label>Имаш номер на лот или VIN?<input name="q" maxLength={17} placeholder="Въведи номер на лот или VIN" defaultValue={typeof input.q === 'string' ? input.q : ''} /></label><button className="button button-outline" type="submit"><Search size={17} />Намери</button></form>
       {lookupError && <p className="form-error" role="alert">{lookupError}</p>}
-      <AuctionFilters key={JSON.stringify(initial)} makes={makes} initial={initial} />
-      <div className="results-count"><span>{data ? <><strong>{data.total.toLocaleString('bg-BG')}</strong> резултата</> : 'Данните временно не са достъпни.'}</span><span>Текущите залози не включват разходите за внос.</span></div>
+      <div className="auction-browse-layout"><AuctionFilters key={JSON.stringify(initial)} makes={makes} initial={initial} />
+      <div className="auction-results"><div className="results-count"><span>{data ? <><strong>{data.total.toLocaleString('bg-BG')}</strong> резултата</> : 'Данните временно не са достъпни.'}</span><span>Текущите залози не включват разходите за внос.</span></div>
       {Object.keys(initial).length > 0 && <nav className="active-filters" aria-label="Активни филтри">{Object.entries(initial).map(([key, value]) => <Link key={key} href={removeFilter(key)} aria-label={`Премахни филтър: ${auctionFilterLabel(key, value)}`}>{auctionFilterLabel(key, value)}<X size={14} /></Link>)}<Link className="clear-filters" href="/targove">Изчисти всички</Link></nav>}
       {data?.items.length ? <div className="car-grid">{data.items.map(car => <AuctionCard key={car.id} car={car} />)}</div> : <div className="empty-state"><h2>{data ? 'Няма автомобили по тези критерии.' : 'В момента търговете не се зареждат.'}</h2><p>{data ? 'Промени филтрите или ни изпрати запитване.' : 'Опитай отново малко по-късно или се свържи с нас за конкретен автомобил.'}</p><Link className="button button-orange" href="/kontakti">Изпрати запитване</Link></div>}
       {data && maxPage > 1 && <nav className="pagination" aria-label="Страници с търгове">{page > 1 && <Link className="button button-outline" href={auctionResultsURL(initial, page - 1)}>Предишна</Link>}<span>{page} / {maxPage}</span>{page < maxPage && <Link className="button button-outline" href={auctionResultsURL(initial, page + 1)}>Следваща</Link>}</nav>}
+      </div></div>
       {page === 1 && !Object.keys(initial).length && !input.q && <AuctionSEO />}
     </section>
     <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(schema).replace(/</g, '\\u003c') }} />
