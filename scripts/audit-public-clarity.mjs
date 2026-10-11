@@ -4,7 +4,7 @@ import { mkdir, writeFile } from 'node:fs/promises'
 const base='https://papayawhip-ram-220810.hostingersite.com'
 const dir='reports/public-clarity'
 await mkdir(dir,{recursive:true})
-const paths=['/','/uslugi','/vnos-na-koli-ot-usa','/vnos-na-koli-ot-usa/vnos-na-koli-ot-amerika-cena','/proverka-na-istoriya-na-avtomobil','/homologacia','/vnos-na-motori-ot-sasht','/morski-transport-na-avtomobili-ot-sasht','/kak-rabotim','/kalkulator','/kontakti','/galeriya','/amerikanski-sajt-za-koli','/blog','/chesto-zadavani-vuprosi','/obshti-usloviya','/politika-za-poveritelnost','/robots.txt','/sitemap.xml']
+const paths=['/','/uslugi','/vnos-na-koli-ot-usa','/vnos-na-koli-ot-usa/vnos-na-koli-ot-amerika-cena','/proverka-na-istoriya-na-avtomobil','/homologacia','/vnos-na-motori-ot-sasht','/morski-transport-na-avtomobili-ot-sasht','/kak-rabotim','/kalkulator','/kontakti','/koli-ot-amerika-galeriya','/amerikanski-sajt-za-koli','/blog','/chesto-zadavani-vuprosi','/obshti-usloviya','/zashtita-na-lichni-danni','/robots.txt','/sitemap.xml']
 const results=[]
 for(const path of paths){
  try{
