@@ -1,3 +1,4 @@
+import services from '../content/services-review-2026-10.json'
 import additions from '../content/pricing-details-2026-10.json'
 import { mkdirSync, writeFileSync } from 'node:fs'
 import { JSDOM } from 'jsdom'
@@ -25,6 +26,7 @@ function strings(value:unknown){
 }
 strings(home)
 for(const addition of additions) collect(addition.html)
+for(const service of services) collect(service.html)
 const queue=[...urls], results: {url:string;status?:number;finalURL?:string;error?:string}[]=[]
 await Promise.all(Array.from({length:4},async()=>{
  while(queue.length){
