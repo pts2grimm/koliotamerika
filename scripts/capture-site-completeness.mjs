@@ -32,6 +32,7 @@ for(const item of [...pages,...posts]){
 }
 const galleryHTML=await(await get(origin+'/koli-ot-amerika-galeriya/')).text()
 const dom=new JSDOM(galleryHTML),doc=dom.window.document
+console.log('GALLERY_ELEMENT',doc.querySelector('[data-widget_type="gallery.default"]')?.outerHTML.slice(0,16000))
 const interesting=[...doc.querySelectorAll('img')].filter(el=>el.outerHTML.includes('2023/05') || /350z|avalo|roadster|m5/i.test(el.outerHTML))
 console.log('GALLERY_STRUCTURE',JSON.stringify(interesting.slice(0,3).map(el=>el.parentElement?.parentElement?.outerHTML.slice(0,7000))))
 console.log('GALLERY_WIDGETS',JSON.stringify([...doc.querySelectorAll('[data-widget_type]')].map(el=>({type:el.getAttribute('data-widget_type'),settings:el.getAttribute('data-settings')?.slice(0,300)}))))
@@ -42,5 +43,6 @@ const report={capturedAt:new Date().toISOString(),source:origin,pages:pages.leng
 await mkdir('reports/site-completeness',{recursive:true})
 await writeFile('reports/site-completeness/inventory.json',JSON.stringify(report,null,2)+'\n')
 await writeFile('reports/site-completeness/gallery-source.html',galleryHTML)
+console.log('INLINE_IMAGES',JSON.stringify(records.filter(x=>x.images.length).map(x=>({path:x.path,images:x.images.map(y=>y.src)}))))
 console.log('COMPLETENESS',JSON.stringify({pages:pages.length,posts:posts.length,uncovered:report.uncovered.map(x=>x.path),contactLinks,images:records.map(x=>({path:x.path,images:x.images.length,frames:x.frames})).filter(x=>x.images||x.frames.length)}))
 dom.window.close();contacts.window.close()
