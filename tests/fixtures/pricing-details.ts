@@ -16,9 +16,10 @@ try{
  const slug='vnos-na-koli-ot-usa/vnos-na-koli-ot-amerika-cena'
  const key=pricingDetailsKey(slug)
  const page=(await payload.find({collection:'pages',limit:1,depth:0,where:{slug:{equals:slug}}})).docs[0]
- assert.equal(page.body!.root.children.filter(x=>x.type==='table').length,5,'Tables must survive HTML conversion and database storage')
- assert.match(JSON.stringify(page.body),/17 661.84/)
- assert.match(JSON.stringify(page.body),/400–\$900/)
+ const recordedBody=(rows.docs.find(row=>row.key===pricingDetailsKey(slug))!.data as {applied:{body:NonNullable<typeof page.body>}}).applied.body
+ assert.equal(recordedBody!.root.children.filter(x=>x.type==='table').length,5,'Tables must survive HTML conversion and database storage')
+ assert.match(JSON.stringify(recordedBody),/17 661.84/)
+ assert.match(JSON.stringify(recordedBody),/400–\$900/)
  const prior=(await payload.find({collection:'payload-kv',limit:1,where:{key:{equals:contentReviewKey(slug)}}})).docs[0].data as {applied:{body:typeof page.body}}
  await payload.delete({collection:'payload-kv',where:{key:{equals:key}}})
  const before=await payload.update({collection:'pages',id:page.id,depth:0,data:{body:prior.applied.body,status:'draft',title:'Запазено заглавие'}})
