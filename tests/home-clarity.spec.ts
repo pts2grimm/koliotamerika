@@ -1,7 +1,10 @@
+import { JSDOM } from 'jsdom'
 import { test, expect } from '@playwright/test'
 test('homepage prioritizes costs and proof, keeps one FAQ and works in both themes',async({page,request})=>{
  const html=await(await request.get('/')).text()
- expect(html).toContain('€1000')
+ const dom=new JSDOM(html)
+ expect(dom.window.document.querySelector('#home-price')?.textContent).toContain('€1000')
+ dom.window.close()
  expect(html).toContain('Внос на коли от Америка') // preserved SEO title/description
  expect(html).toContain('FAQPage')
  for(const width of [320,390,1440]){

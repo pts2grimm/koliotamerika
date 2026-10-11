@@ -8,7 +8,7 @@ function Copy({html}:{html:string}) {return <div className="home-copy" dangerous
 type HomeQuestion={id?:string|null;question:string;answer:string}
 export function additionalHomeFAQ(faq?:HomeQuestion[]|null) {return (faq||[]).filter(item=>!snapshot.faq.some(original=>original.question===item.question))}
 export function HomeTrust({googleMapsURL}:{googleMapsURL?:string|null}) {
- const photos=[gallery.items.find(p=>p.title==='2021 BMW M5'),gallery.items.find(p=>p.brand==='Mercedes-Benz'),gallery.items.find(p=>p.brand==='Toyota')].filter((p):p is typeof gallery.items[number]=>!!p)
+ const photos=[gallery.items.find(p=>p.title==='2021 BMW M5'),gallery.items.find(p=>p.title==='2021 MERCEDES BENZ GLC 300 4MATIC'),gallery.items.find(p=>p.title==='2020 TOYOTA RAV4 LIMITED')].filter((p):p is typeof gallery.items[number]=>!!p)
  return <section className="home-proof container" id="real-cars"><div className="section-heading"><div><span className="eyebrow orange">РЕАЛНИ АВТОМОБИЛИ. СПОДЕЛЕН ОПИТ.</span><h2>Виж автомобилите.<br/>Чуй клиентите.</h2></div><Link className="text-link" href="/koli-ot-amerika-galeriya">Цялата галерия <ArrowUpRight size={18}/></Link></div>
  <p>Снимки от нашата галерия — примери, а не текущи наличности. За подобен автомобил ни изпрати модел и бюджет.</p>
  <div className="home-proof-photos">{photos.map(p=><figure key={p.src}><Link href="/koli-ot-amerika-galeriya"><Image src={p.src} width={p.width} height={p.height} sizes="(max-width:700px) 85vw,33vw" alt={p.title}/><figcaption>{p.title}</figcaption></Link></figure>)}</div>
