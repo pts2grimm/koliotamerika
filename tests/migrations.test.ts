@@ -37,6 +37,7 @@ function sandbox() {
     })
     assert.ifError(result.error)
     assert.equal(result.status, 0, result.stdout + result.stderr)
+    assert.doesNotMatch(result.stdout + result.stderr, /Page SEO upgrade deferred/, result.stdout + result.stderr)
   }
   return { dir, filename, run }
 }
@@ -169,5 +170,6 @@ test('SEO upgrade journals once, preserves edited fields and never republishes p
   assert.deepEqual(db.prepare("SELECT body, legacy_image, source_u_r_l FROM pages WHERE slug = 'proverka-na-istoriya-na-avtomobil'").get(), before)
   assert.equal(db.prepare("SELECT title FROM pages WHERE slug = 'uslugi'").get()?.title, 'Един автомобил. Цялостен подход.')
   db.close()
+  run('tests/fixtures/page-seo-rollback.ts')
  } finally { rmSync(dir, { recursive: true, force: true }) }
 })
