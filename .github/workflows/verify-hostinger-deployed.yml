@@ -1,0 +1,23 @@
+name: Deployed Hostinger verification
+on:
+  push:
+    branches: ['codex/verify-hostinger-redeploy']
+    paths: ['scripts/verify-hostinger-deployed.py']
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install requests
+      - run: python scripts/verify-hostinger-deployed.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: deployed-hostinger-verification
+          path: live-verification
