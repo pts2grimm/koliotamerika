@@ -56,7 +56,7 @@ for item in pages+posts:
       'kind':'article' if item['type']=='post' else 'page','modified':item['modified'],'date':item['date'],
       'title':item['title']['rendered'],'tags':item.get('tags',[]),'categories':item.get('categories',[]),'author':item.get('author'),
       'images':[x.get('url') for x in item.get('yoast_head_json',{}).get('og_image',[])],
-      'embeddedImages':sorted(set(unquote(u) for u in re.findall(r'https://koliotamerika.bg/wp-content/uploads/[^"<>\\s]+',item['content']['rendered'])))})
+      'embeddedImages':sorted(set(unquote(u) for u in re.findall(r'https://koliotamerika.bg/wp-content/uploads/[^"<>\s]+',item['content']['rendered'])))})
 terms={'tags':[{k:t.get(k) for k in ['id','slug','name','link','count']} for t in tags],
        'categories':[{k:t.get(k) for k in ['id','slug','name','link','count']} for t in categories]}
 Path(OUT/'wordpress-inventory.json').write_text(json.dumps({'checkedAt':time.strftime('%Y-%m-%dT%H:%M:%SZ',time.gmtime()),'records':inventory,**terms},ensure_ascii=False,indent=2))

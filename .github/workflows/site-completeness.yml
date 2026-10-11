@@ -1,0 +1,24 @@
+name: Capture old-site completeness
+on:
+  workflow_dispatch:
+  push:
+    branches: ['codex/site-completeness']
+    paths: ['scripts/capture-site-completeness.mjs', '.github/workflows/site-completeness.yml']
+permissions:
+  contents: read
+jobs:
+  capture:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci --include=dev
+      - run: node scripts/capture-site-completeness.mjs
+      - uses: actions/upload-artifact@v4
+        with:
+          name: site-completeness
+          path: reports/site-completeness/

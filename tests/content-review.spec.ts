@@ -1,3 +1,6 @@
+import gallery from '../content/legacy-gallery.json' with {type:'json'}
+import recovered from '../content/legacy-media-extra.json' with {type:'json'}
+import examples from '../content/legacy-examples.json' with {type:'json'}
 import { test, expect } from '@playwright/test'
 import { JSDOM } from 'jsdom'
 import services from '../content/services-review-2026-10.json' with { type:'json' }
@@ -141,4 +144,49 @@ test('services dropdown supports keyboard, outside click and mobile navigation i
    await page.screenshot({path:`test-results/prices-${theme}-${width}.png`,fullPage:true})
   }
  }
+})
+
+test('gallery and recovered photos render before JavaScript and filter on mobile',async({request,page},testInfo)=>{
+ const response=await request.get('/koli-ot-amerika-galeriya')
+ const dom=new JSDOM(await response.text())
+ expect(dom.window.document.querySelectorAll('#gallery-photos figure')).toHaveLength(41)
+ expect(dom.window.document.querySelectorAll('#gallery-photos img')).toHaveLength(41)
+ expect(dom.window.document.querySelectorAll('.landing-rich a[href="/"]')).toHaveLength(0)
+ dom.window.close()
+ for(const media of recovered.records){
+  const r=await request.get(media.path)
+  expect(r.status(),media.path).toBe(200)
+  expect(r.headers()['content-type'],media.path).toMatch(/^image\//)
+ }
+ for(const [slug,photos] of Object.entries(examples)){
+  const dom=new JSDOM(await(await request.get('/'+slug)).text())
+  expect(dom.window.document.querySelectorAll('.legacy-examples figure'),slug).toHaveLength(photos.length)
+  dom.window.close()
+ }
+ for(const width of [320,390,1440]){
+  await page.setViewportSize({width,height:900})
+  for(const theme of ['light','dark']){
+   await page.goto('/koli-ot-amerika-galeriya')
+   await page.evaluate(t=>{document.documentElement.dataset.theme=t},theme)
+   await expect(page.locator('#gallery-photos figure')).toHaveCount(41)
+   await expect(page.getByRole('combobox',{name:'Марка',exact:true})).toBeVisible()
+   await page.getByLabel('Марка',{exact:true}).selectOption('BMW',{timeout:15000})
+   await expect(page.locator('#gallery-photos figure')).toHaveCount(gallery.items.filter(x=>x.brand==='BMW').length)
+   await page.locator('#gallery-photos figure').first().scrollIntoViewIfNeeded()
+   await expect(page.locator('#gallery-photos img').first()).toBeVisible()
+   await expect.poll(()=>page.locator('#gallery-photos img').first().evaluate((img:HTMLImageElement)=>img.complete&&img.naturalWidth>0)).toBe(true)
+   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1)).toBe(true)
+   await page.screenshot({path:`test-results/gallery-${theme}-${width}.png`})
+   await page.getByLabel('Марка',{exact:true}).selectOption('',{timeout:15000})
+   await expect(page.getByRole('status')).toContainText('41 от 41')
+  }
+ }
+ await page.goto('/kontakti')
+ await expect(page.locator('.contact-methods')).toContainText('Pontus LLC')
+ await expect(page.locator('.contact-methods a[href="tel:+359888292280"]')).toHaveCount(1)
+ await expect(page.locator('a[href="tel:+359895668821"]')).toHaveCount(0)
+ await expect(page.getByRole('link',{name:'Отвори картата',exact:true})).toHaveAttribute('href',/google.com\/maps\/search/)
+ await expect(page.getByRole('link',{name:'Отзиви и профил в Google',exact:true})).toHaveAttribute('href',/ChIJXf7M8N24eyIRGQWGyPD0i9U/)
+ expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1)).toBe(true)
+ console.log('RECOVERED_MEDIA',JSON.stringify({files:recovered.records.length,gallery:gallery.items.length,examples:Object.values(examples).flat().length}))
 })

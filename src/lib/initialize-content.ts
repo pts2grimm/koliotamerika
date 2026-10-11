@@ -78,5 +78,14 @@ export async function initializeContent(payload: Payload, options: { preview: bo
       payload.logger.warn({ err: error }, '[bootstrap] Services review deferred; existing content preserved.')
     }
   }
+  if (options.importLegacy) {
+    try {
+      const { upgradeGalleryReview } = await import('./gallery-review-upgrade')
+      const updated = await upgradeGalleryReview(payload)
+      if (updated) payload.logger.info('[bootstrap] Restored gallery presentation.')
+    } catch (error) {
+      payload.logger.warn({ err: error }, '[bootstrap] Gallery review deferred; existing content preserved.')
+    }
+  }
   payload.logger.info('[bootstrap] Ready.')
 }
