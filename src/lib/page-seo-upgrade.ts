@@ -1,4 +1,5 @@
 import type { Payload } from 'payload'
+import { beginTransaction } from '@payloadcms/drizzle'
 import type { Page } from '../payload-types'
 import patches from '../../content/page-seo-2026-10.json'
 
@@ -36,7 +37,9 @@ export async function upgradePageSEO(payload: Payload) {
   if ((await payload.count({ collection: 'payload-kv', where: { key: { equals: key } } })).totalDocs) continue
   // Keep the page edit, its audit snapshot and its once-only marker in one
   // transaction. A restart cannot reapply a deliberately reverted CMS field.
-  const transactionID = await payload.db.beginTransaction()
+  // SQLite disables automatic transactions by default. Start a real Drizzle
+  // transaction only for this upgrade without changing normal request behavior.
+  const transactionID = await beginTransaction.call(payload.db)
   if (transactionID == null) throw new Error('Page SEO upgrade requires database transactions.')
   const req = { transactionID }
   try {
