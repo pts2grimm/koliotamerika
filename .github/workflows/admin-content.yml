@@ -1,0 +1,34 @@
+name: Admin content verification
+on:
+  push:
+    branches: ['codex/admin-content-*']
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci --include=dev
+      - name: Read installed contracts
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          for root, patterns in [
+            ('node_modules/next/dist/docs', ['use-search-params.mdx']),
+            ('node_modules/payload/dist', ['admin/views/index.d.ts', 'collections/config/types.d.ts']),
+            ('node_modules/@payloadcms/next/dist', ['views/Root/index.js', 'templates/Default/index.d.ts', 'views/Document/getDocumentData.js']),
+            ('node_modules/@payloadcms/ui/dist', ['elements/NavGroup/index.d.ts', 'views/List/index.d.ts', 'fields/Select/index.d.ts'])
+          ]:
+            for p in Path(root).rglob('*'):
+              if p.is_file() and any(str(p).endswith(pattern) for pattern in patterns):
+                s=p.read_text()
+                if p.name=='types.d.ts':
+                  i=s.find('baseListFilter'); s=s[max(0,i-1000):i+3000]
+                print('\nFILE '+str(p)+'\n'+s[:35000])
+          PY
