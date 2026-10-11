@@ -87,5 +87,14 @@ export async function initializeContent(payload: Payload, options: { preview: bo
       payload.logger.warn({ err: error }, '[bootstrap] Gallery review deferred; existing content preserved.')
     }
   }
+  if(options.importLegacy) {
+    try {
+      const { upgradeClarity } = await import('./clarity-upgrade')
+      const updated=await upgradeClarity(payload)
+      if(updated)payload.logger.info(`[bootstrap] Clarified customer terms on ${updated} pages.`)
+    } catch(error) {
+      payload.logger.warn({err:error},'[bootstrap] Clarity update deferred; existing content preserved.')
+    }
+  }
   payload.logger.info('[bootstrap] Ready.')
 }

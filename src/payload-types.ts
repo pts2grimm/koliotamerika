@@ -823,6 +823,12 @@ export interface SiteSetting {
  * via the `definition` "calculator-settings".
  */
 export interface CalculatorSetting {
+  usdToEur: number;
+  shippingUsd: number;
+  insuranceUsd: number;
+  documentUsd: number;
+  portHandlingEur: number;
+  deliveryEur: number;
   id: number;
   /**
    * Пренесен от WordPress. Не е автоматичен валутен курс.
@@ -947,6 +953,12 @@ export interface SiteSettingsSelect<T extends boolean = true> {
  * via the `definition` "calculator-settings_select".
  */
 export interface CalculatorSettingsSelect<T extends boolean = true> {
+  usdToEur?: T;
+  shippingUsd?: T;
+  insuranceUsd?: T;
+  documentUsd?: T;
+  portHandlingEur?: T;
+  deliveryEur?: T;
   usdToBgn?: T;
   fixedCosts?: T;
   defaultInland?: T;

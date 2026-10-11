@@ -1,0 +1,11 @@
+.calculator-assumptions{border-block:1px solid var(--line);padding-block:16px}
+.calculator-assumptions summary{font-weight:700;cursor:pointer;line-height:1.5}
+.calculator-assumptions label{display:block;margin-top:18px}
+.calculator-result dl>div{gap:18px;align-items:flex-start}
+.calculator-result dt{min-width:0;font-size:14px;line-height:1.6}
+.calculator-result dt small{display:block;opacity:.8;font-size:12px}
+.calculator-result dd{margin:0;flex-shrink:0;white-space:nowrap;font-size:15px}
+.calculator-result .calculator-subtotal{border-block:1px solid #ffffff55;padding-block:16px}
+.calculator-inputs>.button{white-space:normal}
+.calculator-result>p{font-size:14px;line-height:1.75}
+@media(max-width:380px){.calculator-result dl>div{flex-wrap:wrap;gap:4px}.calculator-result dd{margin-left:auto}}

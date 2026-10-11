@@ -14,6 +14,7 @@ const services = [
  ['/homologacia','Хомологация'],
  ['/vnos-na-motori-ot-sasht','Внос на мотори и ATV'],
  ['/morski-transport-na-avtomobili-ot-sasht','Морски транспорт'],
+ ['/#dealers','За автокъщи и търговци'],
 ]
 export function Brand() { return <Link href="/" className="brand" aria-label="Коли от Америка — начална страница"><Image src="/images/logo.webp" alt="Коли от Америка" width={180} height={41} priority /></Link> }
 export function Header() {
