@@ -1,3 +1,4 @@
+import { pricingDetailsHTML } from '../src/lib/pricing-details-content'
 import test from 'node:test'
 import assert from 'node:assert/strict'
 import { JSDOM } from 'jsdom'
@@ -20,4 +21,16 @@ test('illustrative import budget adds up, including the VAT base and conditional
  assert.match(additions[0].html,/member-fees-us-non-licensed/)
  assert.doesNotMatch(additions[0].html,/member-fees-us-licensed/)
  dom.window.close()
+})
+
+test('pricing details are integrated into existing topical sections on every affected page',()=>{
+ for(const addition of additions){
+  const dom=new JSDOM(pricingDetailsHTML(addition.slug))
+  const source=new JSDOM(addition.html)
+  const heading=source.window.document.querySelector('h2,h3')!.textContent
+  assert.ok([...dom.window.document.querySelectorAll('h2,h3')].some(node=>node.textContent===heading),addition.slug)
+  assert.equal(dom.window.document.querySelectorAll('table').length,source.window.document.querySelectorAll('table').length,addition.slug)
+  assert.equal(dom.window.document.querySelectorAll('h1').length,0)
+  dom.window.close();source.window.close()
+ }
 })

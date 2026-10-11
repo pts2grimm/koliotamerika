@@ -3,10 +3,8 @@ import { beginTransaction } from '@payloadcms/drizzle'
 import { convertHTMLToLexical, editorConfigFactory, EXPERIMENTAL_TableFeature } from '@payloadcms/richtext-lexical'
 import { JSDOM } from 'jsdom'
 import type { Page } from '../payload-types'
-import snapshot from '../../content/wordpress.json'
-import revisions from '../../content/content-review-2026-10.json'
 import additions from '../../content/pricing-details-2026-10.json'
-import { reviewedHTML, type ContentRevision } from './content-review'
+import { pricingDetailsHTML } from './pricing-details-content'
 import { contentReviewKey, stable } from './content-review-upgrade'
 import { pricingDetailsKey } from './pricing-details-key'
 
@@ -17,13 +15,8 @@ export async function upgradePricingDetails(payload: Payload) {
  for(const addition of additions) {
   const key=pricingDetailsKey(addition.slug)
   if(applied.has(key)) continue
-  const original=snapshot.items.find(item=>item.slug===addition.slug)!
-  const revision=revisions.find(item=>item.slug===addition.slug)! as ContentRevision
   editorConfig ??= await editorConfigFactory.fromFeatures({config:payload.config,features:({defaultFeatures})=>[...defaultFeatures,EXPERIMENTAL_TableFeature()]})
-  const reviewed=reviewedHTML(original.html,revision)
-   .replaceAll('https://www.copart.com/content/us/en/member-fees-us-licensed','https://www.copart.com/content/us/en/member-fees-us-non-licensed')
-   .replaceAll('официалната тарифа на Copart за лицензирани купувачи','публичната тарифа на Copart за купувачи без лиценз')
-  const body=convertHTMLToLexical({editorConfig,html:reviewed+addition.html,JSDOM})
+  const body=convertHTMLToLexical({editorConfig,html:pricingDetailsHTML(addition.slug),JSDOM})
   const transactionID=await beginTransaction.call(payload.db)
   if(transactionID==null) throw new Error('Pricing details require database transactions.')
   const req={transactionID}

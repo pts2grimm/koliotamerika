@@ -37,7 +37,7 @@ test('all public content has working contextual links, metadata and one H1',asyn
   const doc=new JSDOM(documents.get('/'+detail.slug)!)
   const source=new JSDOM(detail.html)
   expect(doc.window.document.querySelectorAll('table').length,detail.slug).toBeGreaterThanOrEqual(source.window.document.querySelectorAll('table').length)
-  expect(doc.window.document.body.textContent,detail.slug).toContain(source.window.document.querySelector('h2')!.textContent)
+  expect(doc.window.document.body.textContent,detail.slug).toContain(source.window.document.querySelector('h2,h3')!.textContent)
   doc.window.close();source.window.close()
  }
  const broken:string[]=[]
