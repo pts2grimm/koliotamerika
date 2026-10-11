@@ -8,7 +8,7 @@ permissions:
 jobs:
   capture:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -21,13 +21,11 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add reports/site-completeness/inventory.json
+          git add reports/site-completeness/inventory.json content/legacy-gallery.json content/legacy-examples.json content/legacy-media-extra.json public/wp-content/uploads/
           if ! git diff --cached --quiet; then
-            git commit -m "Record fresh public WordPress inventory"
+            git commit -m "Recover gallery and embedded WordPress image files"
             git push origin HEAD:codex/site-completeness
           fi
-      - name: Read installed Next image documentation
-        run: find node_modules/next/dist/docs -iname '*image*' -type f -exec cat {} +
       - uses: actions/upload-artifact@v4
         with:
           name: site-completeness
