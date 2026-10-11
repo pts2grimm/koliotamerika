@@ -1,7 +1,9 @@
 name: Migration URL inventory
 on:
+  workflow_dispatch:
   push:
     branches: ['codex/migration-url-map']
+    paths: ['scripts/audit-migration-urls.py', 'reports/url-migration-2026-10-11/source-inventory.json']
 permissions:
   contents: read
 jobs:
