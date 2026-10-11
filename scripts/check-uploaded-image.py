@@ -3,7 +3,7 @@ import requests, json, time
 from io import BytesIO
 from PIL import Image
 base='https://papayawhip-ram-220810.hostingersite.com'
-url=base+'/api/media/file/IMG_6961.JPEG'
+url=base+'/api/media/file/IMG_6961-1.JPEG'
 headers={'Cache-Control':'no-cache','Pragma':'no-cache','User-Agent':'OwnerUploadVerification/1.0'}
 for path in [url, url+'?upload_check='+str(time.time_ns())]:
  r=requests.get(path,headers=headers,timeout=30)
