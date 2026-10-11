@@ -49,6 +49,14 @@ test('admin setup, consent, single page views, lead dedup IDs and revocation wor
     await page.setViewportSize({ width, height: 850 })
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBeTruthy()
   }
+  await page.locator('.cookie-options input').first().check()
+  await page.getByRole('button', { name: 'Запази избора', exact: true }).click()
+  await expect.poll(() => vendors.length).toBe(2)
+  expect(vendors.some(url => url.includes('facebook'))).toBe(false)
+  expect(await page.evaluate(() => Array.from((window.dataLayer || []).filter(item => (item as ArrayLike<unknown>)[0] === 'consent').at(-1) as ArrayLike<unknown>)[2])).toMatchObject({
+    analytics_storage: 'granted', ad_storage: 'denied', ad_user_data: 'denied', ad_personalization: 'denied',
+  })
+  await page.getByRole('button', { name: 'Настройки на бисквитките', exact: true }).click()
   await page.getByRole('button', { name: 'Приеми всички', exact: true }).click()
   await expect.poll(() => vendors.length).toBe(3)
   await expect.poll(async () => (await googleEvents('page_view')).length).toBe(1)
@@ -89,11 +97,26 @@ test('admin setup, consent, single page views, lead dedup IDs and revocation wor
   await page.evaluate(() => { document.cookie = '_fbp=fb.1.1234567890123.123; Path=/'; document.cookie = '_ga_test=fixture; Path=/' })
   await page.getByRole('button', { name: 'Настройки на бисквитките', exact: true }).click()
   vendors.length = 0
-  await page.getByRole('button', { name: 'Само необходимите', exact: true }).click()
+  await Promise.all([page.waitForEvent('load'), page.getByRole('button', { name: 'Само необходимите', exact: true }).click()])
   await page.waitForLoadState('networkidle')
   await expect.poll(() => page.evaluate(() => document.cookie)).not.toContain('_fbp')
   expect(await page.evaluate(() => document.cookie)).not.toContain('_ga_test')
   expect(vendors).toEqual([])
+
+  // Marketing-only permission must not initialize Analytics or Clarity.
+  await page.getByRole('button', { name: 'Настройки на бисквитките', exact: true }).click()
+  await page.locator('.cookie-options input').nth(1).check()
+  await page.getByRole('button', { name: 'Запази избора', exact: true }).click()
+  await expect.poll(() => vendors.length).toBe(2)
+  expect(vendors.some(url => url.includes('clarity'))).toBe(false)
+  expect((await googleEvents('page_view')).length).toBe(0)
+  expect(await page.evaluate(() => Array.from((window.dataLayer || []).filter(item => (item as ArrayLike<unknown>)[0] === 'consent').at(-1) as ArrayLike<unknown>)[2])).toMatchObject({
+    analytics_storage: 'denied', ad_storage: 'granted', ad_user_data: 'granted', ad_personalization: 'granted',
+  })
+  await page.getByRole('button', { name: 'Настройки на бисквитките', exact: true }).click()
+  await Promise.all([page.waitForEvent('load'), page.getByRole('button', { name: 'Само необходимите', exact: true }).click()])
+  await page.waitForLoadState('networkidle')
+  vendors.length = 0
 
   // A container replaces direct browser tags rather than duplicating them.
   await update({ installation: 'gtm', gtmId: 'GTM-TEST123' })
@@ -119,7 +142,7 @@ test('admin setup, consent, single page views, lead dedup IDs and revocation wor
   const adminPage = await adminContext.newPage()
   await adminPage.goto(baseURL + '/admin/globals/integrations')
   await expect(adminPage.getByRole('heading', { name: 'Интеграции', exact: true })).toBeVisible()
-  await adminPage.getByRole('tab', { name: 'Meta Pixel / CAPI', exact: true }).click()
+  await adminPage.getByRole('button', { name: 'Meta Pixel / CAPI', exact: true }).click()
   await expect(adminPage.locator('#integration-token')).toHaveAttribute('type', 'password')
   await expect(adminPage.locator('#integration-token')).toHaveValue('')
   await adminPage.screenshot({ path: 'test-results/integrations-admin.png', fullPage: true })
