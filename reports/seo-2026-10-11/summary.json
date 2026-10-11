@@ -1,0 +1,52 @@
+{
+  "audit_date": "2026-10-11",
+  "domain": "https://koliotamerika.bg",
+  "scope": {
+    "distinct_urls": 120,
+    "core_pages_and_articles": 48,
+    "tag_archives": 26,
+    "sitemap_page_urls": 75,
+    "remaining_discovered_urls": 0,
+    "method": "Публични HTTP GET, WordPress read-only API, sitemap и вътрешни връзки. Не са обходени всички комбинации от филтри и всички динамични аукционни лотове."
+  },
+  "confirmed": [
+    "Действащият домейн е WordPress. Hostinger preview е отделна Next/Payload версия.",
+    "Основните проверени страници са HTTP 200 с index/follow и canonical. Няма обща robots забрана на публичния домейн. Контролният липсващ адрес връща 404/noindex.",
+    "Robots и sitemap са достъпни. X-Robots-Tag:noindex върху самите robots/XML документи не означава noindex за целия сайт.",
+    "/targove/kola/ без лот е HTTP 200, index/follow, присъства в sitemap, няма H1 или description и има само съобщение за липсващ Lot.",
+    "/targove/ и провереният BMW филтър имат два еднакви canonical елемента. При BMW филтъра липсва H1 в първичния HTML; пълното JS рендериране не е измерено.",
+    "/blog/ и пагинацията нямат H1 в първичния HTML. Текущите WordPress canonical адреси на пагинацията са правилно самостоятелни.",
+    "26 основни tag архива са индексируеми и включени в sitemap; 25 нямат meta description, 18 са с под 100 думи извлечен текст. Това е сигнал за преглед на полезността, не доказана санкция.",
+    "Страницата за цените показва противоречиви комисионни и стар пример от 01.09.2025. Защитата на потребителя и фактологичната точност са приоритет.",
+    "Най-новата открита статия е от 07.10.2025. Самата възраст не причинява автоматично спад, но актуалните теми и тарифи изискват проверка.",
+    "14 обходени адреса пренасочват; две вериги имат два прехода. Вътрешни връзки продължават да сочат стари/неправилно изписани адреси.",
+    "Разкомпресираният HTML на ключови страници е приблизително 663–773 KB. Това не е измерване на Core Web Vitals, нито размер на целия мрежов трансфер."
+  ],
+  "unknown": [
+    "Няма свързан Search Console: не са измерени спадът, точните засегнати заявки, период, CTR, Google-selected canonical, история на индексирането или ръчни действия.",
+    "Не са измерени CrUX/Core Web Vitals или изпълнен Lighthouse. Не се приписва потвърдена причина за спад на тежкия HTML.",
+    "Не са проверени всички действителни VIN/лот страници или безкрайни комбинации на филтри.",
+    "Наличието на index/follow не доказва, че Google е индексирал адреса; наличието на schema не доказва rich-result eligibility."
+  ],
+  "first_actions": [
+    "GSC: последни 28 дни спрямо предходни 28, 3 месеца спрямо предходни/годишни, по страница, заявка, устройство и държава; преглед на 16-месечния тренд.",
+    "Проверка на Indexing/Crawl stats, Manual actions, Security issues, URL Inspection за засегнатите страници.",
+    "Поправка на празния лот шаблон, SEO метаданните при търговете и вътрешните пренасочвания.",
+    "Обновяване на реалните условия, цени, документи и погрешните обобщения за аукциони.",
+    "Преглед на нискостойностните архиви по трафик/линкове преди noindex/обединяване.",
+    "Възстановяване на Article schema, self-canonical пагинацията, стари пренасочвания и правилната индексация преди преминаване към новия сайт."
+  ],
+  "sources": [
+    "https://developers.google.com/search/docs/monitor-debug/debugging-search-traffic-drops",
+    "https://developers.google.com/search/docs/specialty/ecommerce/pagination-and-incremental-page-loading",
+    "https://developers.google.com/search/docs/fundamentals/using-gen-ai-content",
+    "https://www.copart.com/help/finding-vehicles/title-types",
+    "https://www.copart.com/content/us/en/member-fees"
+  ],
+  "automation": {
+    "state": "not_activated",
+    "prepared": "Две статии седмично: вторник и петък сутрин, Europe/Sofia; една практическа тема и една проверена новина или полезна резервна тема.",
+    "blocker": "Липсва потвърден и проверен достъп до WordPress чрез WPWriter.",
+    "analytics_blocker": "Липсва GSC Wizard/Search Console достъп за измерване на спада."
+  }
+}
