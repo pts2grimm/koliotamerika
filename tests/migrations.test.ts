@@ -74,6 +74,8 @@ test('empty production startup and explicit preparation are repeatable', { timeo
     assert.ok(Number(count) >= 42)
     const hash = db.prepare('SELECT hash FROM users').get()?.hash
     db.exec("UPDATE pages SET title = 'Editorial title' WHERE slug = 'kak-rabotim'")
+    assert.equal(db.prepare("SELECT status FROM pages WHERE slug = 'clean-title-kola-ot-amerika'").get()?.status, 'draft')
+    db.exec("UPDATE pages SET title = 'Edited blog draft', status = 'published', published_at = '2099-01-01T10:00:00.000Z' WHERE slug = 'clean-title-kola-ot-amerika'")
     db.exec("UPDATE site_settings SET phone = '', email = 'edited@example.test'")
     db.close()
     run()
@@ -83,6 +85,9 @@ test('empty production startup and explicit preparation are repeatable', { timeo
     assert.equal(db.prepare('SELECT COUNT(*) AS n FROM pages').get()?.n, count)
     assert.equal(db.prepare('SELECT hash FROM users').get()?.hash, hash)
     assert.equal(db.prepare("SELECT title FROM pages WHERE slug = 'kak-rabotim'").get()?.title, 'Editorial title')
+    assert.deepEqual({ ...db.prepare("SELECT title, status, published_at FROM pages WHERE slug = 'clean-title-kola-ot-amerika'").get() }, {
+      title: 'Edited blog draft', status: 'published', published_at: '2099-01-01T10:00:00.000Z',
+    })
     assert.deepEqual({ ...db.prepare('SELECT phone, email FROM site_settings').get() }, { phone: '', email: 'edited@example.test' })
     db.close()
   } finally { rmSync(dir, { recursive: true, force: true }) }

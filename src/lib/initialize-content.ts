@@ -21,6 +21,8 @@ export async function initializeContent(payload: Payload, options: { preview: bo
     const { importContent } = await import('./import-content')
     const imported = await importContent(payload)
     payload.logger.info(`[bootstrap] Imported ${imported} missing pages/articles.`)
+    const { importEditorialDrafts } = await import('./import-editorial-drafts')
+    await importEditorialDrafts(payload)
   }
   payload.logger.info('[bootstrap] Ready.')
 }
