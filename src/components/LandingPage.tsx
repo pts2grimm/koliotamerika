@@ -1,6 +1,7 @@
 import { ArrowUpRight, ChevronDown, CarFront, Bike, ScanSearch, FileCheck2 } from 'lucide-react'
 import type { Page } from '@/payload-types'
-import { imageAlt, mediaUrl } from '@/lib/data'
+import { imageAlt, mediaUrl, settings, siteURL } from '@/lib/data'
+import { landingStructuredData, landingRelatedLinks } from '@/lib/landing-seo'
 import { landingSections } from '@/lib/landing-content'
 import { SiteLink as Link } from './SiteLink'
 import { EditorialContent } from './EditorialContent'
@@ -27,12 +28,15 @@ const services = [
  { href: '/homologacia', title: 'Хомологация', description: 'Подготовка за европейските изисквания и регистрацията.', icon: FileCheck2 },
  { href: '/vnos-na-motori-ot-sasht', title: 'Мотори и ATV', description: 'Възможности за покупка и внос на две и четири колела.', icon: Bike },
 ]
-export function LandingPage({ page, children }: { page: Page; children?: ReactNode }) {
+export async function LandingPage({ page, children }: { page: Page; children?: ReactNode }) {
+ const site = await settings()
+ const related = landingRelatedLinks(page.slug)
  const profile = profiles[page.slug]
  const sections = landingSections(page)
  const image = mediaUrl(page.image) || profile?.image || page.legacyImage || '/images/legacy/wp-32.webp'
  const isServices = page.slug === 'uslugi'
  return <div className="landing-page">
+  <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(landingStructuredData(page, siteURL(), site.brand)).replace(/</g, '\\u003c') }} />
   <LandingHero title={page.title} intro={page.intro} eyebrow={page.eyebrow || profile?.eyebrow || 'Коли от Америка'} image={image} imageAlt={imageAlt(page.image, page.title)} tags={profile?.tags} />
   {isServices && <section className="container landing-services" aria-labelledby="services-title"><div className="landing-section-heading"><span className="eyebrow orange">ОТ КАКВО ИМАШ НУЖДА?</span><h2 id="services-title">Всяка стъпка има значение.</h2></div><div className="landing-service-grid">{services.map(({ href, title, description, icon: Icon }, i) => <Link href={href} className="landing-service-card" key={href}><span className="landing-service-top"><Icon size={30} strokeWidth={1.5} /><span>0{i + 1}</span></span><h3>{title}</h3><p>{description}</p><span className="landing-service-link">Разгледай услугата<ArrowUpRight size={21} /></span></Link>)}</div></section>}
   <div className="container landing-content-grid" id="landing-content">
@@ -43,7 +47,7 @@ export function LandingPage({ page, children }: { page: Page; children?: ReactNo
    })}</div>
   </div>
   {children}
-  <section className="container landing-next"><div><span className="eyebrow orange">ПЛАНИРАЙ СЛЕДВАЩИЯ ХОД</span><h2>От информацията<br />към твоя автомобил.</h2></div><div className="landing-next-links"><Link href="/targove"><span>Разгледай автомобилите на търг</span><ArrowUpRight /></Link><Link href="/kalkulator"><span>Планирай бюджета за внос</span><ArrowUpRight /></Link><Link href="/chesto-zadavani-vuprosi"><span>Намери отговор на въпросите си</span><ArrowUpRight /></Link></div></section>
+  <section className="container landing-next"><div><span className="eyebrow orange">ПЛАНИРАЙ СЛЕДВАЩИЯ ХОД</span><h2>От информацията<br />към твоя автомобил.</h2></div><div className="landing-next-links">{related.map(link => <Link key={link.href} href={link.href}><span>{link.label}</span><ArrowUpRight /></Link>)}</div></section>
   <CTA />
  </div>
 }

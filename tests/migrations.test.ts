@@ -37,6 +37,7 @@ function sandbox() {
     })
     assert.ifError(result.error)
     assert.equal(result.status, 0, result.stdout + result.stderr)
+    assert.doesNotMatch(result.stdout + result.stderr, /Page SEO upgrade deferred/, result.stdout + result.stderr)
   }
   return { dir, filename, run }
 }
@@ -143,4 +144,32 @@ test('interrupted customer migration resumes after already-added columns', { tim
 test('both auth collections enforce eight characters for create, update and reset', { timeout: 120_000 }, () => {
  const { dir, run } = sandbox()
  try { run('tests/fixtures/password-policy.ts') } finally { rmSync(dir, { recursive: true, force: true }) }
+})
+
+test('SEO upgrade journals once, preserves edited fields and never republishes pages', { timeout: 300_000 }, () => {
+ const { dir, filename, run } = sandbox()
+ try {
+  run()
+  let db = new DatabaseSync(filename)
+  assert.ok(Number(db.prepare("SELECT COUNT(*) AS n FROM payload_kv WHERE key LIKE 'content:page-seo:2026-10:v1:%'").get()?.n) >= 11)
+  assert.equal(db.prepare("SELECT title FROM pages WHERE slug = 'uslugi'").get()?.title, 'Услуги за внос на автомобили от Америка')
+  // Emulate an existing database before the one-time upgrade.
+  db.exec("DELETE FROM payload_kv WHERE key = 'content:page-seo:2026-10:v1:proverka-na-istoriya-na-avtomobil'")
+  db.exec("UPDATE pages SET title = 'Editorial VIN title', seo_title = 'Editorial SEO', seo_description = 'Нашата компания извършава специализирана Проверка на история на автомобил​ преди закупуване от сайтове за коли от америка​', status = 'draft' WHERE slug = 'proverka-na-istoriya-na-avtomobil'")
+  // Deliberately revert a field after the journal: it must not be changed again.
+  db.exec("UPDATE pages SET title = 'Един автомобил. Цялостен подход.' WHERE slug = 'uslugi'")
+  const before = db.prepare("SELECT body, legacy_image, source_u_r_l FROM pages WHERE slug = 'proverka-na-istoriya-na-avtomobil'").get()
+  db.close()
+  run()
+  db = new DatabaseSync(filename)
+  const row = db.prepare("SELECT title, seo_title, seo_description, status FROM pages WHERE slug = 'proverka-na-istoriya-na-avtomobil'").get()
+  assert.equal(row?.title, 'Editorial VIN title')
+  assert.equal(row?.seo_title, 'Editorial SEO')
+  assert.equal(row?.status, 'draft')
+  assert.match(String(row?.seo_description), /^Проверка на историята/)
+  assert.deepEqual(db.prepare("SELECT body, legacy_image, source_u_r_l FROM pages WHERE slug = 'proverka-na-istoriya-na-avtomobil'").get(), before)
+  assert.equal(db.prepare("SELECT title FROM pages WHERE slug = 'uslugi'").get()?.title, 'Един автомобил. Цялостен подход.')
+  db.close()
+  run('tests/fixtures/page-seo-rollback.ts')
+ } finally { rmSync(dir, { recursive: true, force: true }) }
 })
