@@ -23,6 +23,15 @@ export async function initializeContent(payload: Payload, options: { preview: bo
     payload.logger.info(`[bootstrap] Imported ${imported} missing pages/articles.`)
     const { importEditorialDrafts } = await import('./import-editorial-drafts')
     await importEditorialDrafts(payload)
+    // Editorial upgrades must never prevent the site from starting. Transactions
+    // leave failed pages unchanged and the next initialization can retry them.
+    try {
+      const { upgradePageSEO } = await import('./page-seo-upgrade')
+      const updated = await upgradePageSEO(payload)
+      if (updated) payload.logger.info(`[bootstrap] Updated SEO on ${updated} untouched legacy pages.`)
+    } catch (error) {
+      payload.logger.warn({ err: error }, '[bootstrap] Page SEO upgrade deferred; existing content preserved.')
+    }
   }
   payload.logger.info('[bootstrap] Ready.')
 }

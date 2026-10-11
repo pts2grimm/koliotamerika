@@ -15,18 +15,23 @@ jobs:
           node-version: '24'
           cache: npm
       - run: npm ci --include=dev
-      - name: Inspect installed framework contracts
+      - run: npm test
+      - run: npm run build
+        env:
+          PREVIEW_MODE: 'true'
+          PAYLOAD_SECRET: ci-page-seo-only-not-a-live-secret
+      - run: npm run typecheck
+      - run: npx playwright install --with-deps chromium
+      - name: Page metadata, catalogue and mobile checks
         run: |
-          python3 - <<'PY'
-          from pathlib import Path
-          root=Path('node_modules/next/dist/docs')
-          for term in ['generate-metadata', 'robots', 'not-found']:
-            for p in root.rglob('*'+term+'*'):
-              if p.is_file():
-                print('\nFILE',p)
-                print(p.read_text()[:24000])
-          for p in Path('node_modules/payload/dist').rglob('*'):
-            if p.is_file() and p.suffix in ['.js','.ts'] and ('kv' in p.parts or p.name in ['getKVAdapter.js','getKVAdapter.d.ts']):
-              print('\nFILE',p)
-              print(p.read_text()[:20000])
-          PY
+          node --input-type=module <<'JS'
+          import { chromium } from '@playwright/test';
+          import { spawnSync } from 'node:child_process';
+          const result = spawnSync('npx', ['playwright', 'test', '--config=playwright.page-seo.config.ts', '--reporter=line'], { stdio: 'inherit', env: { ...process.env, CHROMIUM_PATH: chromium.executablePath() } });
+          process.exit(result.status ?? 1);
+          JS
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: page-seo-results
+          path: test-results
