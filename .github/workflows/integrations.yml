@@ -1,12 +1,13 @@
-name: Integration framework reference
+name: Admin integrations verification
 on:
   push:
     branches: ['codex/admin-integrations']
 permissions:
   contents: read
 jobs:
-  reference:
+  verify:
     runs-on: ubuntu-latest
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -14,8 +15,16 @@ jobs:
           node-version: '24'
           cache: npm
       - run: npm ci --include=dev
-      - name: Installed Next documentation
+      - run: npm run generate:types
+        env:
+          PREVIEW_MODE: 'true'
+          PAYLOAD_SECRET: ci-integrations-only-not-live-secret
+      - name: Generated types for review
         run: |
-          cat node_modules/next/dist/docs/01-app/03-api-reference/04-functions/after.md
-          cat node_modules/next/dist/docs/01-app/03-api-reference/02-components/script.md
-          cat node_modules/next/dist/docs/01-app/01-getting-started/05-server-and-client-components.md
+          node --input-type=module <<'JS'
+          import { readFileSync } from 'node:fs';
+          console.log('GENERATED_TYPES_START');
+          console.log(readFileSync('src/payload-types.ts','utf8'));
+          console.log('GENERATED_TYPES_END');
+          JS
+      - run: npm run typecheck

@@ -43,9 +43,9 @@ function sandbox() {
 }
 function journal(db: DatabaseSync) {
   assert.deepEqual(db.prepare('SELECT name FROM payload_migrations ORDER BY name').all().map(row => row.name), [
-    '20261010_120440_initial', '20261010_135337_customer_accounts', '20261012_010000_contact_details',
+    '20261010_120440_initial', '20261010_135337_customer_accounts', '20261012_010000_contact_details', '20261012_020000_integrations',
   ])
-  for (const name of ['pages', 'site_settings', 'customers', 'saved_vehicles', 'inquiries']) {
+  for (const name of ['pages', 'site_settings', 'customers', 'saved_vehicles', 'inquiries', 'integrations']) {
     assert.ok(db.prepare("SELECT name FROM sqlite_master WHERE type = 'table' AND name = ?").get(name))
   }
 }
