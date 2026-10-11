@@ -861,7 +861,7 @@ export interface Integration {
   installation: 'direct' | 'gtm';
   gaEnabled?: boolean | null;
   /**
-   * Google Analytics → Admin → Data streams → Web. Формат G-XXXXXXXXXX. В стария сайт е G-PMKKD7P2GQ; използвай го, ако запазваш същата собственост.
+   * Google Analytics → Admin → Data streams → Web. Формат G-XXXXXXXXXX. В стария сайт е G-PMKKD7P2GQ; използвай го, ако запазваш същата собственост. В GA4 → Enhanced measurement → Page views изключи автоматичните page views по browser history: сайтът изпраща page_view при навигация.
    */
   gaId?: string | null;
   adsEnabled?: boolean | null;

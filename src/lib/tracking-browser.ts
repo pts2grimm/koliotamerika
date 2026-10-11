@@ -28,6 +28,18 @@ function script(id: string, src: string) {
   element.id = id; element.src = src; element.async = true
   document.head.append(element)
 }
+function pageURL(path: string) {
+  const url = new URL(safeTrackingURL(path, location.origin))
+  const search = new URLSearchParams(location.search)
+  for (const key of ['utm_source', 'utm_medium', 'utm_campaign', 'utm_id', 'utm_term', 'utm_content', 'gclid', 'gbraid', 'wbraid']) {
+    const value = search.get(key)
+    if (value && /^[A-Za-z0-9_.~-]{1,200}$/.test(value)) url.searchParams.set(key, value)
+  }
+  return url.href
+}
+function initialReferrer() {
+  try { return document.referrer ? new URL(document.referrer).origin : '' } catch { return '' }
+}
 function initGoogle() {
   if (initialized) return
   initialized = true
@@ -65,7 +77,7 @@ export function syncTracking(config: PublicIntegrations, consent: Consent, path:
   for (const id of ids) if (!configuredGoogle.has(id)) {
     configuredGoogle.add(id)
     window.gtag!('config', id, { send_page_view: false, allow_google_signals: consent.marketing,
-      allow_ad_personalization_signals: consent.marketing, page_location: safeTrackingURL(path, location.origin) })
+      allow_ad_personalization_signals: consent.marketing, page_location: pageURL(path) })
   }
   if (ids.length && !googleLoaded) {
     googleLoaded = true
@@ -89,7 +101,7 @@ export function syncTracking(config: PublicIntegrations, consent: Consent, path:
 export function trackPage(config: PublicIntegrations, path: string) {
   const consent = browserConsent()
   if (!consent || !permitted(config, path)) return
-  const page_location = safeTrackingURL(path, location.origin)
+  const page_location = pageURL(path)
   const once = (provider: string, send: () => void) => {
     if (lastPage.get(provider) === page_location) return
     const previous = lastPage.get(provider)
@@ -102,7 +114,7 @@ export function trackPage(config: PublicIntegrations, path: string) {
     return
   }
   if (consent.analytics && config.gaId) {
-    const page_referrer = lastPage.get('ga') || ''
+    const page_referrer = lastPage.get('ga') || initialReferrer()
     once('ga', () => window.gtag?.('event', 'page_view', { send_to: config.gaId, page_location, page_referrer, page_title: document.title }))
   }
   if (consent.marketing && config.pixelId) once('meta', () => window.fbq?.('track', 'PageView'))

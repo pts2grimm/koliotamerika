@@ -53,7 +53,7 @@ export const Integrations: GlobalConfig = {
       ] },
       { label: 'Google Analytics', fields: [
         toggle('gaEnabled', 'Включи GA4'),
-        code('gaId', 'GA4 Measurement ID', 'Google Analytics → Admin → Data streams → Web. Формат G-XXXXXXXXXX. В стария сайт е G-PMKKD7P2GQ; използвай го, ако запазваш същата собственост.'),
+        code('gaId', 'GA4 Measurement ID', 'Google Analytics → Admin → Data streams → Web. Формат G-XXXXXXXXXX. В стария сайт е G-PMKKD7P2GQ; използвай го, ако запазваш същата собственост. В GA4 → Enhanced measurement → Page views изключи автоматичните page views по browser history: сайтът изпраща page_view при навигация.'),
       ] },
       { label: 'Google Ads', fields: [
         toggle('adsEnabled', 'Включи Google Ads'),

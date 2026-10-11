@@ -20,7 +20,7 @@ try {
   assert.equal(privateConfig.metaAccessToken, ciphertext)
   assert.equal((await payload.findGlobal({ slug: 'integrations' })).metaAccessToken, '')
   await assert.rejects(payload.findGlobal({ slug: 'integrations', overrideAccess: false }))
-  const customer = await payload.create({ collection: 'customers', data: { name: 'Test', email: 'integrations-customer@example.test', phone: '+359888123456', password: 'test8888' } })
+  const customer = await payload.create({ collection: 'customers', data: { name: 'Test', email: 'integrations-customer@example.test', phone: '+359888123456', password: 'test8888', consentedAt: new Date().toISOString() } })
   await assert.rejects(payload.findGlobal({ slug: 'integrations', overrideAccess: false, user: { ...customer, collection: 'customers' } }))
   await assert.rejects(payload.updateGlobal({ slug: 'integrations', overrideAccess: false, user: { ...customer, collection: 'customers' }, data: { enabled: true } }))
   await assert.rejects(payload.updateGlobal({ slug: 'integrations', data: { gaId: '<script>alert(1)</script>' } }))
