@@ -20,6 +20,7 @@ export function ImportCalculator({config}:{config:CalculatorConfig}) {
  <button className="button button-outline" type="button" onClick={example}>Зареди примера за $10 000</button>
  <p>Транспортът, застраховката и курсът са примерни, а не текуща оферта. Вътрешният транспорт обичайно е $400–$900 според конкретния автомобил.</p>
  <p>В тази сметка приемаме мито 10% и ДДС 20% при внос в България. Всички показани USD разходи се включват в примерната митническа стойност; обработката и доставката в евро се включват в основата за ДДС. Реалното третиране се потвърждава по документите.</p>
+ {config.note&&<p>{config.note}</p>}
  <Link className="text-link" href="/vnos-na-koli-ot-usa/vnos-na-koli-ot-amerika-cena">Виж тарифата и пълния пример <ArrowUpRight size={18}/></Link>
  </div><div className="calculator-result" aria-live="polite"><span className="eyebrow">ОБЩО ЗА ИЗБРОЕНИТЕ РАЗХОДИ</span>
  {total?<><strong data-testid="calculator-total">{format(total.totalEur)}</strong><p>Преди ремонт, хомологация и регистрация.</p><dl>
