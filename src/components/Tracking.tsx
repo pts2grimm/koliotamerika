@@ -1,0 +1,94 @@
+'use client'
+import { useEffect, useRef, useState } from 'react'
+import { usePathname } from 'next/navigation'
+import type { PublicIntegrations } from '@/lib/integration-config'
+import { privateTrackingPath } from '@/lib/integration-config'
+import { consentCookie, consentLifetime, type Consent } from '@/lib/tracking-consent'
+import { browserConsent, permitted, storeConsent, syncTracking, trackContact, trackLead, trackPage, trackingStarted, withdrawTracking } from '@/lib/tracking-browser'
+
+export function CookieSettingsButton() {
+  return <button type="button" className="cookie-settings-link" onClick={() => window.dispatchEvent(new Event('koa:cookie-settings'))}>Настройки на бисквитките</button>
+}
+export function Tracking({ config }: { config: PublicIntegrations }) {
+  const pathname = usePathname()
+  const [consent, setConsent] = useState<Consent | null>(null)
+  const [ready, setReady] = useState(false)
+  const [open, setOpen] = useState(false)
+  const [details, setDetails] = useState(false)
+  const [analytics, setAnalytics] = useState(false)
+  const [marketing, setMarketing] = useState(false)
+  const panel = useRef<HTMLElement>(null)
+  const previousFocus = useRef<HTMLElement | null>(null)
+
+  useEffect(() => {
+    const saved = browserConsent()
+    setConsent(saved); setAnalytics(saved?.analytics || false); setMarketing(saved?.marketing || false); setReady(true)
+    if (!saved && permitted(config, location.pathname)) setOpen(true)
+    const show = () => {
+      previousFocus.current = document.activeElement as HTMLElement
+      const current = browserConsent()
+      setAnalytics(current?.analytics || false); setMarketing(current?.marketing || false); setDetails(true); setOpen(true)
+      requestAnimationFrame(() => panel.current?.focus())
+    }
+    const changed = () => {
+      const current = browserConsent()
+      withdrawTracking(current || { analytics: false, marketing: false })
+      location.reload() // Remove already-loaded libraries, listeners and pending queues.
+    }
+    const storage = (event: StorageEvent) => { if (event.key === consentCookie) changed() }
+    const expired = () => { if (trackingStarted() && !browserConsent()) changed() }
+    window.addEventListener('koa:cookie-settings', show)
+    window.addEventListener('storage', storage)
+    window.addEventListener('focus', expired)
+    const timer = window.setInterval(expired, 60000)
+    return () => { window.removeEventListener('koa:cookie-settings', show); window.removeEventListener('storage', storage); window.removeEventListener('focus', expired); clearInterval(timer) }
+  }, [config])
+  useEffect(() => {
+    if (!ready) return
+    // Account screens never retain an analytics library from an earlier SPA page.
+    if (privateTrackingPath(pathname) && trackingStarted()) { location.reload(); return }
+    if (!consent || !permitted(config, pathname)) return
+    syncTracking(config, consent, pathname)
+    trackPage(config, pathname)
+  }, [config, consent, pathname, ready])
+  useEffect(() => {
+    const lead = (event: Event) => trackLead(config, (event as CustomEvent<string>).detail)
+    const contact = (event: MouseEvent) => {
+      const href = (event.target instanceof Element ? event.target.closest('a') : null)?.getAttribute('href') || ''
+      if (href.startsWith('tel:')) trackContact(config, 'phone')
+      else if (href.startsWith('mailto:')) trackContact(config, 'email')
+      else if (/^(?:viber:|https:\/\/(?:invite\.)?viber\.com)/.test(href)) trackContact(config, 'viber')
+    }
+    window.addEventListener('koa:lead', lead); document.addEventListener('click', contact)
+    return () => { window.removeEventListener('koa:lead', lead); document.removeEventListener('click', contact) }
+  }, [config])
+  function save(analytics: boolean, marketing: boolean) {
+    const previous = browserConsent()
+    const next = storeConsent({ analytics, marketing })
+    setConsent(next); setOpen(false)
+    if (previous && ((previous.analytics && !analytics) || (previous.marketing && !marketing))) {
+      withdrawTracking(next)
+      if (trackingStarted()) { location.reload(); return }
+    }
+    previousFocus.current?.focus()
+  }
+  if (!ready || !open) return null
+  return <section className="cookie-panel" ref={panel} tabIndex={-1} aria-labelledby="cookie-title" aria-describedby="cookie-description">
+    <div className="cookie-copy"><h2 id="cookie-title">Ти избираш бисквитките</h2>
+      <p id="cookie-description">Необходимите бисквитки пазят входа и избора ти. С твое съгласие използваме статистика за подобряване на сайта и рекламни инструменти за измерване на запитванията. Можеш да промениш избора си по всяко време.</p>
+      <a href="/zashtita-na-lichni-danni#site-cookies">Повече за данните и бисквитките</a>
+    </div>
+    {details && <div className="cookie-options">
+      <p><strong>Необходими — винаги включени.</strong> Вход, сигурност и запазени предпочитания. Изборът за бисквитките се пази {consentLifetime / 86400} дни.</p>
+      <label><input type="checkbox" checked={analytics} onChange={e => setAnalytics(e.target.checked)} /><span><strong>Статистика</strong><small>Google Analytics и Microsoft Clarity: посещения и използване на сайта.</small></span></label>
+      <label><input type="checkbox" checked={marketing} onChange={e => setMarketing(e.target.checked)} /><span><strong>Реклама</strong><small>Meta Pixel/CAPI и Google Ads. При запитване CAPI може да изпрати защитени с хеш имейл и телефон към Meta за измерване на рекламите.</small></span></label>
+      {config.installation === 'gtm' && <p>Tag Manager се зарежда само когато и двете категории са разрешени.</p>}
+    </div>}
+    <div className="cookie-actions">
+      <button type="button" onClick={() => save(false, false)}>Само необходимите</button>
+      <button type="button" onClick={() => save(true, true)}>Приеми всички</button>
+      {details ? <button type="button" onClick={() => save(analytics, marketing)}>Запази избора</button> : <button type="button" onClick={() => setDetails(true)}>Избери настройки</button>}
+      {consent && <button type="button" onClick={() => { setOpen(false); previousFocus.current?.focus() }}>Затвори</button>}
+    </div>
+  </section>
+}

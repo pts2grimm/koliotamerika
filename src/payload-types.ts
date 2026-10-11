@@ -107,10 +107,12 @@ export interface Config {
   globals: {
     'site-settings': SiteSetting;
     'calculator-settings': CalculatorSetting;
+    integrations: Integration;
   };
   globalsSelect: {
     'site-settings': SiteSettingsSelect<false> | SiteSettingsSelect<true>;
     'calculator-settings': CalculatorSettingsSelect<false> | CalculatorSettingsSelect<true>;
+    integrations: IntegrationsSelect<false> | IntegrationsSelect<true>;
   };
   locale: null;
   widgets: {
@@ -330,6 +332,9 @@ export interface Page {
   } | null;
   legacyImage?: string | null;
   sourceURL?: string | null;
+  /**
+   * За статии: статус „Публикувано“ и бъдеща дата означават отложено публикуване. Проверете часовата зона на избраната дата. Празна дата публикува веднага.
+   */
   publishedAt?: string | null;
   sections?:
     | {
@@ -790,11 +795,11 @@ export interface PayloadMigrationsSelect<T extends boolean = true> {
  */
 export interface SiteSetting {
   id: number;
-  usAddress?: string | null;
-  googleMapsURL?: string | null;
   brand: string;
   phone?: string | null;
   email?: string | null;
+  usAddress?: string | null;
+  googleMapsURL?: string | null;
   viberURL?: string | null;
   facebookURL?: string | null;
   workingHours?: string | null;
@@ -838,15 +843,86 @@ export interface CalculatorSetting {
   createdAt?: string | null;
 }
 /**
+ * Свързване с аналитични и рекламни платформи. Запази настройките, после провери събитията в съответната платформа. Наличен код не означава потвърдена връзка.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "integrations".
+ */
+export interface Integration {
+  id: number;
+  enabled?: boolean | null;
+  /**
+   * Без https:// и без път. Работи за домейна и www варианта му. Hostinger preview не се отчита, ако тук е koliotamerika.bg.
+   */
+  hostname: string;
+  /**
+   * Избери един начин. В режим Tag Manager директните GA4, Ads, Pixel и Clarity не се зареждат. CAPI продължава да работи отделно. За допълнителни платформи използвай GTM.
+   */
+  installation: 'direct' | 'gtm';
+  gaEnabled?: boolean | null;
+  /**
+   * Google Analytics → Admin → Data streams → Web. Формат G-XXXXXXXXXX. В стария сайт е G-PMKKD7P2GQ; използвай го, ако запазваш същата собственост. В GA4 → Enhanced measurement → Page views изключи автоматичните page views по browser history: сайтът изпраща page_view при навигация.
+   */
+  gaId?: string | null;
+  adsEnabled?: boolean | null;
+  /**
+   * Google Ads → Goals → Conversions → Tag setup. Формат AW-123456789.
+   */
+  adsId?: string | null;
+  /**
+   * Само label от send_to, след наклонената черта. Изпраща conversion след успешно записано запитване. Не дублирай с импорт на същата GA4 конверсия.
+   */
+  adsLeadLabel?: string | null;
+  /**
+   * Формат GTM-XXXXXXX. В стария сайт е GTM-WHZQ4GG. Контейнерът се зарежда само при съгласие и за статистика, и за реклама. Провери и публикувай таговете в GTM.
+   */
+  gtmId?: string | null;
+  pixelEnabled?: boolean | null;
+  /**
+   * Events Manager → Data sources → Settings. Само цифри. Един и същ ID за Pixel и CAPI.
+   */
+  pixelId?: string | null;
+  capiEnabled?: boolean | null;
+  /**
+   * Events Manager → Settings → Conversions API → Generate access token. Записва се криптирано и не се показва отново. Остави празно, за да запазиш текущия токен. Не променяй PAYLOAD_SECRET в Hostinger.
+   */
+  metaAccessToken?: string | null;
+  tokenConfigured?: boolean | null;
+  clearMetaToken?: boolean | null;
+  /**
+   * За тестово запитване: Events Manager → Test events. Докато има код, CAPI изпраща тестови събития; изчисти го за реално отчитане. Pixel остава браузърна интеграция.
+   */
+  metaTestCode?: string | null;
+  clarityEnabled?: boolean | null;
+  /**
+   * Clarity → Settings → Setup. Само Project ID, без script. Задай Strict masking в Clarity; формите и профилните страници са защитени и от сайта.
+   */
+  clarityId?: string | null;
+  /**
+   * Само content стойността от HTML tag verification. Това потвърждава URL-prefix property; Domain property използва DNS TXT. Не предоставя достъп до отчетите.
+   */
+  googleVerification?: string | null;
+  /**
+   * Само content стойността на msvalidate.01.
+   */
+  bingVerification?: string | null;
+  /**
+   * Само content стойността на facebook-domain-verification.
+   */
+  metaVerification?: string | null;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "site-settings_select".
  */
 export interface SiteSettingsSelect<T extends boolean = true> {
-  usAddress?: T;
-  googleMapsURL?: T;
   brand?: T;
   phone?: T;
   email?: T;
+  usAddress?: T;
+  googleMapsURL?: T;
   viberURL?: T;
   facebookURL?: T;
   workingHours?: T;
@@ -885,6 +961,36 @@ export interface CalculatorSettingsSelect<T extends boolean = true> {
         id?: T;
       };
   note?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "integrations_select".
+ */
+export interface IntegrationsSelect<T extends boolean = true> {
+  enabled?: T;
+  hostname?: T;
+  installation?: T;
+  gaEnabled?: T;
+  gaId?: T;
+  adsEnabled?: T;
+  adsId?: T;
+  adsLeadLabel?: T;
+  gtmId?: T;
+  pixelEnabled?: T;
+  pixelId?: T;
+  capiEnabled?: T;
+  metaAccessToken?: T;
+  tokenConfigured?: T;
+  clearMetaToken?: T;
+  metaTestCode?: T;
+  clarityEnabled?: T;
+  clarityId?: T;
+  googleVerification?: T;
+  bingVerification?: T;
+  metaVerification?: T;
   updatedAt?: T;
   createdAt?: T;
   globalType?: T;

@@ -10,6 +10,7 @@ import path from 'node:path'
 import { tmpdir } from 'node:os'
 import { AuctionQuotes, Cars, Inquiries, Media, Pages, RateLimits, Redirects, Users } from './collections'
 import { CalculatorSettings } from './globals/CalculatorSettings'
+import { Integrations } from './globals/Integrations'
 import { SiteSettings } from './globals/SiteSettings'
 import { initializeContent } from './lib/initialize-content'
 import { isPreview } from './lib/preview'
@@ -36,7 +37,7 @@ export default buildConfig({
   },
   i18n: { fallbackLanguage: 'bg', supportedLanguages: { bg, en } },
   collections: [Users, Customers, SavedVehicles, Media, Cars, Pages, Inquiries, AuctionQuotes, Redirects, RateLimits],
-  globals: [SiteSettings, CalculatorSettings],
+  globals: [SiteSettings, CalculatorSettings, Integrations],
   ...(process.env.SMTP_HOST && process.env.SMTP_FROM ? { email: nodemailerAdapter({ defaultFromAddress: process.env.SMTP_FROM, defaultFromName: 'Коли от Америка', skipVerify: true, transportOptions: { host: process.env.SMTP_HOST, port: Number(process.env.SMTP_PORT || 587), secure: process.env.SMTP_PORT === '465', ...(process.env.SMTP_USER ? { auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASSWORD } } : {}) } }) } : {}),
   db: sqliteAdapter({
     client: { url: preview ? `file:${path.join(tmpdir(), `koa-preview-${process.pid}.db`)}` : process.env.DATABASE_URI || 'file:./.data/payload.db', ...(!preview && process.env.DATABASE_AUTH_TOKEN ? { authToken: process.env.DATABASE_AUTH_TOKEN } : {}) },

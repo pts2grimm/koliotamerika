@@ -1,5 +1,6 @@
-import { NextResponse } from 'next/server'
-import { createHmac } from 'node:crypto'
+import { recordLead } from '@/lib/record-lead'
+import { NextResponse, after } from 'next/server'
+import { createHmac, randomUUID } from 'node:crypto'
 import { cms, siteURL } from '@/lib/data'
 import { validateInquiry } from '@/lib/inquiry-validation'
 import { customerFromRequest } from '@/lib/account-server'
@@ -29,6 +30,13 @@ export async function POST(request: Request) {
    await payload.create({ collection: 'inquiries', data: { ...result.data, ...(customer ? { customer: customer.id, email: customer.email } : {}) } })
    await payload.create({ collection: 'submission-limits', data: { key } })
    await payload.delete({ collection: 'submission-limits', where: { createdAt: { less_than: cutoff } } })
-   return NextResponse.json({ success: true }, { status: 201 })
+   const eventId = randomUUID()
+   const tracking = (input as { tracking?: { path?: unknown; marketing?: unknown } }).tracking
+   // Schedule ONLY after persistence and validation, never from a public arbitrary-event endpoint.
+   const lead = { id: eventId, email: customer?.email || result.data.email, phone: result.data.phone,
+     path: typeof tracking?.path === 'string' ? tracking.path.slice(0, 2000) : '/kontakti',
+     marketing: tracking?.marketing === true, time: Date.now() }
+   after(() => recordLead(payload, request, lead))
+   return NextResponse.json({ success: true, eventId }, { status: 201 })
  } catch (error) { console.error('Inquiry persistence failed:', error instanceof Error ? error.name : 'Unknown error'); return NextResponse.json({ error: 'Запитването не беше записано. Моля, опитай отново.' }, { status: 500 }) }
 }
