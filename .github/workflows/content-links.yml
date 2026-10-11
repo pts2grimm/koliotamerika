@@ -7,7 +7,7 @@ permissions:
 jobs:
   verify:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -15,12 +15,11 @@ jobs:
           node-version: '24'
           cache: npm
       - run: npm ci --include=dev
-      - name: Read installed Next link and metadata contracts
-        run: |
-          python3 - <<'PY'
-          from pathlib import Path
-          for name in ['link.mdx','link.md','generate-metadata.md']:
-            for p in Path('node_modules/next/dist/docs').rglob(name):
-              print('FILE',p)
-              print(p.read_text()[:26000])
-          PY
+      - run: npm run typecheck
+      - run: npx tsx --test tests/content-review.test.ts
+      - run: npm test
+      - run: npm run build
+        env:
+          PREVIEW_MODE: 'true'
+          PAYLOAD_SECRET: ci-content-review-only-not-live-secret
+      - run: npm run typecheck

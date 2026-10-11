@@ -1,5 +1,5 @@
 import snapshot from '../../content/homepage.json'
-import legacy from '../../content/wordpress.json'
+import { cms, mediaUrl, imageAlt } from '@/lib/data'
 import Image from 'next/image'
 import { ArrowUpRight, FileCheck2, MapPinned, MessageCircle, Search, ShieldCheck } from 'lucide-react'
 import { SiteLink as Link } from './SiteLink'
@@ -14,7 +14,8 @@ type HomeQuestion = { id?: string | null; question: string; answer: string }
 export function additionalHomeFAQ(faq?: HomeQuestion[] | null) {
  return (faq || []).filter(item => !snapshot.faq.some(original => original.question === item.question))
 }
-export function HomeSEO({ viberURL, faq = [] }: { viberURL?: string | null; faq?: { question: string; answer: string }[] | null }) {
+export async function HomeSEO({ viberURL, faq = [] }: { viberURL?: string | null; faq?: { question: string; answer: string }[] | null }) {
+ const articles = (await (await cms()).find({ collection: 'pages', overrideAccess: false, where: { kind: { equals: 'article' } }, sort: '-publishedAt', limit: 3, depth: 1 })).docs
  const extraFaq = additionalHomeFAQ(faq)
  const icons = [Search, ShieldCheck, MapPinned, FileCheck2]
  const faqSchema = { '@context': 'https://schema.org', '@type': 'FAQPage', mainEntity: [...snapshot.faq, ...extraFaq.map(item => ({ question: item.question, text: item.answer }))].map(item => ({ '@type': 'Question', name: item.question, acceptedAnswer: { '@type': 'Answer', text: item.text } })) }
@@ -26,7 +27,7 @@ export function HomeSEO({ viberURL, faq = [] }: { viberURL?: string | null; faq?
   <section className="container home-faq"><div className="home-section-title"><span className="eyebrow orange">ПРЕДИ ДА ИЗБЕРЕШ</span><h2>Въпроси за вноса на коли от Америка</h2></div><div className="faq-list">{snapshot.faq.map((item, index) => <details key={item.question}><summary><span className="faq-num">0{index + 1}</span>{item.question}<span className="faq-plus">+</span></summary><Copy html={item.html} /></details>)}</div><Copy html={snapshot.faqMore} /></section>
   <section className="home-testimonials"><div className="container"><span className="eyebrow orange">СПОДЕЛЕН ОПИТ</span><h2>{snapshot.testimonials.heading}</h2><div className="home-review-grid">{snapshot.testimonials.items.map(item => <figure key={item.name}><blockquote>{item.quote}</blockquote><figcaption><strong>{item.name}</strong><span>{item.car}</span></figcaption></figure>)}</div></div></section>
   <section className="container home-partners"><h2>{snapshot.partners.heading}</h2><ul>{snapshot.partners.names.map(name => <li key={name}>{name}</li>)}</ul></section>
-  <section className="container home-news"><div className="section-heading"><div><span className="eyebrow orange">ПОЛЕЗНО ПРЕДИ ПОКУПКАТА</span><h2>{snapshot.news.heading}</h2></div><Link className="text-link" href="/blog">Всички статии <ArrowUpRight size={18} /></Link></div><div className="home-news-grid">{snapshot.news.items.map(item => <article key={item.href}>{legacy.items.find(p => `/${p.slug}` === item.href)?.coverPath && <Image className="home-news-image" src={legacy.items.find(p => `/${p.slug}` === item.href)!.coverPath!} width={640} height={360} alt={item.title} />}<h3><Link href={item.href}>{item.title}</Link></h3><p>{item.excerpt}</p><Link className="text-link" href={item.href}>Прочети повече <ArrowUpRight size={18} /></Link></article>)}</div></section>
+  <section className="container home-news"><div className="section-heading"><div><span className="eyebrow orange">ПОЛЕЗНО ПРЕДИ ПОКУПКАТА</span><h2>{snapshot.news.heading}</h2></div><Link className="text-link" href="/blog">Всички статии <ArrowUpRight size={18} /></Link></div><div className="home-news-grid">{articles.map(item => { const image = mediaUrl(item.image) || item.legacyImage; const href = '/' + item.slug; return <article key={item.id}>{image && <Image className="home-news-image" src={image} width={640} height={360} alt={imageAlt(item.image, item.title)} />}<h3><Link href={href}>{item.title}</Link></h3><p>{item.intro}</p><Link className="text-link" href={href}>Прочети повече <ArrowUpRight size={18} /></Link></article> })}</div></section>
   <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema).replace(/</g, '\\u003c') }} />
  </div>
 }
