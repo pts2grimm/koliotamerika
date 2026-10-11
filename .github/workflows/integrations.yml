@@ -1,0 +1,20 @@
+name: Integration framework reference
+on:
+  push:
+    branches: ['codex/admin-integrations']
+permissions:
+  contents: read
+jobs:
+  reference:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci --include=dev
+      - name: Installed Next documentation
+        run: |
+          rg --files node_modules/next/dist/docs | rg '(script|after|server-and-client-components)'
+          for f in $(rg --files node_modules/next/dist/docs | rg '(01-app/.*/(script|after)\.md|server-and-client-components\.md)$'); do cat "$f"; done
