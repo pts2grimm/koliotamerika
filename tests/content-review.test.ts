@@ -45,3 +45,11 @@ test('review preserves editorial body, metadata overrides, draft status, URL and
  assert.equal(update.seo?.noIndex,true)
  for(const key of ['slug','status','publishedAt','image','legacyImage']) assert.equal(update[key as keyof Page],undefined)
 })
+
+test('undefined Lexical list fields are equivalent to the persisted JSON baseline', () => {
+ const root = {type:'root',version:1,direction:null,format:'',indent:0,children:[{type:'listitem',version:1,checked:undefined,children:[]}]}
+ const baseline = {title:'Original',intro:'Original',seoTitle:'Original',seoDescription:'Original',body:{root}} as Parameters<typeof contentReviewUpdate>[1]
+ const page = {...baseline,body:JSON.parse(JSON.stringify(baseline.body)),slug:'test',seo:{title:'Original',description:'Original'}} as unknown as Page
+ const reviewed = {...baseline.body,root:{...root,children:[]}} as Page['body']
+ assert.deepEqual(contentReviewUpdate(page,baseline,{slug:'test'},reviewed).body,reviewed)
+})

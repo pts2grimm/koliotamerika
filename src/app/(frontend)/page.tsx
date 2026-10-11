@@ -8,7 +8,7 @@ import { CarCard } from '@/components/CarCard'
 import { AuctionPreview } from '@/components/AuctionPreview'
 import { HomeSearch } from '@/components/HomeSearch'
 import { auctionMakes } from '@/lib/auctions'
-export const metadata = { title: 'Коли от Америка — внос на автомобили от САЩ и Канада', description: 'Внос на коли от Америка с Коли от Америка. Избор и проверка на автомобил, търгове Copart и IAAI, транспорт, хомологация и доставка до България.', alternates: { canonical: '/' } }
+export const metadata = { title: { absolute: 'Коли от Америка — внос на автомобили от САЩ и Канада' }, description: 'Внос на коли от Америка с Коли от Америка. Избор и проверка на автомобил, търгове Copart и IAAI, транспорт, хомологация и доставка до България.', alternates: { canonical: '/' } }
 export default async function Home() {
  const [site, makes] = await Promise.all([settings(), auctionMakes().catch(() => ({}))])
  const homeQuestions = additionalHomeFAQ(site.faq)

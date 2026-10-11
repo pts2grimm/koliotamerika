@@ -12,7 +12,7 @@ import { contentReviewKey } from './content-review-key'
 export { contentReviewKey } from './content-review-key'
 function stable(value: unknown): string {
  if (Array.isArray(value)) return '[' + value.map(stable).join(',') + ']'
- if (value && typeof value === 'object') return '{' + Object.entries(value).sort(([a],[b]) => a.localeCompare(b)).map(([k,v]) => JSON.stringify(k) + ':' + stable(v)).join(',') + '}'
+ if (value && typeof value === 'object') return '{' + Object.entries(value).filter(([,v]) => v !== undefined).sort(([a],[b]) => a.localeCompare(b)).map(([k,v]) => JSON.stringify(k) + ':' + stable(v)).join(',') + '}'
  return JSON.stringify(value) ?? 'undefined'
 }
 export function contentReviewUpdate(page: Page, baseline: { title: string; intro: string; seoTitle: string; seoDescription: string; body: Page['body'] }, revision: ContentRevision, body: Page['body']): Partial<Page> {

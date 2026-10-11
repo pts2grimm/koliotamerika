@@ -17,6 +17,7 @@ jobs:
       - run: npm ci --include=dev
       - run: npm run typecheck
       - run: npx tsx --test tests/content-review.test.ts
+      - run: npx tsx scripts/check-content-external-links.ts
       - run: npx tsx --test --test-name-pattern="content review is atomic" tests/migrations.test.ts
       - run: npm test
       - run: npm run build

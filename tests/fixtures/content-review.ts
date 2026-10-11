@@ -10,6 +10,8 @@ const payload = await getPayload({config,disableOnInit:true})
 try {
  const count = await payload.count({collection:'payload-kv',where:{key:{like:'content:review:2026-10:v1:'}}})
  assert.equal(count.totalDocs,revisions.length)
+ const journals = await payload.find({collection:'payload-kv',limit:revisions.length,where:{key:{in:revisions.map(r=>contentReviewKey(r.slug))}}})
+ for(const row of journals.docs) assert.equal((row.data as {bodyPreserved:boolean}).bodyPreserved,false,'Untouched body should be reviewed: '+row.key)
  assert.equal(await upgradeContentReview(payload),0)
  const original = snapshot.items.find(item=>item.slug==='homologacia')!
  const page = (await payload.find({collection:'pages',where:{slug:{equals:original.slug}},depth:0,limit:1})).docs[0]
@@ -18,7 +20,7 @@ try {
  const key = contentReviewKey(original.slug)
  await payload.delete({collection:'payload-kv',where:{key:{equals:key}}})
  const before = await payload.update({collection:'pages',id:page.id,depth:0,data:{body,status:'draft'}})
- assert.deepEqual(before.body, body, 'Stored Lexical baseline must compare to imported HTML')
+ assert.deepEqual(before.body, JSON.parse(JSON.stringify(body)), 'Stored Lexical baseline must compare to serialized imported HTML')
  const create = payload.create.bind(payload)
  payload.create = (async (args: Parameters<typeof payload.create>[0])=>{
   if(args.collection==='payload-kv') throw new Error('Injected content audit failure')
