@@ -79,7 +79,7 @@ def audit(url):
     return row
 rows=[]
 visited=set()
-for batchnum in range(3):
+for batchnum in range(10):
     pending=sorted(urls-visited)[:max(0,160-len(visited))]
     if not pending:break
     for row in ThreadPoolExecutor(max_workers=3).map(audit,pending):
