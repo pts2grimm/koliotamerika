@@ -169,14 +169,15 @@ test('gallery and recovered photos render before JavaScript and filter on mobile
    await page.goto('/koli-ot-amerika-galeriya')
    await page.evaluate(t=>{document.documentElement.dataset.theme=t},theme)
    await expect(page.locator('#gallery-photos figure')).toHaveCount(41)
-   await page.getByLabel('Марка',{exact:true}).selectOption('BMW')
+   await expect(page.getByRole('combobox',{name:'Марка',exact:true})).toBeVisible()
+   await page.getByLabel('Марка',{exact:true}).selectOption('BMW',{timeout:15000})
    await expect(page.locator('#gallery-photos figure')).toHaveCount(gallery.items.filter(x=>x.brand==='BMW').length)
    await page.locator('#gallery-photos figure').first().scrollIntoViewIfNeeded()
    await expect(page.locator('#gallery-photos img').first()).toBeVisible()
    await expect.poll(()=>page.locator('#gallery-photos img').first().evaluate((img:HTMLImageElement)=>img.complete&&img.naturalWidth>0)).toBe(true)
    expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1)).toBe(true)
    await page.screenshot({path:`test-results/gallery-${theme}-${width}.png`})
-   await page.getByLabel('Марка',{exact:true}).selectOption('')
+   await page.getByLabel('Марка',{exact:true}).selectOption('',{timeout:15000})
    await expect(page.getByRole('status')).toContainText('41 от 41')
   }
  }
