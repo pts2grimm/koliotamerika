@@ -1,17 +1,18 @@
 import { mkdir, writeFile, readFile } from 'node:fs/promises'
 import { JSDOM } from 'jsdom'
+import { execFileSync } from 'node:child_process'
 const origin='https://koliotamerika.bg'
 async function get(url) {
- const r=await fetch(url,{signal:AbortSignal.timeout(40000)})
- if(!r.ok)throw new Error(url+' HTTP '+r.status)
- return r
+ const data=execFileSync('curl',['-4','--fail','--location','--retry','2','--connect-timeout','15','--max-time','60','--silent','--show-error',url],{maxBuffer:20*1024*1024})
+ return new Response(data)
 }
 async function api(kind) {
  const result=[]
  for(let page=1;page<20;page++){
   const r=await get(origin+'/wp-json/wp/v2/'+kind+'?per_page=100&page='+page)
-  result.push(...await r.json())
-  if(page>=Number(r.headers.get('x-wp-totalpages')))return result
+  const batch=await r.json()
+  result.push(...batch)
+  if(batch.length<100)return result
  }
  throw new Error('Pagination limit')
 }
