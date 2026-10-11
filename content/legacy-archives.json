@@ -1,0 +1,631 @@
+{
+  "capturedAt": "2026-10-11T16:25:39Z",
+  "archives": [
+    {
+      "path": "/author/konstantin-alniazi",
+      "kind": "author",
+      "label": "konstantin.alniazi",
+      "slugs": [
+        "koli-ot-manheim",
+        "bmw-b58-sreshtu-n55",
+        "zastrahovka-na-avtomobili-ot-sasht",
+        "tehnotest-za-avtomobili",
+        "navodneni-koli-ot-amerika",
+        "vnos-na-elektromobili-ot-sasht",
+        "run-and-drive-koli-ot-amerika",
+        "morski-transport-na-avtomobili-ot-sasht",
+        "salvage-title-kola-ot-amerika",
+        "pokupka-na-avtomobili-ot-sasht-2025",
+        "amerikanski-avtomobilen-pazar",
+        "zakupuvane-na-koli-ot-amerika",
+        "koli-ot-sasht-regulacii-tehnologii-2025",
+        "audi-promenya-imenata-na-svoite-modeli",
+        "kak-da-razchetem-vin-nomera-na-avtomobila",
+        "mitove-za-avtomobilite-ot-amerika",
+        "carfax-vnos-na-koli-ot-amerika",
+        "izmami-pri-pokupka-na-avtomobil",
+        "motori-i-atv-ta-ot-amerika",
+        "podgotovka-na-avtomobila-za-zimata",
+        "avtomobili-ot-amerikanski-aukcioni",
+        "aukcioni-i-upravlenie-na-razhodite",
+        "avtochasti-za-koli-ot-turgove-v-amerika",
+        "kak-da-izberem-kola-ot-targ",
+        "avtomobili-ot-sasht-novoto-ime",
+        "homologacia-na-koli",
+        "obsluzhvane-na-kola-vnos-ot-amerika",
+        "parvonachalna-registracziya-v-kat",
+        "neobhodimi-dokumenti-za-vnos-na-kola-ot-sasth",
+        "avtomobili-nov-vnos",
+        "kola-nov-vnos"
+      ],
+      "sourceURLs": [
+        "https://koliotamerika.bg/koli-ot-manheim/",
+        "https://koliotamerika.bg/bmw-b58-sreshtu-n55/",
+        "https://koliotamerika.bg/zastrahovka-na-avtomobili-ot-sasht/",
+        "https://koliotamerika.bg/tehnotest-za-avtomobili/",
+        "https://koliotamerika.bg/navodneni-koli-ot-amerika/",
+        "https://koliotamerika.bg/vnos-na-elektromobili-ot-sasht/",
+        "https://koliotamerika.bg/run-and-drive-koli-ot-amerika/",
+        "https://koliotamerika.bg/morski-transport-na-avtomobili-ot-sasht/",
+        "https://koliotamerika.bg/salvage-title-kola-ot-amerika/",
+        "https://koliotamerika.bg/pokupka-na-avtomobili-ot-sasht-2025/",
+        "https://koliotamerika.bg/amerikanski-avtomobilen-pazar/",
+        "https://koliotamerika.bg/zakupuvane-na-koli-ot-amerika/",
+        "https://koliotamerika.bg/koli-ot-sasht-regulacii-tehnologii-2025/",
+        "https://koliotamerika.bg/audi-promenya-imenata-na-svoite-modeli/",
+        "https://koliotamerika.bg/kak-da-razchetem-vin-nomera-na-avtomobila/",
+        "https://koliotamerika.bg/mitove-za-avtomobilite-ot-amerika/",
+        "https://koliotamerika.bg/carfax-vnos-na-koli-ot-amerika/",
+        "https://koliotamerika.bg/izmami-pri-pokupka-na-avtomobil/",
+        "https://koliotamerika.bg/motori-i-atv-ta-ot-amerika/",
+        "https://koliotamerika.bg/podgotovka-na-avtomobila-za-zimata/",
+        "https://koliotamerika.bg/avtomobili-ot-amerikanski-aukcioni/",
+        "https://koliotamerika.bg/aukcioni-i-upravlenie-na-razhodite/",
+        "https://koliotamerika.bg/avtochasti-za-koli-ot-turgove-v-amerika/",
+        "https://koliotamerika.bg/kak-da-izberem-kola-ot-targ/",
+        "https://koliotamerika.bg/avtomobili-ot-sasht-novoto-ime/",
+        "https://koliotamerika.bg/homologacia-na-koli/",
+        "https://koliotamerika.bg/obsluzhvane-na-kola-vnos-ot-amerika/",
+        "https://koliotamerika.bg/parvonachalna-registracziya-v-kat/",
+        "https://koliotamerika.bg/neobhodimi-dokumenti-za-vnos-na-kola-ot-sasth/",
+        "https://koliotamerika.bg/avtomobili-nov-vnos/",
+        "https://koliotamerika.bg/kola-nov-vnos/"
+      ]
+    },
+    {
+      "path": "/category/kola-nov-vnos",
+      "kind": "category",
+      "label": "Кола нов внос",
+      "slugs": [
+        "koli-ot-manheim",
+        "bmw-b58-sreshtu-n55",
+        "zastrahovka-na-avtomobili-ot-sasht",
+        "tehnotest-za-avtomobili",
+        "navodneni-koli-ot-amerika",
+        "vnos-na-elektromobili-ot-sasht",
+        "run-and-drive-koli-ot-amerika",
+        "morski-transport-na-avtomobili-ot-sasht",
+        "salvage-title-kola-ot-amerika",
+        "pokupka-na-avtomobili-ot-sasht-2025",
+        "amerikanski-avtomobilen-pazar",
+        "zakupuvane-na-koli-ot-amerika",
+        "koli-ot-sasht-regulacii-tehnologii-2025",
+        "audi-promenya-imenata-na-svoite-modeli",
+        "kak-da-razchetem-vin-nomera-na-avtomobila",
+        "mitove-za-avtomobilite-ot-amerika",
+        "carfax-vnos-na-koli-ot-amerika",
+        "izmami-pri-pokupka-na-avtomobil",
+        "motori-i-atv-ta-ot-amerika",
+        "podgotovka-na-avtomobila-za-zimata",
+        "avtomobili-ot-amerikanski-aukcioni",
+        "aukcioni-i-upravlenie-na-razhodite",
+        "avtochasti-za-koli-ot-turgove-v-amerika",
+        "kak-da-izberem-kola-ot-targ",
+        "avtomobili-ot-sasht-novoto-ime",
+        "homologacia-na-koli",
+        "obsluzhvane-na-kola-vnos-ot-amerika",
+        "parvonachalna-registracziya-v-kat",
+        "neobhodimi-dokumenti-za-vnos-na-kola-ot-sasth",
+        "avtomobili-nov-vnos",
+        "kola-nov-vnos"
+      ],
+      "sourceURLs": [
+        "https://koliotamerika.bg/koli-ot-manheim/",
+        "https://koliotamerika.bg/bmw-b58-sreshtu-n55/",
+        "https://koliotamerika.bg/zastrahovka-na-avtomobili-ot-sasht/",
+        "https://koliotamerika.bg/tehnotest-za-avtomobili/",
+        "https://koliotamerika.bg/navodneni-koli-ot-amerika/",
+        "https://koliotamerika.bg/vnos-na-elektromobili-ot-sasht/",
+        "https://koliotamerika.bg/run-and-drive-koli-ot-amerika/",
+        "https://koliotamerika.bg/morski-transport-na-avtomobili-ot-sasht/",
+        "https://koliotamerika.bg/salvage-title-kola-ot-amerika/",
+        "https://koliotamerika.bg/pokupka-na-avtomobili-ot-sasht-2025/",
+        "https://koliotamerika.bg/amerikanski-avtomobilen-pazar/",
+        "https://koliotamerika.bg/zakupuvane-na-koli-ot-amerika/",
+        "https://koliotamerika.bg/koli-ot-sasht-regulacii-tehnologii-2025/",
+        "https://koliotamerika.bg/audi-promenya-imenata-na-svoite-modeli/",
+        "https://koliotamerika.bg/kak-da-razchetem-vin-nomera-na-avtomobila/",
+        "https://koliotamerika.bg/mitove-za-avtomobilite-ot-amerika/",
+        "https://koliotamerika.bg/carfax-vnos-na-koli-ot-amerika/",
+        "https://koliotamerika.bg/izmami-pri-pokupka-na-avtomobil/",
+        "https://koliotamerika.bg/motori-i-atv-ta-ot-amerika/",
+        "https://koliotamerika.bg/podgotovka-na-avtomobila-za-zimata/",
+        "https://koliotamerika.bg/avtomobili-ot-amerikanski-aukcioni/",
+        "https://koliotamerika.bg/aukcioni-i-upravlenie-na-razhodite/",
+        "https://koliotamerika.bg/avtochasti-za-koli-ot-turgove-v-amerika/",
+        "https://koliotamerika.bg/kak-da-izberem-kola-ot-targ/",
+        "https://koliotamerika.bg/avtomobili-ot-sasht-novoto-ime/",
+        "https://koliotamerika.bg/homologacia-na-koli/",
+        "https://koliotamerika.bg/obsluzhvane-na-kola-vnos-ot-amerika/",
+        "https://koliotamerika.bg/parvonachalna-registracziya-v-kat/",
+        "https://koliotamerika.bg/neobhodimi-dokumenti-za-vnos-na-kola-ot-sasth/",
+        "https://koliotamerika.bg/avtomobili-nov-vnos/",
+        "https://koliotamerika.bg/kola-nov-vnos/"
+      ]
+    },
+    {
+      "path": "/tag/aukczioni-ot-sasth",
+      "kind": "tag",
+      "label": "аукциони от сащ",
+      "slugs": [
+        "koli-ot-manheim",
+        "tehnotest-za-avtomobili",
+        "navodneni-koli-ot-amerika",
+        "vnos-na-elektromobili-ot-sasht",
+        "run-and-drive-koli-ot-amerika",
+        "salvage-title-kola-ot-amerika",
+        "pokupka-na-avtomobili-ot-sasht-2025",
+        "amerikanski-avtomobilen-pazar",
+        "zakupuvane-na-koli-ot-amerika",
+        "kak-da-razchetem-vin-nomera-na-avtomobila",
+        "mitove-za-avtomobilite-ot-amerika",
+        "carfax-vnos-na-koli-ot-amerika",
+        "izmami-pri-pokupka-na-avtomobil",
+        "podgotovka-na-avtomobila-za-zimata",
+        "avtomobili-ot-amerikanski-aukcioni",
+        "aukcioni-i-upravlenie-na-razhodite",
+        "kak-da-izberem-kola-ot-targ"
+      ],
+      "sourceURLs": [
+        "https://koliotamerika.bg/koli-ot-manheim/",
+        "https://koliotamerika.bg/tehnotest-za-avtomobili/",
+        "https://koliotamerika.bg/navodneni-koli-ot-amerika/",
+        "https://koliotamerika.bg/vnos-na-elektromobili-ot-sasht/",
+        "https://koliotamerika.bg/run-and-drive-koli-ot-amerika/",
+        "https://koliotamerika.bg/salvage-title-kola-ot-amerika/",
+        "https://koliotamerika.bg/pokupka-na-avtomobili-ot-sasht-2025/",
+        "https://koliotamerika.bg/amerikanski-avtomobilen-pazar/",
+        "https://koliotamerika.bg/zakupuvane-na-koli-ot-amerika/",
+        "https://koliotamerika.bg/kak-da-razchetem-vin-nomera-na-avtomobila/",
+        "https://koliotamerika.bg/mitove-za-avtomobilite-ot-amerika/",
+        "https://koliotamerika.bg/carfax-vnos-na-koli-ot-amerika/",
+        "https://koliotamerika.bg/izmami-pri-pokupka-na-avtomobil/",
+        "https://koliotamerika.bg/podgotovka-na-avtomobila-za-zimata/",
+        "https://koliotamerika.bg/avtomobili-ot-amerikanski-aukcioni/",
+        "https://koliotamerika.bg/aukcioni-i-upravlenie-na-razhodite/",
+        "https://koliotamerika.bg/kak-da-izberem-kola-ot-targ/"
+      ]
+    },
+    {
+      "path": "/tag/aukczioni-za-motori",
+      "kind": "tag",
+      "label": "аукциони за мотори",
+      "slugs": [
+        "motori-i-atv-ta-ot-amerika"
+      ],
+      "sourceURLs": [
+        "https://koliotamerika.bg/motori-i-atv-ta-ot-amerika/"
+      ]
+    },
+    {
+      "path": "/tag/avtochasti-vtora-upotreba",
+      "kind": "tag",
+      "label": "авточасти втора употреба",
+      "slugs": [
+        "avtochasti-za-koli-ot-turgove-v-amerika"
+      ],
+      "sourceURLs": [
+        "https://koliotamerika.bg/avtochasti-za-koli-ot-turgove-v-amerika/"
+      ]
+    },
+    {
+      "path": "/tag/avtochasti-za-koli",
+      "kind": "tag",
+      "label": "авточасти за коли",
+      "slugs": [
+        "avtochasti-za-koli-ot-turgove-v-amerika"
+      ],
+      "sourceURLs": [
+        "https://koliotamerika.bg/avtochasti-za-koli-ot-turgove-v-amerika/"
+      ]
+    },
+    {
+      "path": "/tag/avtomobili-ot-manheim",
+      "kind": "tag",
+      "label": "автомобили от manheim",
+      "slugs": [
+        "koli-ot-manheim"
+      ],
+      "sourceURLs": [
+        "https://koliotamerika.bg/koli-ot-manheim/"
+      ]
+    },
+    {
+      "path": "/tag/bmw",
+      "kind": "tag",
+      "label": "bmw",
+      "slugs": [
+        "bmw-b58-sreshtu-n55"
+      ],
+      "sourceURLs": [
+        "https://koliotamerika.bg/bmw-b58-sreshtu-n55/"
+      ]
+    },
+    {
+      "path": "/tag/carfax",
+      "kind": "tag",
+      "label": "Carfax",
+      "slugs": [
+        "carfax-vnos-na-koli-ot-amerika"
+      ],
+      "sourceURLs": [
+        "https://koliotamerika.bg/carfax-vnos-na-koli-ot-amerika/"
+      ]
+    },
+    {
+      "path": "/tag/koli-na-targ",
+      "kind": "tag",
+      "label": "коли на търг",
+      "slugs": [
+        "koli-ot-manheim",
+        "bmw-b58-sreshtu-n55",
+        "tehnotest-za-avtomobili",
+        "navodneni-koli-ot-amerika",
+        "vnos-na-elektromobili-ot-sasht",
+        "run-and-drive-koli-ot-amerika",
+        "salvage-title-kola-ot-amerika",
+        "pokupka-na-avtomobili-ot-sasht-2025",
+        "amerikanski-avtomobilen-pazar",
+        "zakupuvane-na-koli-ot-amerika",
+        "koli-ot-sasht-regulacii-tehnologii-2025",
+        "kak-da-razchetem-vin-nomera-na-avtomobila",
+        "mitove-za-avtomobilite-ot-amerika",
+        "carfax-vnos-na-koli-ot-amerika",
+        "izmami-pri-pokupka-na-avtomobil",
+        "podgotovka-na-avtomobila-za-zimata",
+        "avtomobili-ot-amerikanski-aukcioni",
+        "kak-da-izberem-kola-ot-targ"
+      ],
+      "sourceURLs": [
+        "https://koliotamerika.bg/koli-ot-manheim/",
+        "https://koliotamerika.bg/bmw-b58-sreshtu-n55/",
+        "https://koliotamerika.bg/tehnotest-za-avtomobili/",
+        "https://koliotamerika.bg/navodneni-koli-ot-amerika/",
+        "https://koliotamerika.bg/vnos-na-elektromobili-ot-sasht/",
+        "https://koliotamerika.bg/run-and-drive-koli-ot-amerika/",
+        "https://koliotamerika.bg/salvage-title-kola-ot-amerika/",
+        "https://koliotamerika.bg/pokupka-na-avtomobili-ot-sasht-2025/",
+        "https://koliotamerika.bg/amerikanski-avtomobilen-pazar/",
+        "https://koliotamerika.bg/zakupuvane-na-koli-ot-amerika/",
+        "https://koliotamerika.bg/koli-ot-sasht-regulacii-tehnologii-2025/",
+        "https://koliotamerika.bg/kak-da-razchetem-vin-nomera-na-avtomobila/",
+        "https://koliotamerika.bg/mitove-za-avtomobilite-ot-amerika/",
+        "https://koliotamerika.bg/carfax-vnos-na-koli-ot-amerika/",
+        "https://koliotamerika.bg/izmami-pri-pokupka-na-avtomobil/",
+        "https://koliotamerika.bg/podgotovka-na-avtomobila-za-zimata/",
+        "https://koliotamerika.bg/avtomobili-ot-amerikanski-aukcioni/",
+        "https://koliotamerika.bg/kak-da-izberem-kola-ot-targ/"
+      ]
+    },
+    {
+      "path": "/tag/koli-ot-amerika",
+      "kind": "tag",
+      "label": "коли от америка",
+      "slugs": [
+        "koli-ot-manheim",
+        "bmw-b58-sreshtu-n55",
+        "zastrahovka-na-avtomobili-ot-sasht",
+        "tehnotest-za-avtomobili",
+        "navodneni-koli-ot-amerika",
+        "vnos-na-elektromobili-ot-sasht",
+        "run-and-drive-koli-ot-amerika",
+        "morski-transport-na-avtomobili-ot-sasht",
+        "salvage-title-kola-ot-amerika",
+        "pokupka-na-avtomobili-ot-sasht-2025",
+        "amerikanski-avtomobilen-pazar",
+        "zakupuvane-na-koli-ot-amerika",
+        "koli-ot-sasht-regulacii-tehnologii-2025",
+        "kak-da-razchetem-vin-nomera-na-avtomobila",
+        "mitove-za-avtomobilite-ot-amerika",
+        "carfax-vnos-na-koli-ot-amerika",
+        "izmami-pri-pokupka-na-avtomobil",
+        "motori-i-atv-ta-ot-amerika",
+        "podgotovka-na-avtomobila-za-zimata",
+        "avtomobili-ot-amerikanski-aukcioni",
+        "aukcioni-i-upravlenie-na-razhodite",
+        "kak-da-izberem-kola-ot-targ",
+        "homologacia-na-koli"
+      ],
+      "sourceURLs": [
+        "https://koliotamerika.bg/koli-ot-manheim/",
+        "https://koliotamerika.bg/bmw-b58-sreshtu-n55/",
+        "https://koliotamerika.bg/zastrahovka-na-avtomobili-ot-sasht/",
+        "https://koliotamerika.bg/tehnotest-za-avtomobili/",
+        "https://koliotamerika.bg/navodneni-koli-ot-amerika/",
+        "https://koliotamerika.bg/vnos-na-elektromobili-ot-sasht/",
+        "https://koliotamerika.bg/run-and-drive-koli-ot-amerika/",
+        "https://koliotamerika.bg/morski-transport-na-avtomobili-ot-sasht/",
+        "https://koliotamerika.bg/salvage-title-kola-ot-amerika/",
+        "https://koliotamerika.bg/pokupka-na-avtomobili-ot-sasht-2025/",
+        "https://koliotamerika.bg/amerikanski-avtomobilen-pazar/",
+        "https://koliotamerika.bg/zakupuvane-na-koli-ot-amerika/",
+        "https://koliotamerika.bg/koli-ot-sasht-regulacii-tehnologii-2025/",
+        "https://koliotamerika.bg/kak-da-razchetem-vin-nomera-na-avtomobila/",
+        "https://koliotamerika.bg/mitove-za-avtomobilite-ot-amerika/",
+        "https://koliotamerika.bg/carfax-vnos-na-koli-ot-amerika/",
+        "https://koliotamerika.bg/izmami-pri-pokupka-na-avtomobil/",
+        "https://koliotamerika.bg/motori-i-atv-ta-ot-amerika/",
+        "https://koliotamerika.bg/podgotovka-na-avtomobila-za-zimata/",
+        "https://koliotamerika.bg/avtomobili-ot-amerikanski-aukcioni/",
+        "https://koliotamerika.bg/aukcioni-i-upravlenie-na-razhodite/",
+        "https://koliotamerika.bg/kak-da-izberem-kola-ot-targ/",
+        "https://koliotamerika.bg/homologacia-na-koli/"
+      ]
+    },
+    {
+      "path": "/tag/koli-ot-manheim",
+      "kind": "tag",
+      "label": "коли от manheim",
+      "slugs": [
+        "koli-ot-manheim"
+      ],
+      "sourceURLs": [
+        "https://koliotamerika.bg/koli-ot-manheim/"
+      ]
+    },
+    {
+      "path": "/tag/manheim",
+      "kind": "tag",
+      "label": "manheim",
+      "slugs": [
+        "koli-ot-manheim"
+      ],
+      "sourceURLs": [
+        "https://koliotamerika.bg/koli-ot-manheim/"
+      ]
+    },
+    {
+      "path": "/tag/motor-ot-sasth",
+      "kind": "tag",
+      "label": "мотор от САЩ",
+      "slugs": [
+        "morski-transport-na-avtomobili-ot-sasht",
+        "motori-i-atv-ta-ot-amerika",
+        "homologacia-na-koli"
+      ],
+      "sourceURLs": [
+        "https://koliotamerika.bg/morski-transport-na-avtomobili-ot-sasht/",
+        "https://koliotamerika.bg/motori-i-atv-ta-ot-amerika/",
+        "https://koliotamerika.bg/homologacia-na-koli/"
+      ]
+    },
+    {
+      "path": "/tag/n55",
+      "kind": "tag",
+      "label": "n55",
+      "slugs": [
+        "bmw-b58-sreshtu-n55"
+      ],
+      "sourceURLs": [
+        "https://koliotamerika.bg/bmw-b58-sreshtu-n55/"
+      ]
+    },
+    {
+      "path": "/tag/partsworld-bg",
+      "kind": "tag",
+      "label": "PartsWorld.bg",
+      "slugs": [
+        "avtochasti-za-koli-ot-turgove-v-amerika"
+      ],
+      "sourceURLs": [
+        "https://koliotamerika.bg/avtochasti-za-koli-ot-turgove-v-amerika/"
+      ]
+    },
+    {
+      "path": "/tag/poddrazhka",
+      "kind": "tag",
+      "label": "поддръжка",
+      "slugs": [
+        "podgotovka-na-avtomobila-za-zimata"
+      ],
+      "sourceURLs": [
+        "https://koliotamerika.bg/podgotovka-na-avtomobila-za-zimata/"
+      ]
+    },
+    {
+      "path": "/tag/s55",
+      "kind": "tag",
+      "label": "s55",
+      "slugs": [
+        "bmw-b58-sreshtu-n55"
+      ],
+      "sourceURLs": [
+        "https://koliotamerika.bg/bmw-b58-sreshtu-n55/"
+      ]
+    },
+    {
+      "path": "/tag/salvage",
+      "kind": "tag",
+      "label": "salvage",
+      "slugs": [
+        "salvage-title-kola-ot-amerika"
+      ],
+      "sourceURLs": [
+        "https://koliotamerika.bg/salvage-title-kola-ot-amerika/"
+      ]
+    },
+    {
+      "path": "/tag/saveti-za-vnos",
+      "kind": "tag",
+      "label": "съвети за внос",
+      "slugs": [
+        "aukcioni-i-upravlenie-na-razhodite"
+      ],
+      "sourceURLs": [
+        "https://koliotamerika.bg/aukcioni-i-upravlenie-na-razhodite/"
+      ]
+    },
+    {
+      "path": "/tag/tehnotest",
+      "kind": "tag",
+      "label": "технотест",
+      "slugs": [
+        "bmw-b58-sreshtu-n55",
+        "tehnotest-za-avtomobili",
+        "homologacia-na-koli"
+      ],
+      "sourceURLs": [
+        "https://koliotamerika.bg/bmw-b58-sreshtu-n55/",
+        "https://koliotamerika.bg/tehnotest-za-avtomobili/",
+        "https://koliotamerika.bg/homologacia-na-koli/"
+      ]
+    },
+    {
+      "path": "/tag/vnos-na-atv-ot-amerika",
+      "kind": "tag",
+      "label": "внос на АТВ от Америка",
+      "slugs": [
+        "motori-i-atv-ta-ot-amerika"
+      ],
+      "sourceURLs": [
+        "https://koliotamerika.bg/motori-i-atv-ta-ot-amerika/"
+      ]
+    },
+    {
+      "path": "/tag/vnos-na-koli-ot-amerika",
+      "kind": "tag",
+      "label": "внос на коли от америка",
+      "slugs": [
+        "koli-ot-manheim",
+        "bmw-b58-sreshtu-n55",
+        "zastrahovka-na-avtomobili-ot-sasht",
+        "tehnotest-za-avtomobili",
+        "navodneni-koli-ot-amerika",
+        "vnos-na-elektromobili-ot-sasht",
+        "run-and-drive-koli-ot-amerika",
+        "morski-transport-na-avtomobili-ot-sasht",
+        "salvage-title-kola-ot-amerika",
+        "pokupka-na-avtomobili-ot-sasht-2025",
+        "amerikanski-avtomobilen-pazar",
+        "zakupuvane-na-koli-ot-amerika",
+        "koli-ot-sasht-regulacii-tehnologii-2025",
+        "kak-da-razchetem-vin-nomera-na-avtomobila",
+        "mitove-za-avtomobilite-ot-amerika",
+        "carfax-vnos-na-koli-ot-amerika",
+        "izmami-pri-pokupka-na-avtomobil",
+        "podgotovka-na-avtomobila-za-zimata",
+        "avtomobili-ot-amerikanski-aukcioni",
+        "kak-da-izberem-kola-ot-targ",
+        "homologacia-na-koli"
+      ],
+      "sourceURLs": [
+        "https://koliotamerika.bg/koli-ot-manheim/",
+        "https://koliotamerika.bg/bmw-b58-sreshtu-n55/",
+        "https://koliotamerika.bg/zastrahovka-na-avtomobili-ot-sasht/",
+        "https://koliotamerika.bg/tehnotest-za-avtomobili/",
+        "https://koliotamerika.bg/navodneni-koli-ot-amerika/",
+        "https://koliotamerika.bg/vnos-na-elektromobili-ot-sasht/",
+        "https://koliotamerika.bg/run-and-drive-koli-ot-amerika/",
+        "https://koliotamerika.bg/morski-transport-na-avtomobili-ot-sasht/",
+        "https://koliotamerika.bg/salvage-title-kola-ot-amerika/",
+        "https://koliotamerika.bg/pokupka-na-avtomobili-ot-sasht-2025/",
+        "https://koliotamerika.bg/amerikanski-avtomobilen-pazar/",
+        "https://koliotamerika.bg/zakupuvane-na-koli-ot-amerika/",
+        "https://koliotamerika.bg/koli-ot-sasht-regulacii-tehnologii-2025/",
+        "https://koliotamerika.bg/kak-da-razchetem-vin-nomera-na-avtomobila/",
+        "https://koliotamerika.bg/mitove-za-avtomobilite-ot-amerika/",
+        "https://koliotamerika.bg/carfax-vnos-na-koli-ot-amerika/",
+        "https://koliotamerika.bg/izmami-pri-pokupka-na-avtomobil/",
+        "https://koliotamerika.bg/podgotovka-na-avtomobila-za-zimata/",
+        "https://koliotamerika.bg/avtomobili-ot-amerikanski-aukcioni/",
+        "https://koliotamerika.bg/kak-da-izberem-kola-ot-targ/",
+        "https://koliotamerika.bg/homologacia-na-koli/"
+      ]
+    },
+    {
+      "path": "/tag/vnos-na-koli",
+      "kind": "tag",
+      "label": "внос на коли",
+      "slugs": [
+        "koli-ot-manheim",
+        "bmw-b58-sreshtu-n55",
+        "zastrahovka-na-avtomobili-ot-sasht",
+        "tehnotest-za-avtomobili",
+        "navodneni-koli-ot-amerika",
+        "vnos-na-elektromobili-ot-sasht",
+        "run-and-drive-koli-ot-amerika",
+        "morski-transport-na-avtomobili-ot-sasht",
+        "pokupka-na-avtomobili-ot-sasht-2025",
+        "amerikanski-avtomobilen-pazar",
+        "zakupuvane-na-koli-ot-amerika",
+        "koli-ot-sasht-regulacii-tehnologii-2025",
+        "mitove-za-avtomobilite-ot-amerika",
+        "izmami-pri-pokupka-na-avtomobil",
+        "motori-i-atv-ta-ot-amerika",
+        "homologacia-na-koli"
+      ],
+      "sourceURLs": [
+        "https://koliotamerika.bg/koli-ot-manheim/",
+        "https://koliotamerika.bg/bmw-b58-sreshtu-n55/",
+        "https://koliotamerika.bg/zastrahovka-na-avtomobili-ot-sasht/",
+        "https://koliotamerika.bg/tehnotest-za-avtomobili/",
+        "https://koliotamerika.bg/navodneni-koli-ot-amerika/",
+        "https://koliotamerika.bg/vnos-na-elektromobili-ot-sasht/",
+        "https://koliotamerika.bg/run-and-drive-koli-ot-amerika/",
+        "https://koliotamerika.bg/morski-transport-na-avtomobili-ot-sasht/",
+        "https://koliotamerika.bg/pokupka-na-avtomobili-ot-sasht-2025/",
+        "https://koliotamerika.bg/amerikanski-avtomobilen-pazar/",
+        "https://koliotamerika.bg/zakupuvane-na-koli-ot-amerika/",
+        "https://koliotamerika.bg/koli-ot-sasht-regulacii-tehnologii-2025/",
+        "https://koliotamerika.bg/mitove-za-avtomobilite-ot-amerika/",
+        "https://koliotamerika.bg/izmami-pri-pokupka-na-avtomobil/",
+        "https://koliotamerika.bg/motori-i-atv-ta-ot-amerika/",
+        "https://koliotamerika.bg/homologacia-na-koli/"
+      ]
+    },
+    {
+      "path": "/tag/vnos-na-motori-ot-amerika",
+      "kind": "tag",
+      "label": "внос на мотори от Америка",
+      "slugs": [
+        "motori-i-atv-ta-ot-amerika"
+      ],
+      "sourceURLs": [
+        "https://koliotamerika.bg/motori-i-atv-ta-ot-amerika/"
+      ]
+    },
+    {
+      "path": "/tag/vnos-na-motori-ot-sasth",
+      "kind": "tag",
+      "label": "внос на мотори от САЩ",
+      "slugs": [
+        "motori-i-atv-ta-ot-amerika"
+      ],
+      "sourceURLs": [
+        "https://koliotamerika.bg/motori-i-atv-ta-ot-amerika/"
+      ]
+    },
+    {
+      "path": "/tag/vnos",
+      "kind": "tag",
+      "label": "Внос",
+      "slugs": [
+        "run-and-drive-koli-ot-amerika",
+        "zakupuvane-na-koli-ot-amerika",
+        "carfax-vnos-na-koli-ot-amerika",
+        "podgotovka-na-avtomobila-za-zimata",
+        "avtomobili-ot-amerikanski-aukcioni",
+        "aukcioni-i-upravlenie-na-razhodite"
+      ],
+      "sourceURLs": [
+        "https://koliotamerika.bg/run-and-drive-koli-ot-amerika/",
+        "https://koliotamerika.bg/zakupuvane-na-koli-ot-amerika/",
+        "https://koliotamerika.bg/carfax-vnos-na-koli-ot-amerika/",
+        "https://koliotamerika.bg/podgotovka-na-avtomobila-za-zimata/",
+        "https://koliotamerika.bg/avtomobili-ot-amerikanski-aukcioni/",
+        "https://koliotamerika.bg/aukcioni-i-upravlenie-na-razhodite/"
+      ]
+    },
+    {
+      "path": "/tag/zima",
+      "kind": "tag",
+      "label": "зима",
+      "slugs": [
+        "podgotovka-na-avtomobila-za-zimata"
+      ],
+      "sourceURLs": [
+        "https://koliotamerika.bg/podgotovka-na-avtomobila-za-zimata/"
+      ]
+    }
+  ]
+}
