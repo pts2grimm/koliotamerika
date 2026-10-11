@@ -21,6 +21,7 @@ test('homepage prioritizes costs and proof, keeps one FAQ and works in both them
    if(width<500){expect(metrics.proofY).toBeLessThan(4300);expect(metrics.height).toBeLessThan(15000)}
    console.log('HOME_METRICS',JSON.stringify({theme,...metrics}))
    await page.screenshot({path:`test-results/home-${theme}-${width}.png`,fullPage:true})
+   if(width===390) console.log('HOME_VISUAL '+theme+' '+(await page.screenshot({type:'jpeg',quality:55})).toString('base64'))
   }
  }
 })
