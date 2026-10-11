@@ -52,7 +52,11 @@ test('legacy archives, original media, sitemap and public access survive migrati
    await page.setViewportSize({ width, height: 900 })
    await page.goto(archive.path)
    await expect(page.locator('h1')).toHaveCount(1)
-   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true)
+   const layout = await page.evaluate(() => ({
+     width: innerWidth, scrollWidth: document.documentElement.scrollWidth,
+     overflowing: [...document.querySelectorAll('main *')].filter(el => el.getBoundingClientRect().right > innerWidth + 1).slice(0, 8).map(el => ({ tag: el.tagName, className: el.className, text: el.textContent?.slice(0, 80) })),
+    }))
+    expect(layout.scrollWidth <= width + 1, JSON.stringify(layout)).toBe(true)
   }
   await page.getByRole('link', { name: 'Следваща', exact: true }).click()
   await expect(page).toHaveURL(baseURL + archive.path + '/page/2')

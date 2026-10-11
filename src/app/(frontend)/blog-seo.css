@@ -4,3 +4,9 @@
 .article-more a{text-underline-offset:.25em}
 .article-more a:hover{text-decoration:underline}
 .landing-breadcrumbs [aria-current="page"]{overflow-wrap:anywhere;min-width:0}
+
+/* Archive author handles and imported titles can contain long unbroken words. */
+.legacy-archive .page-heading h1,
+.legacy-archive .blog-card h2,
+.legacy-archive .blog-card p { overflow-wrap:anywhere; }
+.legacy-archive .pagination { flex-wrap:wrap; }

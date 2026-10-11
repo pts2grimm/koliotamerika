@@ -46,7 +46,7 @@ export async function LegacyArchivePage({ path }: { path: string }) {
       name: doc.title, url: new URL('/' + doc.slug, base).href,
     })) },
   }
-  return <div className="landing-page landing-journal">
+  return <div className="landing-page landing-journal legacy-archive">
     <div className="container"><nav className="landing-breadcrumbs" aria-label="Път до страницата">
       <Link href="/">Начало</Link><span aria-hidden="true">/</span><Link href="/blog">Блог</Link>
       <span aria-hidden="true">/</span><span aria-current="page">{archive.label}</span>
