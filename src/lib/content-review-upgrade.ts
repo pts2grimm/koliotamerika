@@ -8,7 +8,8 @@ import previousSEO from '../../content/page-seo-2026-10.json'
 import revisions from '../../content/content-review-2026-10.json'
 import { reviewedHTML, type ContentRevision } from './content-review'
 
-export const contentReviewKey = (slug: string) => 'content:review:2026-10:v1:' + slug
+import { contentReviewKey } from './content-review-key'
+export { contentReviewKey } from './content-review-key'
 function stable(value: unknown): string {
  if (Array.isArray(value)) return '[' + value.map(stable).join(',') + ']'
  if (value && typeof value === 'object') return '{' + Object.entries(value).sort(([a],[b]) => a.localeCompare(b)).map(([k,v]) => JSON.stringify(k) + ':' + stable(v)).join(',') + '}'

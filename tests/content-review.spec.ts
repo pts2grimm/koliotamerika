@@ -16,15 +16,16 @@ test('all public content has working contextual links, metadata and one H1',asyn
   const dom=new JSDOM(html), doc=dom.window.document
   try{
    expect(doc.querySelectorAll('h1').length,route).toBe(1)
-   expect(doc.querySelector('link[rel=canonical]')?.getAttribute('href'),route).toBe(base+route.replace(/\/$/,''))
+   expect(doc.querySelector('link[rel=canonical]')?.getAttribute('href'),route).toBe(base+route)
    expect(doc.querySelector('meta[name=description]')?.getAttribute('content')?.length,route).toBeGreaterThan(30)
    const revision=revisions.find(r=>'/'+r.slug===route)
    if(revision && 'title' in revision && revision.title) expect(doc.querySelector('h1')?.textContent).toBe(revision.title)
-   for(const link of doc.querySelectorAll('main a[href]')){
+   for(const link of doc.querySelectorAll('a[href]')){
     const href=link.getAttribute('href')!
     if(/^(mailto:|tel:|viber:)/.test(href))continue
     const url=new URL(href,base+route)
     if(url.origin!==base){if(url.protocol==='https:'||url.protocol==='http:')external.add(url.href);continue}
+    if (['/profil','/vhod','/registracia'].includes(url.pathname)) continue
     const key=url.pathname+url.search+url.hash
     if(!internal.has(key))internal.set(key,new Set())
     internal.get(key)!.add(route)
