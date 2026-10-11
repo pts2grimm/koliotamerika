@@ -1,3 +1,4 @@
+import { lexicalEditor, EXPERIMENTAL_TableFeature } from '@payloadcms/richtext-lexical'
 import { publishedPages } from '../lib/page-access'
 import { enforcePasswordPolicy } from '../lib/password-hook'
 import { Forbidden } from 'payload'
@@ -42,7 +43,7 @@ export const Pages: CollectionConfig = { slug: 'pages', labels: { singular: 'М�
   { name: 'eyebrow', label: 'Кратък надпис', type: 'text' },
   { name: 'intro', label: 'Въведение', type: 'textarea', required: true },
   { name: 'image', label: 'Основна снимка', type: 'upload', relationTo: 'media' },
-  { name: 'body', label: 'Съдържание', type: 'richText' },
+  { name: 'body', label: 'Съдържание', type: 'richText', editor: lexicalEditor({ features: ({ defaultFeatures }) => [...defaultFeatures, EXPERIMENTAL_TableFeature()] }) },
   { name: 'legacyImage', label: 'Пренесена снимка', type: 'text', admin: { readOnly: true, position: 'sidebar' } },
   { name: 'sourceURL', label: 'Източник при миграция', type: 'text', admin: { readOnly: true, position: 'sidebar' } },
   { name: 'publishedAt', label: 'Дата на публикуване', type: 'date', admin: { date: { pickerAppearance: 'dayAndTime' }, description: 'За статии: статус „Публикувано“ и бъдеща дата означават отложено публикуване. Проверете часовата зона на избраната дата. Празна дата публикува веднага.' } },

@@ -178,3 +178,8 @@ test('content review is atomic, idempotent and preserves edited CMS content', { 
  const { dir, run } = sandbox()
  try { run(); run('tests/fixtures/content-review.ts') } finally { rmSync(dir, { recursive:true, force:true }) }
 })
+
+test('pricing detail upgrade preserves manual edits and commits tables with its audit atomically', { timeout:300_000 },()=>{
+ const {dir,run}=sandbox()
+ try{run();run('tests/fixtures/pricing-details.ts')}finally{rmSync(dir,{recursive:true,force:true})}
+})

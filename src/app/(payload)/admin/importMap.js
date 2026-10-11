@@ -1,3 +1,4 @@
+import { TableFeatureClient } from '@payloadcms/richtext-lexical/client'
 import { ContentNav } from '../../../components/admin/ContentNav'
 import { ContentBackLink } from '../../../components/admin/ContentBackLink'
 import { ContentIndex, SitePagesView, BlogPostsView } from '../../../components/admin/ContentList'
@@ -28,6 +29,7 @@ import { CollectionCards as CollectionCards_f9c02e79a4aed9a3924487c0cd4cafb1 } f
 
 /** @type import('payload').ImportMap */
 export const importMap = {
+  '@payloadcms/richtext-lexical/client#TableFeatureClient': TableFeatureClient,
   "/src/components/admin/ContentNav#ContentNav": ContentNav,
   "/src/components/admin/ContentBackLink#ContentBackLink": ContentBackLink,
   "/src/components/admin/ContentList#ContentIndex": ContentIndex,
