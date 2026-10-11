@@ -17,7 +17,7 @@ export function landingStructuredData(page: Pick<Page, 'title' | 'intro' | 'slug
     { '@type': 'ListItem', position: 1, name: 'Начало', item: new URL('/', base).href },
     { '@type': 'ListItem', position: 2, name: page.title, item: url },
    ] },
-  ],
+  ] as const,
  }
 }
 
