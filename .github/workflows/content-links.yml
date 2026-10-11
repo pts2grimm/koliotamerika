@@ -1,0 +1,26 @@
+name: Content and link verification
+on:
+  push:
+    branches: ['codex/content-links']
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci --include=dev
+      - name: Read installed Next link and metadata contracts
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          for name in ['link.mdx','link.md','generate-metadata.md']:
+            for p in Path('node_modules/next/dist/docs').rglob(name):
+              print('FILE',p)
+              print(p.read_text()[:26000])
+          PY
