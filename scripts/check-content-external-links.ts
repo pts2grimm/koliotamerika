@@ -1,3 +1,4 @@
+import additions from '../content/pricing-details-2026-10.json'
 import { mkdirSync, writeFileSync } from 'node:fs'
 import { JSDOM } from 'jsdom'
 import snapshot from '../content/wordpress.json'
@@ -23,6 +24,7 @@ function strings(value:unknown){
  else if(value && typeof value==='object') Object.values(value).forEach(strings)
 }
 strings(home)
+for(const addition of additions) collect(addition.html)
 const queue=[...urls], results: {url:string;status?:number;finalURL?:string;error?:string}[]=[]
 await Promise.all(Array.from({length:4},async()=>{
  while(queue.length){

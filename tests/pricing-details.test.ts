@@ -5,8 +5,8 @@ import additions from '../content/pricing-details-2026-10.json'
 test('illustrative import budget adds up, including the VAT base and conditional exchange rate',()=>{
  const dom=new JSDOM(additions[0].html)
  const tables=dom.window.document.querySelectorAll('table')
- assert.equal(tables.length,4)
- const rows=[...tables[3].querySelectorAll('tr')].slice(1).map(row=>[...row.querySelectorAll('td')].map(cell=>cell.textContent||''))
+ assert.equal(tables.length,5)
+ const rows=[...tables[4].querySelectorAll('tr')].slice(1).map(row=>[...row.querySelectorAll('td')].map(cell=>cell.textContent||''))
  const number=(s:string)=>Number(s.replace(/[^0-9.]/g,''))
  const usd=rows.slice(0,9).reduce((sum,row)=>sum+number(row[1]),0)
  const eur=rows.slice(0,9).reduce((sum,row)=>sum+number(row[2]),0)
