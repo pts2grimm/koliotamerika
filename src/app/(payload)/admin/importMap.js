@@ -1,3 +1,6 @@
+import { ContentNav } from '../../../components/admin/ContentNav'
+import { ContentBackLink } from '../../../components/admin/ContentBackLink'
+import { ContentIndex, SitePagesView, BlogPostsView } from '../../../components/admin/ContentList'
 import { RscEntryLexicalCell as RscEntryLexicalCell_44fe37237e0ebf4470c9990d8cb7b07e } from '@payloadcms/richtext-lexical/rsc'
 import { RscEntryLexicalField as RscEntryLexicalField_44fe37237e0ebf4470c9990d8cb7b07e } from '@payloadcms/richtext-lexical/rsc'
 import { LexicalDiffComponent as LexicalDiffComponent_44fe37237e0ebf4470c9990d8cb7b07e } from '@payloadcms/richtext-lexical/rsc'
@@ -25,6 +28,11 @@ import { CollectionCards as CollectionCards_f9c02e79a4aed9a3924487c0cd4cafb1 } f
 
 /** @type import('payload').ImportMap */
 export const importMap = {
+  "/src/components/admin/ContentNav#ContentNav": ContentNav,
+  "/src/components/admin/ContentBackLink#ContentBackLink": ContentBackLink,
+  "/src/components/admin/ContentList#ContentIndex": ContentIndex,
+  "/src/components/admin/ContentList#SitePagesView": SitePagesView,
+  "/src/components/admin/ContentList#BlogPostsView": BlogPostsView,
   "@payloadcms/richtext-lexical/rsc#RscEntryLexicalCell": RscEntryLexicalCell_44fe37237e0ebf4470c9990d8cb7b07e,
   "@payloadcms/richtext-lexical/rsc#RscEntryLexicalField": RscEntryLexicalField_44fe37237e0ebf4470c9990d8cb7b07e,
   "@payloadcms/richtext-lexical/rsc#LexicalDiffComponent": LexicalDiffComponent_44fe37237e0ebf4470c9990d8cb7b07e,

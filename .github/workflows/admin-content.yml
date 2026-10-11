@@ -15,20 +15,23 @@ jobs:
           node-version: '24'
           cache: npm
       - run: npm ci --include=dev
-      - name: Read installed contracts
+      - run: npm test
+      - run: npm run build
+        env:
+          PREVIEW_MODE: 'true'
+          PAYLOAD_SECRET: ci-admin-content-only-not-a-live-secret
+      - run: npm run typecheck
+      - run: npx playwright install --with-deps chromium
+      - name: Admin content browser checks
         run: |
-          python - <<'PY'
-          from pathlib import Path
-          for root, patterns in [
-            ('node_modules/next/dist/docs', ['use-search-params.md', 'use-pathname.md', 'redirect.md']),
-            ('node_modules/payload/dist', ['admin/views/index.d.ts', 'collections/config/types.d.ts']),
-            ('node_modules/@payloadcms/next/dist', ['views/Root/index.js', 'templates/Default/index.d.ts', 'views/Document/getDocumentData.js']),
-            ('node_modules/@payloadcms/ui/dist', ['elements/NavGroup/index.d.ts', 'views/List/index.d.ts', 'fields/Select/index.d.ts'])
-          ]:
-            for p in Path(root).rglob('*'):
-              if p.is_file() and any(str(p).endswith(pattern) for pattern in patterns):
-                s=p.read_text()
-                if p.name=='types.d.ts':
-                  i=s.find('baseListFilter'); s=s[max(0,i-1000):i+3000]
-                print('\nFILE '+str(p)+'\n'+s[:18000])
-          PY
+          node --input-type=module <<'JS'
+          import { chromium } from '@playwright/test';
+          import { spawnSync } from 'node:child_process';
+          const result = spawnSync('npx', ['playwright', 'test', '--config=playwright.admin-content.config.ts', '--reporter=line'], { stdio: 'inherit', env: { ...process.env, CHROMIUM_PATH: chromium.executablePath() } });
+          process.exit(result.status ?? 1);
+          JS
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: admin-content-results
+          path: test-results
