@@ -67,7 +67,7 @@ def audit(url):
     links=sorted(set(urldefrag(urljoin(r.get('final',url),a['href']))[0] for a in s.select('a[href]') if a['href'].startswith(('http','/'))))
     headings={tag:[txt(x) for x in s.select(tag)] for tag in ['h1','h2','h3']}
     imgs=s.select('img')
-    main=s.select_one('main') or s.select_one('article') or s.body or s
+    main=BeautifulSoup(str(s.select_one('main') or s.select_one('article') or s.body or s),'html.parser')
     for el in main.select('script,style,nav,header,footer'):el.decompose()
     body=txt(main)
     row={k:v for k,v in r.items() if k!='text'}
