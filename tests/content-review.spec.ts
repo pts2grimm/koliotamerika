@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test'
 import { JSDOM } from 'jsdom'
+import services from '../content/services-review-2026-10.json' with { type:'json' }
 import snapshot from '../content/wordpress.json' with { type:'json' }
 import customer from '../content/customer-pricing-2026-10.json' with { type:'json' }
 import plain from '../content/plain-language-2026-10.json' with { type:'json' }
@@ -37,7 +38,7 @@ test('all public content has working contextual links, metadata and one H1',asyn
  }
  for(const detail of details) {
   const doc=new JSDOM(documents.get('/'+detail.slug)!)
-  const source=new JSDOM(customer.find(item=>item.slug===detail.slug)?.html ?? plain.find(item=>item.slug===detail.slug)?.html ?? detail.html)
+  const source=new JSDOM(services.find(item=>item.slug===detail.slug)?.html ?? customer.find(item=>item.slug===detail.slug)?.html ?? plain.find(item=>item.slug===detail.slug)?.html ?? detail.html)
   expect(doc.window.document.querySelectorAll('table').length,detail.slug).toBeGreaterThanOrEqual(source.window.document.querySelectorAll('table').length)
   expect(doc.window.document.body.textContent,detail.slug).toContain(source.window.document.querySelector('h2,h3')!.textContent)
   if(customer.some(item=>item.slug===detail.slug)) {
@@ -48,6 +49,29 @@ test('all public content has working contextual links, metadata and one H1',asyn
   }
   doc.window.close();source.window.close()
  }
+ const serviceAudit:{slug:string;title:string;description:string;words:number}[]=[]
+ for(const service of services){
+  const dom=new JSDOM(documents.get('/'+service.slug)!),doc=dom.window.document
+  const source=new JSDOM(service.html)
+  expect(doc.querySelector('title')?.textContent,service.slug).toBe(service.expectedSEOtitle)
+  expect(doc.querySelector('h1')?.textContent,service.slug).toBe(service.expectedTitle)
+  expect(doc.querySelector('meta[name=description]')?.getAttribute('content'),service.slug).toBe(service.seoDescription)
+  // These checks read the initial HTML, including any collapsed content.
+  for(const heading of source.window.document.querySelectorAll('h2,h3')) expect(doc.body.textContent,service.slug).toContain(heading.textContent)
+  expect(doc.querySelectorAll('table').length,service.slug).toBe(source.window.document.querySelectorAll('table').length)
+  const scripts=[...doc.querySelectorAll('script[type="application/ld+json"]')].map(node=>JSON.parse(node.textContent!))
+  const article=scripts.flatMap(item=>item['@graph']||[item]).find(item=>item['@type']==='BlogPosting'||item['@type']==='Article')
+  if(['morski-transport-na-avtomobili-ot-sasht','zastrahovka-na-avtomobili-ot-sasht'].includes(service.slug)) {
+   expect(article,service.slug).toBeTruthy()
+   expect(article.dateModified,service.slug).toBeTruthy()
+   expect(article.datePublished,service.slug).toBeTruthy()
+  }
+  serviceAudit.push({slug:service.slug,title:doc.querySelector('title')!.textContent!,description:service.seoDescription,words:source.window.document.body.textContent!.trim().split(/\s+/).length})
+  dom.window.close();source.window.close()
+ }
+ expect(new Set(serviceAudit.map(x=>x.title)).size).toBe(services.length)
+ expect(new Set(serviceAudit.map(x=>x.description)).size).toBe(services.length)
+ await testInfo.attach('services-seo-audit.json',{body:JSON.stringify(serviceAudit,null,2),contentType:'application/json'})
  const broken:string[]=[]
  for(const [href,from] of internal){
   const url=new URL(href,base),target=url.pathname+url.search
@@ -68,7 +92,7 @@ test('all public content has working contextual links, metadata and one H1',asyn
  expect(broken).toEqual([])
  for(const width of [320,390,1440]){
   await page.setViewportSize({width,height:900})
-  for(const route of ['/', '/vnos-na-koli-ot-usa/vnos-na-koli-ot-amerika-cena','/koli-ot-manheim','/obshti-usloviya']){
+  for(const route of ['/', '/vnos-na-koli-ot-usa/vnos-na-koli-ot-amerika-cena','/koli-ot-manheim','/obshti-usloviya',...services.map(item=>'/'+item.slug)]){
    await page.goto(route)
    expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),route+' width '+width).toBe(true)
   }
