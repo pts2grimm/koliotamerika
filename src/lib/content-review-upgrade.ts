@@ -13,7 +13,7 @@ export { contentReviewKey } from './content-review-key'
 // Lexical generates a fresh ID for each imported link. Ignore only those UI
 // IDs and undefined fields lost during JSON storage; preserve URLs, formatting,
 // relationship/media IDs and every other content value when comparing edits.
-function stable(value: unknown): string {
+export function stable(value: unknown): string {
  if (Array.isArray(value)) return '[' + value.map(stable).join(',') + ']'
  if (value && typeof value === 'object') return '{' + Object.entries(value).filter(([k,v]) => v !== undefined && !(k === 'id' && ['link','autolink'].includes(String((value as {type?:unknown}).type)))).sort(([a],[b]) => a.localeCompare(b)).map(([k,v]) => JSON.stringify(k) + ':' + stable(v)).join(',') + '}'
  return JSON.stringify(value) ?? 'undefined'

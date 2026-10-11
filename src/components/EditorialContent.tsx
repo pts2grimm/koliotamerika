@@ -9,6 +9,13 @@ function containsBlock(nodes: Node[]): boolean {
 
 const converters: JSXConvertersFunction = ({ defaultConverters }) => ({
   ...defaultConverters,
+  table: args => <div className="editorial-table-scroll" role="region" aria-label="Таблица с разбивка — превърти хоризонтално при нужда" tabIndex={0}><table><tbody>{args.nodesToJSX({nodes:args.node.children})}</tbody></table></div>,
+  tablerow: args => <tr>{args.nodesToJSX({nodes:args.node.children})}</tr>,
+  tablecell: args => {
+    const node=args.node as typeof args.node & {headerState?:number;colSpan?:number;rowSpan?:number}
+    const Cell=node.headerState?'th':'td'
+    return <Cell colSpan={node.colSpan} rowSpan={node.rowSpan}>{args.nodesToJSX({nodes:node.children})}</Cell>
+  },
   paragraph: args => {
     // Imported WordPress links can contain headings. A <p> cannot contain
     // those blocks: browsers close it early and break React hydration.
