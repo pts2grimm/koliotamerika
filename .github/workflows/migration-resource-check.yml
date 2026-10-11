@@ -1,0 +1,19 @@
+name: Migration resource verification
+on:
+  workflow_dispatch:
+  push:
+    branches: ['codex/migration-url-map']
+    paths: ['scripts/check-migration-resources.py']
+permissions:
+  contents: read
+jobs:
+  resources:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install requests
+      - run: python scripts/check-migration-resources.py

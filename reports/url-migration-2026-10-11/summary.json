@@ -1,0 +1,33 @@
+{
+  "checkedAt": "2026-10-11T16:25:39Z",
+  "rows": 121,
+  "wordpressRecords": 48,
+  "actions": {
+    "DYNAMIC_TEMPLATE": 1,
+    "KEEP_PATH": 51,
+    "PERMANENT_REDIRECT": 17,
+    "REVIEW_ARCHIVE": 52
+  },
+  "previewNon200": 52,
+  "changedSinceImport": [],
+  "unmappedWordPressRecords": [],
+  "mediaURLs": 68,
+  "coverMatches": 36,
+  "gscAvailable": false,
+  "limits": [
+    "No GSC traffic/backlink priority data.",
+    "Media mapping is based on sitemap image URLs, not a full uploads backup.",
+    "Preview reflects the deployed build and CMS, not necessarily the branch head.",
+    "No exhaustive auction or filtered URL inventory."
+  ],
+  "resources": {
+    "checkedAt": "2026-10-11T16:28:46Z",
+    "media": 68,
+    "oldNon200": 0,
+    "previewOldNon200": 68,
+    "coverNon200": 0
+  },
+  "populatedMissingArchiveURLs": 50,
+  "emptyMissingArchiveURLs": 2,
+  "redirectChainsToShorten": 17
+}

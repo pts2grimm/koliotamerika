@@ -1,0 +1,3395 @@
+{
+  "summary": {
+    "checkedAt": "2026-10-11T16:25:39Z",
+    "rows": 121,
+    "wordpressRecords": 48,
+    "actions": {
+      "DYNAMIC_TEMPLATE": 1,
+      "KEEP_PATH": 51,
+      "PERMANENT_REDIRECT": 17,
+      "REVIEW_ARCHIVE": 52
+    },
+    "previewNon200": 52,
+    "changedSinceImport": [],
+    "unmappedWordPressRecords": [],
+    "mediaURLs": 68,
+    "coverMatches": 36,
+    "gscAvailable": false,
+    "limits": [
+      "No GSC traffic/backlink priority data.",
+      "Media mapping is based on sitemap image URLs, not a full uploads backup.",
+      "Preview reflects the deployed build and CMS, not necessarily the branch head.",
+      "No exhaustive auction or filtered URL inventory."
+    ]
+  },
+  "rows": [
+    {
+      "oldURL": "https://koliotamerika.bg",
+      "oldStatus": 200,
+      "oldFinal": "https://koliotamerika.bg/",
+      "action": "KEEP_PATH",
+      "targetPath": "/",
+      "previewTargetStatus": 200,
+      "previewSourceStatus": 200,
+      "previewSourceFinal": "https://papayawhip-ram-220810.hostingersite.com/",
+      "previewSourceHops": [],
+      "previewCanonical": [
+        "https://papayawhip-ram-220810.hostingersite.com"
+      ],
+      "previewRobots": [
+        "noindex, nofollow"
+      ],
+      "previewXRobots": "",
+      "note": "Preserve content path; trailing slash normalization is a permanent redirect."
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/",
+      "oldStatus": 200,
+      "oldFinal": "https://koliotamerika.bg/",
+      "action": "KEEP_PATH",
+      "targetPath": "/",
+      "previewTargetStatus": 200,
+      "previewSourceStatus": 200,
+      "previewSourceFinal": "https://papayawhip-ram-220810.hostingersite.com/",
+      "previewSourceHops": [],
+      "previewCanonical": [
+        "https://papayawhip-ram-220810.hostingersite.com"
+      ],
+      "previewRobots": [
+        "noindex, nofollow"
+      ],
+      "previewXRobots": "",
+      "note": "Preserve content path; trailing slash normalization is a permanent redirect."
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/2022/09/08/avtomobili-nov-vnos/",
+      "oldStatus": 200,
+      "oldFinal": "https://koliotamerika.bg/avtomobili-nov-vnos/",
+      "action": "PERMANENT_REDIRECT",
+      "targetPath": "/avtomobili-nov-vnos",
+      "previewTargetStatus": 200,
+      "previewSourceStatus": 200,
+      "previewSourceFinal": "https://papayawhip-ram-220810.hostingersite.com/avtomobili-nov-vnos",
+      "previewSourceHops": [
+        {
+          "status": 308,
+          "from": "https://papayawhip-ram-220810.hostingersite.com/2022/09/08/avtomobili-nov-vnos/",
+          "to": "/2022/09/08/avtomobili-nov-vnos"
+        },
+        {
+          "status": 308,
+          "from": "https://papayawhip-ram-220810.hostingersite.com/2022/09/08/avtomobili-nov-vnos",
+          "to": "/avtomobili-nov-vnos"
+        }
+      ],
+      "previewCanonical": [
+        "https://papayawhip-ram-220810.hostingersite.com/avtomobili-nov-vnos"
+      ],
+      "previewRobots": [
+        "noindex, nofollow"
+      ],
+      "previewXRobots": "",
+      "note": "Existing configured redirect; verify final destination and number of hops."
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/2022/09/08/kola-nov-vnos/",
+      "oldStatus": 200,
+      "oldFinal": "https://koliotamerika.bg/kola-nov-vnos/",
+      "action": "PERMANENT_REDIRECT",
+      "targetPath": "/kola-nov-vnos",
+      "previewTargetStatus": 200,
+      "previewSourceStatus": 200,
+      "previewSourceFinal": "https://papayawhip-ram-220810.hostingersite.com/kola-nov-vnos",
+      "previewSourceHops": [
+        {
+          "status": 308,
+          "from": "https://papayawhip-ram-220810.hostingersite.com/2022/09/08/kola-nov-vnos/",
+          "to": "/2022/09/08/kola-nov-vnos"
+        },
+        {
+          "status": 308,
+          "from": "https://papayawhip-ram-220810.hostingersite.com/2022/09/08/kola-nov-vnos",
+          "to": "/kola-nov-vnos"
+        }
+      ],
+      "previewCanonical": [
+        "https://papayawhip-ram-220810.hostingersite.com/kola-nov-vnos"
+      ],
+      "previewRobots": [
+        "noindex, nofollow"
+      ],
+      "previewXRobots": "",
+      "note": "Existing configured redirect; verify final destination and number of hops."
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/2022/09/12/neobhodimi-dokumenti-za-vnos-na-kola-ot-sasth/",
+      "oldStatus": 200,
+      "oldFinal": "https://koliotamerika.bg/neobhodimi-dokumenti-za-vnos-na-kola-ot-sasth/",
+      "action": "PERMANENT_REDIRECT",
+      "targetPath": "/neobhodimi-dokumenti-za-vnos-na-kola-ot-sasth",
+      "previewTargetStatus": 200,
+      "previewSourceStatus": 200,
+      "previewSourceFinal": "https://papayawhip-ram-220810.hostingersite.com/neobhodimi-dokumenti-za-vnos-na-kola-ot-sasth",
+      "previewSourceHops": [
+        {
+          "status": 308,
+          "from": "https://papayawhip-ram-220810.hostingersite.com/2022/09/12/neobhodimi-dokumenti-za-vnos-na-kola-ot-sasth/",
+          "to": "/2022/09/12/neobhodimi-dokumenti-za-vnos-na-kola-ot-sasth"
+        },
+        {
+          "status": 308,
+          "from": "https://papayawhip-ram-220810.hostingersite.com/2022/09/12/neobhodimi-dokumenti-za-vnos-na-kola-ot-sasth",
+          "to": "/neobhodimi-dokumenti-za-vnos-na-kola-ot-sasth"
+        }
+      ],
+      "previewCanonical": [
+        "https://papayawhip-ram-220810.hostingersite.com/neobhodimi-dokumenti-za-vnos-na-kola-ot-sasth"
+      ],
+      "previewRobots": [
+        "noindex, nofollow"
+      ],
+      "previewXRobots": "",
+      "note": "Existing configured redirect; verify final destination and number of hops."
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/2022/09/16/parvonachalna-registracziya-v-kat/",
+      "oldStatus": 200,
+      "oldFinal": "https://koliotamerika.bg/parvonachalna-registracziya-v-kat/",
+      "action": "PERMANENT_REDIRECT",
+      "targetPath": "/parvonachalna-registracziya-v-kat",
+      "previewTargetStatus": 200,
+      "previewSourceStatus": 200,
+      "previewSourceFinal": "https://papayawhip-ram-220810.hostingersite.com/parvonachalna-registracziya-v-kat",
+      "previewSourceHops": [
+        {
+          "status": 308,
+          "from": "https://papayawhip-ram-220810.hostingersite.com/2022/09/16/parvonachalna-registracziya-v-kat/",
+          "to": "/2022/09/16/parvonachalna-registracziya-v-kat"
+        },
+        {
+          "status": 308,
+          "from": "https://papayawhip-ram-220810.hostingersite.com/2022/09/16/parvonachalna-registracziya-v-kat",
+          "to": "/parvonachalna-registracziya-v-kat"
+        }
+      ],
+      "previewCanonical": [
+        "https://papayawhip-ram-220810.hostingersite.com/parvonachalna-registracziya-v-kat"
+      ],
+      "previewRobots": [
+        "noindex, nofollow"
+      ],
+      "previewXRobots": "",
+      "note": "Existing configured redirect; verify final destination and number of hops."
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/2022/09/27/tehnotest/",
+      "oldStatus": 200,
+      "oldFinal": "https://koliotamerika.bg/homologacia/",
+      "action": "PERMANENT_REDIRECT",
+      "targetPath": "/homologacia",
+      "previewTargetStatus": 200,
+      "previewSourceStatus": 200,
+      "previewSourceFinal": "https://papayawhip-ram-220810.hostingersite.com/homologacia",
+      "previewSourceHops": [
+        {
+          "status": 308,
+          "from": "https://papayawhip-ram-220810.hostingersite.com/2022/09/27/tehnotest/",
+          "to": "/2022/09/27/tehnotest"
+        },
+        {
+          "status": 308,
+          "from": "https://papayawhip-ram-220810.hostingersite.com/2022/09/27/tehnotest",
+          "to": "/homologacia"
+        }
+      ],
+      "previewCanonical": [
+        "https://papayawhip-ram-220810.hostingersite.com/homologacia"
+      ],
+      "previewRobots": [
+        "noindex, nofollow"
+      ],
+      "previewXRobots": "",
+      "note": "Existing configured redirect; verify final destination and number of hops."
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/amerikanski-avtomobilen-pazar/",
+      "oldStatus": 200,
+      "oldFinal": "https://koliotamerika.bg/amerikanski-avtomobilen-pazar/",
+      "action": "KEEP_PATH",
+      "targetPath": "/amerikanski-avtomobilen-pazar",
+      "previewTargetStatus": 200,
+      "previewSourceStatus": 200,
+      "previewSourceFinal": "https://papayawhip-ram-220810.hostingersite.com/amerikanski-avtomobilen-pazar",
+      "previewSourceHops": [
+        {
+          "status": 308,
+          "from": "https://papayawhip-ram-220810.hostingersite.com/amerikanski-avtomobilen-pazar/",
+          "to": "/amerikanski-avtomobilen-pazar"
+        }
+      ],
+      "previewCanonical": [
+        "https://papayawhip-ram-220810.hostingersite.com/amerikanski-avtomobilen-pazar"
+      ],
+      "previewRobots": [
+        "noindex, nofollow"
+      ],
+      "previewXRobots": "",
+      "note": "Preserve content path; trailing slash normalization is a permanent redirect."
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/amerikanski-sajt-za-koli/",
+      "oldStatus": 200,
+      "oldFinal": "https://koliotamerika.bg/amerikanski-sajt-za-koli/",
+      "action": "KEEP_PATH",
+      "targetPath": "/amerikanski-sajt-za-koli",
+      "previewTargetStatus": 200,
+      "previewSourceStatus": 200,
+      "previewSourceFinal": "https://papayawhip-ram-220810.hostingersite.com/amerikanski-sajt-za-koli",
+      "previewSourceHops": [
+        {
+          "status": 308,
+          "from": "https://papayawhip-ram-220810.hostingersite.com/amerikanski-sajt-za-koli/",
+          "to": "/amerikanski-sajt-za-koli"
+        }
+      ],
+      "previewCanonical": [
+        "https://papayawhip-ram-220810.hostingersite.com/amerikanski-sajt-za-koli"
+      ],
+      "previewRobots": [
+        "noindex, nofollow"
+      ],
+      "previewXRobots": "",
+      "note": "Preserve content path; trailing slash normalization is a permanent redirect."
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/audi-promenya-imenata-na-svoite-modeli/",
+      "oldStatus": 200,
+      "oldFinal": "https://koliotamerika.bg/audi-promenya-imenata-na-svoite-modeli/",
+      "action": "KEEP_PATH",
+      "targetPath": "/audi-promenya-imenata-na-svoite-modeli",
+      "previewTargetStatus": 200,
+      "previewSourceStatus": 200,
+      "previewSourceFinal": "https://papayawhip-ram-220810.hostingersite.com/audi-promenya-imenata-na-svoite-modeli",
+      "previewSourceHops": [
+        {
+          "status": 308,
+          "from": "https://papayawhip-ram-220810.hostingersite.com/audi-promenya-imenata-na-svoite-modeli/",
+          "to": "/audi-promenya-imenata-na-svoite-modeli"
+        }
+      ],
+      "previewCanonical": [
+        "https://papayawhip-ram-220810.hostingersite.com/audi-promenya-imenata-na-svoite-modeli"
+      ],
+      "previewRobots": [
+        "noindex, nofollow"
+      ],
+      "previewXRobots": "",
+      "note": "Preserve content path; trailing slash normalization is a permanent redirect."
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/aukcioni-i-upravlenie-na-razhodite/",
+      "oldStatus": 200,
+      "oldFinal": "https://koliotamerika.bg/aukcioni-i-upravlenie-na-razhodite/",
+      "action": "KEEP_PATH",
+      "targetPath": "/aukcioni-i-upravlenie-na-razhodite",
+      "previewTargetStatus": 200,
+      "previewSourceStatus": 200,
+      "previewSourceFinal": "https://papayawhip-ram-220810.hostingersite.com/aukcioni-i-upravlenie-na-razhodite",
+      "previewSourceHops": [
+        {
+          "status": 308,
+          "from": "https://papayawhip-ram-220810.hostingersite.com/aukcioni-i-upravlenie-na-razhodite/",
+          "to": "/aukcioni-i-upravlenie-na-razhodite"
+        }
+      ],
+      "previewCanonical": [
+        "https://papayawhip-ram-220810.hostingersite.com/aukcioni-i-upravlenie-na-razhodite"
+      ],
+      "previewRobots": [
+        "noindex, nofollow"
+      ],
+      "previewXRobots": "",
+      "note": "Preserve content path; trailing slash normalization is a permanent redirect."
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/aukcioni-za-koli-v-amerika/",
+      "oldStatus": 200,
+      "oldFinal": "https://koliotamerika.bg/aukcioni-za-koli-v-amerika/",
+      "action": "KEEP_PATH",
+      "targetPath": "/aukcioni-za-koli-v-amerika",
+      "previewTargetStatus": 200,
+      "previewSourceStatus": 200,
+      "previewSourceFinal": "https://papayawhip-ram-220810.hostingersite.com/aukcioni-za-koli-v-amerika",
+      "previewSourceHops": [
+        {
+          "status": 308,
+          "from": "https://papayawhip-ram-220810.hostingersite.com/aukcioni-za-koli-v-amerika/",
+          "to": "/aukcioni-za-koli-v-amerika"
+        }
+      ],
+      "previewCanonical": [
+        "https://papayawhip-ram-220810.hostingersite.com/aukcioni-za-koli-v-amerika"
+      ],
+      "previewRobots": [
+        "noindex, nofollow"
+      ],
+      "previewXRobots": "",
+      "note": "Preserve content path; trailing slash normalization is a permanent redirect."
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/aukcioni-za-koli-v-amerika/vnos-na-koli-ot-amerika/",
+      "oldStatus": 200,
+      "oldFinal": "https://koliotamerika.bg/vnos-na-koli-ot-usa/vnos-na-koli-ot-amerika-cena/",
+      "action": "PERMANENT_REDIRECT",
+      "targetPath": "/vnos-na-koli-ot-usa/vnos-na-koli-ot-amerika-cena",
+      "previewTargetStatus": 200,
+      "previewSourceStatus": 200,
+      "previewSourceFinal": "https://papayawhip-ram-220810.hostingersite.com/vnos-na-koli-ot-usa/vnos-na-koli-ot-amerika-cena",
+      "previewSourceHops": [
+        {
+          "status": 308,
+          "from": "https://papayawhip-ram-220810.hostingersite.com/aukcioni-za-koli-v-amerika/vnos-na-koli-ot-amerika/",
+          "to": "/aukcioni-za-koli-v-amerika/vnos-na-koli-ot-amerika"
+        },
+        {
+          "status": 308,
+          "from": "https://papayawhip-ram-220810.hostingersite.com/aukcioni-za-koli-v-amerika/vnos-na-koli-ot-amerika",
+          "to": "/vnos-na-koli-ot-usa/vnos-na-koli-ot-amerika-cena"
+        }
+      ],
+      "previewCanonical": [
+        "https://papayawhip-ram-220810.hostingersite.com/vnos-na-koli-ot-usa/vnos-na-koli-ot-amerika-cena"
+      ],
+      "previewRobots": [
+        "noindex, nofollow"
+      ],
+      "previewXRobots": "",
+      "note": "Existing configured redirect; verify final destination and number of hops."
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/author/konstantin-alniazi/",
+      "oldStatus": 200,
+      "oldFinal": "https://koliotamerika.bg/author/konstantin-alniazi/",
+      "action": "REVIEW_ARCHIVE",
+      "targetPath": "/author/konstantin-alniazi",
+      "previewTargetStatus": 404,
+      "previewSourceStatus": 404,
+      "previewSourceFinal": "https://papayawhip-ram-220810.hostingersite.com/author/konstantin-alniazi",
+      "previewSourceHops": [
+        {
+          "status": 308,
+          "from": "https://papayawhip-ram-220810.hostingersite.com/author/konstantin-alniazi/",
+          "to": "/author/konstantin-alniazi"
+        }
+      ],
+      "previewCanonical": [],
+      "previewRobots": [
+        "noindex",
+        "noindex, nofollow"
+      ],
+      "previewXRobots": "",
+      "note": "Preserve equivalent archive or choose a relevant replacement using membership and GSC. No blanket homepage/blog redirect."
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/author/konstantin-alniazi/page/2/",
+      "oldStatus": 200,
+      "oldFinal": "https://koliotamerika.bg/author/konstantin-alniazi/page/2/",
+      "action": "REVIEW_ARCHIVE",
+      "targetPath": "/author/konstantin-alniazi/page/2",
+      "previewTargetStatus": 404,
+      "previewSourceStatus": 404,
+      "previewSourceFinal": "https://papayawhip-ram-220810.hostingersite.com/author/konstantin-alniazi/page/2",
+      "previewSourceHops": [
+        {
+          "status": 308,
+          "from": "https://papayawhip-ram-220810.hostingersite.com/author/konstantin-alniazi/page/2/",
+          "to": "/author/konstantin-alniazi/page/2"
+        }
+      ],
+      "previewCanonical": [],
+      "previewRobots": [
+        "noindex",
+        "noindex, nofollow"
+      ],
+      "previewXRobots": "",
+      "note": "Preserve equivalent archive or choose a relevant replacement using membership and GSC. No blanket homepage/blog redirect."
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/author/konstantin-alniazi/page/3/",
+      "oldStatus": 200,
+      "oldFinal": "https://koliotamerika.bg/author/konstantin-alniazi/page/3/",
+      "action": "REVIEW_ARCHIVE",
+      "targetPath": "/author/konstantin-alniazi/page/3",
+      "previewTargetStatus": 404,
+      "previewSourceStatus": 404,
+      "previewSourceFinal": "https://papayawhip-ram-220810.hostingersite.com/author/konstantin-alniazi/page/3",
+      "previewSourceHops": [
+        {
+          "status": 308,
+          "from": "https://papayawhip-ram-220810.hostingersite.com/author/konstantin-alniazi/page/3/",
+          "to": "/author/konstantin-alniazi/page/3"
+        }
+      ],
+      "previewCanonical": [],
+      "previewRobots": [
+        "noindex",
+        "noindex, nofollow"
+      ],
+      "previewXRobots": "",
+      "note": "Preserve equivalent archive or choose a relevant replacement using membership and GSC. No blanket homepage/blog redirect."
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/author/konstantin-alniazi/page/4/",
+      "oldStatus": 200,
+      "oldFinal": "https://koliotamerika.bg/author/konstantin-alniazi/page/4/",
+      "action": "REVIEW_ARCHIVE",
+      "targetPath": "/author/konstantin-alniazi/page/4",
+      "previewTargetStatus": 404,
+      "previewSourceStatus": 404,
+      "previewSourceFinal": "https://papayawhip-ram-220810.hostingersite.com/author/konstantin-alniazi/page/4",
+      "previewSourceHops": [
+        {
+          "status": 308,
+          "from": "https://papayawhip-ram-220810.hostingersite.com/author/konstantin-alniazi/page/4/",
+          "to": "/author/konstantin-alniazi/page/4"
+        }
+      ],
+      "previewCanonical": [],
+      "previewRobots": [
+        "noindex",
+        "noindex, nofollow"
+      ],
+      "previewXRobots": "",
+      "note": "Preserve equivalent archive or choose a relevant replacement using membership and GSC. No blanket homepage/blog redirect."
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/author/konstantin-alniazi/page/5/",
+      "oldStatus": 200,
+      "oldFinal": "https://koliotamerika.bg/author/konstantin-alniazi/page/5/",
+      "action": "REVIEW_ARCHIVE",
+      "targetPath": "/author/konstantin-alniazi/page/5",
+      "previewTargetStatus": 404,
+      "previewSourceStatus": 404,
+      "previewSourceFinal": "https://papayawhip-ram-220810.hostingersite.com/author/konstantin-alniazi/page/5",
+      "previewSourceHops": [
+        {
+          "status": 308,
+          "from": "https://papayawhip-ram-220810.hostingersite.com/author/konstantin-alniazi/page/5/",
+          "to": "/author/konstantin-alniazi/page/5"
+        }
+      ],
+      "previewCanonical": [],
+      "previewRobots": [
+        "noindex",
+        "noindex, nofollow"
+      ],
+      "previewXRobots": "",
+      "note": "Preserve equivalent archive or choose a relevant replacement using membership and GSC. No blanket homepage/blog redirect."
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/author/konstantin-alniazi/page/6/",
+      "oldStatus": 200,
+      "oldFinal": "https://koliotamerika.bg/author/konstantin-alniazi/page/6/",
+      "action": "REVIEW_ARCHIVE",
+      "targetPath": "/author/konstantin-alniazi/page/6",
+      "previewTargetStatus": 404,
+      "previewSourceStatus": 404,
+      "previewSourceFinal": "https://papayawhip-ram-220810.hostingersite.com/author/konstantin-alniazi/page/6",
+      "previewSourceHops": [
+        {
+          "status": 308,
+          "from": "https://papayawhip-ram-220810.hostingersite.com/author/konstantin-alniazi/page/6/",
+          "to": "/author/konstantin-alniazi/page/6"
+        }
+      ],
+      "previewCanonical": [],
+      "previewRobots": [
+        "noindex",
+        "noindex, nofollow"
+      ],
+      "previewXRobots": "",
+      "note": "Preserve equivalent archive or choose a relevant replacement using membership and GSC. No blanket homepage/blog redirect."
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/avtochasti-za-koli-ot-turgove-v-amerika/",
+      "oldStatus": 200,
+      "oldFinal": "https://koliotamerika.bg/avtochasti-za-koli-ot-turgove-v-amerika/",
+      "action": "KEEP_PATH",
+      "targetPath": "/avtochasti-za-koli-ot-turgove-v-amerika",
+      "previewTargetStatus": 200,
+      "previewSourceStatus": 200,
+      "previewSourceFinal": "https://papayawhip-ram-220810.hostingersite.com/avtochasti-za-koli-ot-turgove-v-amerika",
+      "previewSourceHops": [
+        {
+          "status": 308,
+          "from": "https://papayawhip-ram-220810.hostingersite.com/avtochasti-za-koli-ot-turgove-v-amerika/",
+          "to": "/avtochasti-za-koli-ot-turgove-v-amerika"
+        }
+      ],
+      "previewCanonical": [
+        "https://papayawhip-ram-220810.hostingersite.com/avtochasti-za-koli-ot-turgove-v-amerika"
+      ],
+      "previewRobots": [
+        "noindex, nofollow"
+      ],
+      "previewXRobots": "",
+      "note": "Preserve content path; trailing slash normalization is a permanent redirect."
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/avtomobili-nov-vnos/",
+      "oldStatus": 200,
+      "oldFinal": "https://koliotamerika.bg/avtomobili-nov-vnos/",
+      "action": "KEEP_PATH",
+      "targetPath": "/avtomobili-nov-vnos",
+      "previewTargetStatus": 200,
+      "previewSourceStatus": 200,
+      "previewSourceFinal": "https://papayawhip-ram-220810.hostingersite.com/avtomobili-nov-vnos",
+      "previewSourceHops": [
+        {
+          "status": 308,
+          "from": "https://papayawhip-ram-220810.hostingersite.com/avtomobili-nov-vnos/",
+          "to": "/avtomobili-nov-vnos"
+        }
+      ],
+      "previewCanonical": [
+        "https://papayawhip-ram-220810.hostingersite.com/avtomobili-nov-vnos"
+      ],
+      "previewRobots": [
+        "noindex, nofollow"
+      ],
+      "previewXRobots": "",
+      "note": "Preserve content path; trailing slash normalization is a permanent redirect."
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/avtomobili-ot-amerikanski-aukcioni/",
+      "oldStatus": 200,
+      "oldFinal": "https://koliotamerika.bg/avtomobili-ot-amerikanski-aukcioni/",
+      "action": "KEEP_PATH",
+      "targetPath": "/avtomobili-ot-amerikanski-aukcioni",
+      "previewTargetStatus": 200,
+      "previewSourceStatus": 200,
+      "previewSourceFinal": "https://papayawhip-ram-220810.hostingersite.com/avtomobili-ot-amerikanski-aukcioni",
+      "previewSourceHops": [
+        {
+          "status": 308,
+          "from": "https://papayawhip-ram-220810.hostingersite.com/avtomobili-ot-amerikanski-aukcioni/",
+          "to": "/avtomobili-ot-amerikanski-aukcioni"
+        }
+      ],
+      "previewCanonical": [
+        "https://papayawhip-ram-220810.hostingersite.com/avtomobili-ot-amerikanski-aukcioni"
+      ],
+      "previewRobots": [
+        "noindex, nofollow"
+      ],
+      "previewXRobots": "",
+      "note": "Preserve content path; trailing slash normalization is a permanent redirect."
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/avtomobili-ot-sasht-novoto-ime/",
+      "oldStatus": 200,
+      "oldFinal": "https://koliotamerika.bg/avtomobili-ot-sasht-novoto-ime/",
+      "action": "KEEP_PATH",
+      "targetPath": "/avtomobili-ot-sasht-novoto-ime",
+      "previewTargetStatus": 200,
+      "previewSourceStatus": 200,
+      "previewSourceFinal": "https://papayawhip-ram-220810.hostingersite.com/avtomobili-ot-sasht-novoto-ime",
+      "previewSourceHops": [
+        {
+          "status": 308,
+          "from": "https://papayawhip-ram-220810.hostingersite.com/avtomobili-ot-sasht-novoto-ime/",
+          "to": "/avtomobili-ot-sasht-novoto-ime"
+        }
+      ],
+      "previewCanonical": [
+        "https://papayawhip-ram-220810.hostingersite.com/avtomobili-ot-sasht-novoto-ime"
+      ],
+      "previewRobots": [
+        "noindex, nofollow"
+      ],
+      "previewXRobots": "",
+      "note": "Preserve content path; trailing slash normalization is a permanent redirect."
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/blagodarim-vi/",
+      "oldStatus": 200,
+      "oldFinal": "https://koliotamerika.bg/blagodarim-vi/",
+      "action": "PERMANENT_REDIRECT",
+      "targetPath": "/kontakti",
+      "previewTargetStatus": 200,
+      "previewSourceStatus": 200,
+      "previewSourceFinal": "https://papayawhip-ram-220810.hostingersite.com/kontakti",
+      "previewSourceHops": [
+        {
+          "status": 308,
+          "from": "https://papayawhip-ram-220810.hostingersite.com/blagodarim-vi/",
+          "to": "/blagodarim-vi"
+        },
+        {
+          "status": 308,
+          "from": "https://papayawhip-ram-220810.hostingersite.com/blagodarim-vi",
+          "to": "/kontakti"
+        }
+      ],
+      "previewCanonical": [
+        "https://papayawhip-ram-220810.hostingersite.com/kontakti"
+      ],
+      "previewRobots": [
+        "noindex, nofollow"
+      ],
+      "previewXRobots": "",
+      "note": "Existing configured redirect; verify final destination and number of hops."
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/blog/",
+      "oldStatus": 200,
+      "oldFinal": "https://koliotamerika.bg/blog/",
+      "action": "KEEP_PATH",
+      "targetPath": "/blog",
+      "previewTargetStatus": 200,
+      "previewSourceStatus": 200,
+      "previewSourceFinal": "https://papayawhip-ram-220810.hostingersite.com/blog",
+      "previewSourceHops": [
+        {
+          "status": 308,
+          "from": "https://papayawhip-ram-220810.hostingersite.com/blog/",
+          "to": "/blog"
+        }
+      ],
+      "previewCanonical": [
+        "https://papayawhip-ram-220810.hostingersite.com/blog"
+      ],
+      "previewRobots": [
+        "noindex, nofollow"
+      ],
+      "previewXRobots": "",
+      "note": "Preserve content path; trailing slash normalization is a permanent redirect."
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/blog/page/2/",
+      "oldStatus": 200,
+      "oldFinal": "https://koliotamerika.bg/blog/page/2/",
+      "action": "PERMANENT_REDIRECT",
+      "targetPath": "/blog?page=2",
+      "previewTargetStatus": 200,
+      "previewSourceStatus": 200,
+      "previewSourceFinal": "https://papayawhip-ram-220810.hostingersite.com/blog?page=2",
+      "previewSourceHops": [
+        {
+          "status": 308,
+          "from": "https://papayawhip-ram-220810.hostingersite.com/blog/page/2/",
+          "to": "/blog/page/2"
+        },
+        {
+          "status": 308,
+          "from": "https://papayawhip-ram-220810.hostingersite.com/blog/page/2",
+          "to": "/blog?page=2"
+        }
+      ],
+      "previewCanonical": [
+        "https://papayawhip-ram-220810.hostingersite.com/blog?page=2"
+      ],
+      "previewRobots": [
+        "noindex, nofollow"
+      ],
+      "previewXRobots": "",
+      "note": "Existing configured redirect; verify final destination and number of hops."
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/blog/page/3/",
+      "oldStatus": 200,
+      "oldFinal": "https://koliotamerika.bg/blog/page/3/",
+      "action": "PERMANENT_REDIRECT",
+      "targetPath": "/blog?page=3",
+      "previewTargetStatus": 200,
+      "previewSourceStatus": 200,
+      "previewSourceFinal": "https://papayawhip-ram-220810.hostingersite.com/blog?page=3",
+      "previewSourceHops": [
+        {
+          "status": 308,
+          "from": "https://papayawhip-ram-220810.hostingersite.com/blog/page/3/",
+          "to": "/blog/page/3"
+        },
+        {
+          "status": 308,
+          "from": "https://papayawhip-ram-220810.hostingersite.com/blog/page/3",
+          "to": "/blog?page=3"
+        }
+      ],
+      "previewCanonical": [
+        "https://papayawhip-ram-220810.hostingersite.com/blog?page=3"
+      ],
+      "previewRobots": [
+        "noindex, nofollow"
+      ],
+      "previewXRobots": "",
+      "note": "Existing configured redirect; verify final destination and number of hops."
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/blog/page/4/",
+      "oldStatus": 200,
+      "oldFinal": "https://koliotamerika.bg/blog/page/4/",
+      "action": "PERMANENT_REDIRECT",
+      "targetPath": "/blog?page=4",
+      "previewTargetStatus": 200,
+      "previewSourceStatus": 200,
+      "previewSourceFinal": "https://papayawhip-ram-220810.hostingersite.com/blog?page=4",
+      "previewSourceHops": [
+        {
+          "status": 308,
+          "from": "https://papayawhip-ram-220810.hostingersite.com/blog/page/4/",
+          "to": "/blog/page/4"
+        },
+        {
+          "status": 308,
+          "from": "https://papayawhip-ram-220810.hostingersite.com/blog/page/4",
+          "to": "/blog?page=4"
+        }
+      ],
+      "previewCanonical": [
+        "https://papayawhip-ram-220810.hostingersite.com/blog?page=4"
+      ],
+      "previewRobots": [
+        "noindex, nofollow"
+      ],
+      "previewXRobots": "",
+      "note": "Existing configured redirect; verify final destination and number of hops."
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/blog/page/5/",
+      "oldStatus": 200,
+      "oldFinal": "https://koliotamerika.bg/blog/page/5/",
+      "action": "PERMANENT_REDIRECT",
+      "targetPath": "/blog?page=5",
+      "previewTargetStatus": 200,
+      "previewSourceStatus": 200,
+      "previewSourceFinal": "https://papayawhip-ram-220810.hostingersite.com/blog?page=5",
+      "previewSourceHops": [
+        {
+          "status": 308,
+          "from": "https://papayawhip-ram-220810.hostingersite.com/blog/page/5/",
+          "to": "/blog/page/5"
+        },
+        {
+          "status": 308,
+          "from": "https://papayawhip-ram-220810.hostingersite.com/blog/page/5",
+          "to": "/blog?page=5"
+        }
+      ],
+      "previewCanonical": [
+        "https://papayawhip-ram-220810.hostingersite.com/blog?page=5"
+      ],
+      "previewRobots": [
+        "noindex, nofollow"
+      ],
+      "previewXRobots": "",
+      "note": "Existing configured redirect; verify final destination and number of hops."
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/blog/page/6/",
+      "oldStatus": 200,
+      "oldFinal": "https://koliotamerika.bg/blog/page/6/",
+      "action": "PERMANENT_REDIRECT",
+      "targetPath": "/blog?page=6",
+      "previewTargetStatus": 200,
+      "previewSourceStatus": 200,
+      "previewSourceFinal": "https://papayawhip-ram-220810.hostingersite.com/blog?page=6",
+      "previewSourceHops": [
+        {
+          "status": 308,
+          "from": "https://papayawhip-ram-220810.hostingersite.com/blog/page/6/",
+          "to": "/blog/page/6"
+        },
+        {
+          "status": 308,
+          "from": "https://papayawhip-ram-220810.hostingersite.com/blog/page/6",
+          "to": "/blog?page=6"
+        }
+      ],
+      "previewCanonical": [
+        "https://papayawhip-ram-220810.hostingersite.com/blog?page=6"
+      ],
+      "previewRobots": [
+        "noindex, nofollow"
+      ],
+      "previewXRobots": "",
+      "note": "Existing configured redirect; verify final destination and number of hops."
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/bmw-b58-sreshtu-n55/",
+      "oldStatus": 200,
+      "oldFinal": "https://koliotamerika.bg/bmw-b58-sreshtu-n55/",
+      "action": "KEEP_PATH",
+      "targetPath": "/bmw-b58-sreshtu-n55",
+      "previewTargetStatus": 200,
+      "previewSourceStatus": 200,
+      "previewSourceFinal": "https://papayawhip-ram-220810.hostingersite.com/bmw-b58-sreshtu-n55",
+      "previewSourceHops": [
+        {
+          "status": 308,
+          "from": "https://papayawhip-ram-220810.hostingersite.com/bmw-b58-sreshtu-n55/",
+          "to": "/bmw-b58-sreshtu-n55"
+        }
+      ],
+      "previewCanonical": [
+        "https://papayawhip-ram-220810.hostingersite.com/bmw-b58-sreshtu-n55"
+      ],
+      "previewRobots": [
+        "noindex, nofollow"
+      ],
+      "previewXRobots": "",
+      "note": "Preserve content path; trailing slash normalization is a permanent redirect."
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/carfax-vnos-na-koli-ot-amerika/",
+      "oldStatus": 200,
+      "oldFinal": "https://koliotamerika.bg/carfax-vnos-na-koli-ot-amerika/",
+      "action": "KEEP_PATH",
+      "targetPath": "/carfax-vnos-na-koli-ot-amerika",
+      "previewTargetStatus": 200,
+      "previewSourceStatus": 200,
+      "previewSourceFinal": "https://papayawhip-ram-220810.hostingersite.com/carfax-vnos-na-koli-ot-amerika",
+      "previewSourceHops": [
+        {
+          "status": 308,
+          "from": "https://papayawhip-ram-220810.hostingersite.com/carfax-vnos-na-koli-ot-amerika/",
+          "to": "/carfax-vnos-na-koli-ot-amerika"
+        }
+      ],
+      "previewCanonical": [
+        "https://papayawhip-ram-220810.hostingersite.com/carfax-vnos-na-koli-ot-amerika"
+      ],
+      "previewRobots": [
+        "noindex, nofollow"
+      ],
+      "previewXRobots": "",
+      "note": "Preserve content path; trailing slash normalization is a permanent redirect."
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/category/kola-nov-vnos/",
+      "oldStatus": 200,
+      "oldFinal": "https://koliotamerika.bg/category/kola-nov-vnos/",
+      "action": "REVIEW_ARCHIVE",
+      "targetPath": "/category/kola-nov-vnos",
+      "previewTargetStatus": 404,
+      "previewSourceStatus": 404,
+      "previewSourceFinal": "https://papayawhip-ram-220810.hostingersite.com/category/kola-nov-vnos",
+      "previewSourceHops": [
+        {
+          "status": 308,
+          "from": "https://papayawhip-ram-220810.hostingersite.com/category/kola-nov-vnos/",
+          "to": "/category/kola-nov-vnos"
+        }
+      ],
+      "previewCanonical": [],
+      "previewRobots": [
+        "noindex",
+        "noindex, nofollow"
+      ],
+      "previewXRobots": "",
+      "note": "Preserve equivalent archive or choose a relevant replacement using membership and GSC. No blanket homepage/blog redirect."
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/category/kola-nov-vnos/page/2/",
+      "oldStatus": 200,
+      "oldFinal": "https://koliotamerika.bg/category/kola-nov-vnos/page/2/",
+      "action": "REVIEW_ARCHIVE",
+      "targetPath": "/category/kola-nov-vnos/page/2",
+      "previewTargetStatus": 404,
+      "previewSourceStatus": 404,
+      "previewSourceFinal": "https://papayawhip-ram-220810.hostingersite.com/category/kola-nov-vnos/page/2",
+      "previewSourceHops": [
+        {
+          "status": 308,
+          "from": "https://papayawhip-ram-220810.hostingersite.com/category/kola-nov-vnos/page/2/",
+          "to": "/category/kola-nov-vnos/page/2"
+        }
+      ],
+      "previewCanonical": [],
+      "previewRobots": [
+        "noindex",
+        "noindex, nofollow"
+      ],
+      "previewXRobots": "",
+      "note": "Preserve equivalent archive or choose a relevant replacement using membership and GSC. No blanket homepage/blog redirect."
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/category/kola-nov-vnos/page/3/",
+      "oldStatus": 200,
+      "oldFinal": "https://koliotamerika.bg/category/kola-nov-vnos/page/3/",
+      "action": "REVIEW_ARCHIVE",
+      "targetPath": "/category/kola-nov-vnos/page/3",
+      "previewTargetStatus": 404,
+      "previewSourceStatus": 404,
+      "previewSourceFinal": "https://papayawhip-ram-220810.hostingersite.com/category/kola-nov-vnos/page/3",
+      "previewSourceHops": [
+        {
+          "status": 308,
+          "from": "https://papayawhip-ram-220810.hostingersite.com/category/kola-nov-vnos/page/3/",
+          "to": "/category/kola-nov-vnos/page/3"
+        }
+      ],
+      "previewCanonical": [],
+      "previewRobots": [
+        "noindex",
+        "noindex, nofollow"
+      ],
+      "previewXRobots": "",
+      "note": "Preserve equivalent archive or choose a relevant replacement using membership and GSC. No blanket homepage/blog redirect."
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/category/kola-nov-vnos/page/4/",
+      "oldStatus": 200,
+      "oldFinal": "https://koliotamerika.bg/category/kola-nov-vnos/page/4/",
+      "action": "REVIEW_ARCHIVE",
+      "targetPath": "/category/kola-nov-vnos/page/4",
+      "previewTargetStatus": 404,
+      "previewSourceStatus": 404,
+      "previewSourceFinal": "https://papayawhip-ram-220810.hostingersite.com/category/kola-nov-vnos/page/4",
+      "previewSourceHops": [
+        {
+          "status": 308,
+          "from": "https://papayawhip-ram-220810.hostingersite.com/category/kola-nov-vnos/page/4/",
+          "to": "/category/kola-nov-vnos/page/4"
+        }
+      ],
+      "previewCanonical": [],
+      "previewRobots": [
+        "noindex",
+        "noindex, nofollow"
+      ],
+      "previewXRobots": "",
+      "note": "Preserve equivalent archive or choose a relevant replacement using membership and GSC. No blanket homepage/blog redirect."
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/category/kola-nov-vnos/page/5/",
+      "oldStatus": 200,
+      "oldFinal": "https://koliotamerika.bg/category/kola-nov-vnos/page/5/",
+      "action": "REVIEW_ARCHIVE",
+      "targetPath": "/category/kola-nov-vnos/page/5",
+      "previewTargetStatus": 404,
+      "previewSourceStatus": 404,
+      "previewSourceFinal": "https://papayawhip-ram-220810.hostingersite.com/category/kola-nov-vnos/page/5",
+      "previewSourceHops": [
+        {
+          "status": 308,
+          "from": "https://papayawhip-ram-220810.hostingersite.com/category/kola-nov-vnos/page/5/",
+          "to": "/category/kola-nov-vnos/page/5"
+        }
+      ],
+      "previewCanonical": [],
+      "previewRobots": [
+        "noindex",
+        "noindex, nofollow"
+      ],
+      "previewXRobots": "",
+      "note": "Preserve equivalent archive or choose a relevant replacement using membership and GSC. No blanket homepage/blog redirect."
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/category/kola-nov-vnos/page/6/",
+      "oldStatus": 200,
+      "oldFinal": "https://koliotamerika.bg/category/kola-nov-vnos/page/6/",
+      "action": "REVIEW_ARCHIVE",
+      "targetPath": "/category/kola-nov-vnos/page/6",
+      "previewTargetStatus": 404,
+      "previewSourceStatus": 404,
+      "previewSourceFinal": "https://papayawhip-ram-220810.hostingersite.com/category/kola-nov-vnos/page/6",
+      "previewSourceHops": [
+        {
+          "status": 308,
+          "from": "https://papayawhip-ram-220810.hostingersite.com/category/kola-nov-vnos/page/6/",
+          "to": "/category/kola-nov-vnos/page/6"
+        }
+      ],
+      "previewCanonical": [],
+      "previewRobots": [
+        "noindex",
+        "noindex, nofollow"
+      ],
+      "previewXRobots": "",
+      "note": "Preserve equivalent archive or choose a relevant replacement using membership and GSC. No blanket homepage/blog redirect."
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/category/uncategorized/",
+      "oldStatus": 200,
+      "oldFinal": "https://koliotamerika.bg/category/uncategorized/",
+      "action": "REVIEW_ARCHIVE",
+      "targetPath": "/category/uncategorized",
+      "previewTargetStatus": 404,
+      "previewSourceStatus": 404,
+      "previewSourceFinal": "https://papayawhip-ram-220810.hostingersite.com/category/uncategorized",
+      "previewSourceHops": [
+        {
+          "status": 308,
+          "from": "https://papayawhip-ram-220810.hostingersite.com/category/uncategorized/",
+          "to": "/category/uncategorized"
+        }
+      ],
+      "previewCanonical": [],
+      "previewRobots": [
+        "noindex",
+        "noindex, nofollow"
+      ],
+      "previewXRobots": "",
+      "note": "Preserve equivalent archive or choose a relevant replacement using membership and GSC. No blanket homepage/blog redirect."
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/chesto-zadavani-vuprosi/",
+      "oldStatus": 200,
+      "oldFinal": "https://koliotamerika.bg/chesto-zadavani-vuprosi/",
+      "action": "KEEP_PATH",
+      "targetPath": "/chesto-zadavani-vuprosi",
+      "previewTargetStatus": 200,
+      "previewSourceStatus": 200,
+      "previewSourceFinal": "https://papayawhip-ram-220810.hostingersite.com/chesto-zadavani-vuprosi",
+      "previewSourceHops": [
+        {
+          "status": 308,
+          "from": "https://papayawhip-ram-220810.hostingersite.com/chesto-zadavani-vuprosi/",
+          "to": "/chesto-zadavani-vuprosi"
+        }
+      ],
+      "previewCanonical": [
+        "https://papayawhip-ram-220810.hostingersite.com/chesto-zadavani-vuprosi"
+      ],
+      "previewRobots": [
+        "noindex, nofollow"
+      ],
+      "previewXRobots": "",
+      "note": "Preserve content path; trailing slash normalization is a permanent redirect."
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/homologacia-na-koli/",
+      "oldStatus": 200,
+      "oldFinal": "https://koliotamerika.bg/homologacia-na-koli/",
+      "action": "KEEP_PATH",
+      "targetPath": "/homologacia-na-koli",
+      "previewTargetStatus": 200,
+      "previewSourceStatus": 200,
+      "previewSourceFinal": "https://papayawhip-ram-220810.hostingersite.com/homologacia-na-koli",
+      "previewSourceHops": [
+        {
+          "status": 308,
+          "from": "https://papayawhip-ram-220810.hostingersite.com/homologacia-na-koli/",
+          "to": "/homologacia-na-koli"
+        }
+      ],
+      "previewCanonical": [
+        "https://papayawhip-ram-220810.hostingersite.com/homologacia-na-koli"
+      ],
+      "previewRobots": [
+        "noindex, nofollow"
+      ],
+      "previewXRobots": "",
+      "note": "Preserve content path; trailing slash normalization is a permanent redirect."
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/homologacia/",
+      "oldStatus": 200,
+      "oldFinal": "https://koliotamerika.bg/homologacia/",
+      "action": "KEEP_PATH",
+      "targetPath": "/homologacia",
+      "previewTargetStatus": 200,
+      "previewSourceStatus": 200,
+      "previewSourceFinal": "https://papayawhip-ram-220810.hostingersite.com/homologacia",
+      "previewSourceHops": [
+        {
+          "status": 308,
+          "from": "https://papayawhip-ram-220810.hostingersite.com/homologacia/",
+          "to": "/homologacia"
+        }
+      ],
+      "previewCanonical": [
+        "https://papayawhip-ram-220810.hostingersite.com/homologacia"
+      ],
+      "previewRobots": [
+        "noindex, nofollow"
+      ],
+      "previewXRobots": "",
+      "note": "Preserve content path; trailing slash normalization is a permanent redirect."
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/izmami-pri-pokupka-na-avtomobil/",
+      "oldStatus": 200,
+      "oldFinal": "https://koliotamerika.bg/izmami-pri-pokupka-na-avtomobil/",
+      "action": "KEEP_PATH",
+      "targetPath": "/izmami-pri-pokupka-na-avtomobil",
+      "previewTargetStatus": 200,
+      "previewSourceStatus": 200,
+      "previewSourceFinal": "https://papayawhip-ram-220810.hostingersite.com/izmami-pri-pokupka-na-avtomobil",
+      "previewSourceHops": [
+        {
+          "status": 308,
+          "from": "https://papayawhip-ram-220810.hostingersite.com/izmami-pri-pokupka-na-avtomobil/",
+          "to": "/izmami-pri-pokupka-na-avtomobil"
+        }
+      ],
+      "previewCanonical": [
+        "https://papayawhip-ram-220810.hostingersite.com/izmami-pri-pokupka-na-avtomobil"
+      ],
+      "previewRobots": [
+        "noindex, nofollow"
+      ],
+      "previewXRobots": "",
+      "note": "Preserve content path; trailing slash normalization is a permanent redirect."
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/kak-da-izberem-kola-ot-targ/",
+      "oldStatus": 200,
+      "oldFinal": "https://koliotamerika.bg/kak-da-izberem-kola-ot-targ/",
+      "action": "KEEP_PATH",
+      "targetPath": "/kak-da-izberem-kola-ot-targ",
+      "previewTargetStatus": 200,
+      "previewSourceStatus": 200,
+      "previewSourceFinal": "https://papayawhip-ram-220810.hostingersite.com/kak-da-izberem-kola-ot-targ",
+      "previewSourceHops": [
+        {
+          "status": 308,
+          "from": "https://papayawhip-ram-220810.hostingersite.com/kak-da-izberem-kola-ot-targ/",
+          "to": "/kak-da-izberem-kola-ot-targ"
+        }
+      ],
+      "previewCanonical": [
+        "https://papayawhip-ram-220810.hostingersite.com/kak-da-izberem-kola-ot-targ"
+      ],
+      "previewRobots": [
+        "noindex, nofollow"
+      ],
+      "previewXRobots": "",
+      "note": "Preserve content path; trailing slash normalization is a permanent redirect."
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/kak-da-razchetem-vin-nomera-na-avtomobila/",
+      "oldStatus": 200,
+      "oldFinal": "https://koliotamerika.bg/kak-da-razchetem-vin-nomera-na-avtomobila/",
+      "action": "KEEP_PATH",
+      "targetPath": "/kak-da-razchetem-vin-nomera-na-avtomobila",
+      "previewTargetStatus": 200,
+      "previewSourceStatus": 200,
+      "previewSourceFinal": "https://papayawhip-ram-220810.hostingersite.com/kak-da-razchetem-vin-nomera-na-avtomobila",
+      "previewSourceHops": [
+        {
+          "status": 308,
+          "from": "https://papayawhip-ram-220810.hostingersite.com/kak-da-razchetem-vin-nomera-na-avtomobila/",
+          "to": "/kak-da-razchetem-vin-nomera-na-avtomobila"
+        }
+      ],
+      "previewCanonical": [
+        "https://papayawhip-ram-220810.hostingersite.com/kak-da-razchetem-vin-nomera-na-avtomobila"
+      ],
+      "previewRobots": [
+        "noindex, nofollow"
+      ],
+      "previewXRobots": "",
+      "note": "Preserve content path; trailing slash normalization is a permanent redirect."
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/kola-nov-vnos/",
+      "oldStatus": 200,
+      "oldFinal": "https://koliotamerika.bg/kola-nov-vnos/",
+      "action": "KEEP_PATH",
+      "targetPath": "/kola-nov-vnos",
+      "previewTargetStatus": 200,
+      "previewSourceStatus": 200,
+      "previewSourceFinal": "https://papayawhip-ram-220810.hostingersite.com/kola-nov-vnos",
+      "previewSourceHops": [
+        {
+          "status": 308,
+          "from": "https://papayawhip-ram-220810.hostingersite.com/kola-nov-vnos/",
+          "to": "/kola-nov-vnos"
+        }
+      ],
+      "previewCanonical": [
+        "https://papayawhip-ram-220810.hostingersite.com/kola-nov-vnos"
+      ],
+      "previewRobots": [
+        "noindex, nofollow"
+      ],
+      "previewXRobots": "",
+      "note": "Preserve content path; trailing slash normalization is a permanent redirect."
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/koli-ot-amerika-galeriya/",
+      "oldStatus": 200,
+      "oldFinal": "https://koliotamerika.bg/koli-ot-amerika-galeriya/",
+      "action": "KEEP_PATH",
+      "targetPath": "/koli-ot-amerika-galeriya",
+      "previewTargetStatus": 200,
+      "previewSourceStatus": 200,
+      "previewSourceFinal": "https://papayawhip-ram-220810.hostingersite.com/koli-ot-amerika-galeriya",
+      "previewSourceHops": [
+        {
+          "status": 308,
+          "from": "https://papayawhip-ram-220810.hostingersite.com/koli-ot-amerika-galeriya/",
+          "to": "/koli-ot-amerika-galeriya"
+        }
+      ],
+      "previewCanonical": [
+        "https://papayawhip-ram-220810.hostingersite.com/koli-ot-amerika-galeriya"
+      ],
+      "previewRobots": [
+        "noindex, nofollow"
+      ],
+      "previewXRobots": "",
+      "note": "Preserve content path; trailing slash normalization is a permanent redirect."
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/koli-ot-manheim/",
+      "oldStatus": 200,
+      "oldFinal": "https://koliotamerika.bg/koli-ot-manheim/",
+      "action": "KEEP_PATH",
+      "targetPath": "/koli-ot-manheim",
+      "previewTargetStatus": 200,
+      "previewSourceStatus": 200,
+      "previewSourceFinal": "https://papayawhip-ram-220810.hostingersite.com/koli-ot-manheim",
+      "previewSourceHops": [
+        {
+          "status": 308,
+          "from": "https://papayawhip-ram-220810.hostingersite.com/koli-ot-manheim/",
+          "to": "/koli-ot-manheim"
+        }
+      ],
+      "previewCanonical": [
+        "https://papayawhip-ram-220810.hostingersite.com/koli-ot-manheim"
+      ],
+      "previewRobots": [
+        "noindex, nofollow"
+      ],
+      "previewXRobots": "",
+      "note": "Preserve content path; trailing slash normalization is a permanent redirect."
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/koli-ot-sasht-regulacii-tehnologii-2025/",
+      "oldStatus": 200,
+      "oldFinal": "https://koliotamerika.bg/koli-ot-sasht-regulacii-tehnologii-2025/",
+      "action": "KEEP_PATH",
+      "targetPath": "/koli-ot-sasht-regulacii-tehnologii-2025",
+      "previewTargetStatus": 200,
+      "previewSourceStatus": 200,
+      "previewSourceFinal": "https://papayawhip-ram-220810.hostingersite.com/koli-ot-sasht-regulacii-tehnologii-2025",
+      "previewSourceHops": [
+        {
+          "status": 308,
+          "from": "https://papayawhip-ram-220810.hostingersite.com/koli-ot-sasht-regulacii-tehnologii-2025/",
+          "to": "/koli-ot-sasht-regulacii-tehnologii-2025"
+        }
+      ],
+      "previewCanonical": [
+        "https://papayawhip-ram-220810.hostingersite.com/koli-ot-sasht-regulacii-tehnologii-2025"
+      ],
+      "previewRobots": [
+        "noindex, nofollow"
+      ],
+      "previewXRobots": "",
+      "note": "Preserve content path; trailing slash normalization is a permanent redirect."
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/koliotamerika.bg/vnos-na-koli-ot-usa/",
+      "oldStatus": 200,
+      "oldFinal": "https://koliotamerika.bg/vnos-na-koli-ot-usa/",
+      "action": "PERMANENT_REDIRECT",
+      "targetPath": "/vnos-na-koli-ot-usa",
+      "previewTargetStatus": 200,
+      "previewSourceStatus": 200,
+      "previewSourceFinal": "https://papayawhip-ram-220810.hostingersite.com/vnos-na-koli-ot-usa",
+      "previewSourceHops": [
+        {
+          "status": 308,
+          "from": "https://papayawhip-ram-220810.hostingersite.com/koliotamerika.bg/vnos-na-koli-ot-usa/",
+          "to": "/koliotamerika.bg/vnos-na-koli-ot-usa"
+        },
+        {
+          "status": 308,
+          "from": "https://papayawhip-ram-220810.hostingersite.com/koliotamerika.bg/vnos-na-koli-ot-usa",
+          "to": "/vnos-na-koli-ot-usa"
+        }
+      ],
+      "previewCanonical": [
+        "https://papayawhip-ram-220810.hostingersite.com/vnos-na-koli-ot-usa"
+      ],
+      "previewRobots": [
+        "noindex, nofollow"
+      ],
+      "previewXRobots": "",
+      "note": "Existing configured redirect; verify final destination and number of hops."
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/kontakti",
+      "oldStatus": 200,
+      "oldFinal": "https://koliotamerika.bg/kontakti/",
+      "action": "KEEP_PATH",
+      "targetPath": "/kontakti",
+      "previewTargetStatus": 200,
+      "previewSourceStatus": 200,
+      "previewSourceFinal": "https://papayawhip-ram-220810.hostingersite.com/kontakti",
+      "previewSourceHops": [],
+      "previewCanonical": [
+        "https://papayawhip-ram-220810.hostingersite.com/kontakti"
+      ],
+      "previewRobots": [
+        "noindex, nofollow"
+      ],
+      "previewXRobots": "",
+      "note": "Preserve content path; trailing slash normalization is a permanent redirect."
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/kontakti/",
+      "oldStatus": 200,
+      "oldFinal": "https://koliotamerika.bg/kontakti/",
+      "action": "KEEP_PATH",
+      "targetPath": "/kontakti",
+      "previewTargetStatus": 200,
+      "previewSourceStatus": 200,
+      "previewSourceFinal": "https://papayawhip-ram-220810.hostingersite.com/kontakti",
+      "previewSourceHops": [
+        {
+          "status": 308,
+          "from": "https://papayawhip-ram-220810.hostingersite.com/kontakti/",
+          "to": "/kontakti"
+        }
+      ],
+      "previewCanonical": [
+        "https://papayawhip-ram-220810.hostingersite.com/kontakti"
+      ],
+      "previewRobots": [
+        "noindex, nofollow"
+      ],
+      "previewXRobots": "",
+      "note": "Preserve content path; trailing slash normalization is a permanent redirect."
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/mitove-za-avtomobilite-ot-amerika/",
+      "oldStatus": 200,
+      "oldFinal": "https://koliotamerika.bg/mitove-za-avtomobilite-ot-amerika/",
+      "action": "KEEP_PATH",
+      "targetPath": "/mitove-za-avtomobilite-ot-amerika",
+      "previewTargetStatus": 200,
+      "previewSourceStatus": 200,
+      "previewSourceFinal": "https://papayawhip-ram-220810.hostingersite.com/mitove-za-avtomobilite-ot-amerika",
+      "previewSourceHops": [
+        {
+          "status": 308,
+          "from": "https://papayawhip-ram-220810.hostingersite.com/mitove-za-avtomobilite-ot-amerika/",
+          "to": "/mitove-za-avtomobilite-ot-amerika"
+        }
+      ],
+      "previewCanonical": [
+        "https://papayawhip-ram-220810.hostingersite.com/mitove-za-avtomobilite-ot-amerika"
+      ],
+      "previewRobots": [
+        "noindex, nofollow"
+      ],
+      "previewXRobots": "",
+      "note": "Preserve content path; trailing slash normalization is a permanent redirect."
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/morski-transport-na-avtomobili-ot-sasht/",
+      "oldStatus": 200,
+      "oldFinal": "https://koliotamerika.bg/morski-transport-na-avtomobili-ot-sasht/",
+      "action": "KEEP_PATH",
+      "targetPath": "/morski-transport-na-avtomobili-ot-sasht",
+      "previewTargetStatus": 200,
+      "previewSourceStatus": 200,
+      "previewSourceFinal": "https://papayawhip-ram-220810.hostingersite.com/morski-transport-na-avtomobili-ot-sasht",
+      "previewSourceHops": [
+        {
+          "status": 308,
+          "from": "https://papayawhip-ram-220810.hostingersite.com/morski-transport-na-avtomobili-ot-sasht/",
+          "to": "/morski-transport-na-avtomobili-ot-sasht"
+        }
+      ],
+      "previewCanonical": [
+        "https://papayawhip-ram-220810.hostingersite.com/morski-transport-na-avtomobili-ot-sasht"
+      ],
+      "previewRobots": [
+        "noindex, nofollow"
+      ],
+      "previewXRobots": "",
+      "note": "Preserve content path; trailing slash normalization is a permanent redirect."
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/motori-i-atv-ta-ot-amerika/",
+      "oldStatus": 200,
+      "oldFinal": "https://koliotamerika.bg/motori-i-atv-ta-ot-amerika/",
+      "action": "KEEP_PATH",
+      "targetPath": "/motori-i-atv-ta-ot-amerika",
+      "previewTargetStatus": 200,
+      "previewSourceStatus": 200,
+      "previewSourceFinal": "https://papayawhip-ram-220810.hostingersite.com/motori-i-atv-ta-ot-amerika",
+      "previewSourceHops": [
+        {
+          "status": 308,
+          "from": "https://papayawhip-ram-220810.hostingersite.com/motori-i-atv-ta-ot-amerika/",
+          "to": "/motori-i-atv-ta-ot-amerika"
+        }
+      ],
+      "previewCanonical": [
+        "https://papayawhip-ram-220810.hostingersite.com/motori-i-atv-ta-ot-amerika"
+      ],
+      "previewRobots": [
+        "noindex, nofollow"
+      ],
+      "previewXRobots": "",
+      "note": "Preserve content path; trailing slash normalization is a permanent redirect."
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/navodneni-koli-ot-amerika/",
+      "oldStatus": 200,
+      "oldFinal": "https://koliotamerika.bg/navodneni-koli-ot-amerika/",
+      "action": "KEEP_PATH",
+      "targetPath": "/navodneni-koli-ot-amerika",
+      "previewTargetStatus": 200,
+      "previewSourceStatus": 200,
+      "previewSourceFinal": "https://papayawhip-ram-220810.hostingersite.com/navodneni-koli-ot-amerika",
+      "previewSourceHops": [
+        {
+          "status": 308,
+          "from": "https://papayawhip-ram-220810.hostingersite.com/navodneni-koli-ot-amerika/",
+          "to": "/navodneni-koli-ot-amerika"
+        }
+      ],
+      "previewCanonical": [
+        "https://papayawhip-ram-220810.hostingersite.com/navodneni-koli-ot-amerika"
+      ],
+      "previewRobots": [
+        "noindex, nofollow"
+      ],
+      "previewXRobots": "",
+      "note": "Preserve content path; trailing slash normalization is a permanent redirect."
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/neobhodimi-dokumenti-za-vnos-na-kola-ot-sasth/",
+      "oldStatus": 200,
+      "oldFinal": "https://koliotamerika.bg/neobhodimi-dokumenti-za-vnos-na-kola-ot-sasth/",
+      "action": "KEEP_PATH",
+      "targetPath": "/neobhodimi-dokumenti-za-vnos-na-kola-ot-sasth",
+      "previewTargetStatus": 200,
+      "previewSourceStatus": 200,
+      "previewSourceFinal": "https://papayawhip-ram-220810.hostingersite.com/neobhodimi-dokumenti-za-vnos-na-kola-ot-sasth",
+      "previewSourceHops": [
+        {
+          "status": 308,
+          "from": "https://papayawhip-ram-220810.hostingersite.com/neobhodimi-dokumenti-za-vnos-na-kola-ot-sasth/",
+          "to": "/neobhodimi-dokumenti-za-vnos-na-kola-ot-sasth"
+        }
+      ],
+      "previewCanonical": [
+        "https://papayawhip-ram-220810.hostingersite.com/neobhodimi-dokumenti-za-vnos-na-kola-ot-sasth"
+      ],
+      "previewRobots": [
+        "noindex, nofollow"
+      ],
+      "previewXRobots": "",
+      "note": "Preserve content path; trailing slash normalization is a permanent redirect."
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/obshti-usloviya/",
+      "oldStatus": 200,
+      "oldFinal": "https://koliotamerika.bg/obshti-usloviya/",
+      "action": "KEEP_PATH",
+      "targetPath": "/obshti-usloviya",
+      "previewTargetStatus": 200,
+      "previewSourceStatus": 200,
+      "previewSourceFinal": "https://papayawhip-ram-220810.hostingersite.com/obshti-usloviya",
+      "previewSourceHops": [
+        {
+          "status": 308,
+          "from": "https://papayawhip-ram-220810.hostingersite.com/obshti-usloviya/",
+          "to": "/obshti-usloviya"
+        }
+      ],
+      "previewCanonical": [
+        "https://papayawhip-ram-220810.hostingersite.com/obshti-usloviya"
+      ],
+      "previewRobots": [
+        "noindex, nofollow"
+      ],
+      "previewXRobots": "",
+      "note": "Preserve content path; trailing slash normalization is a permanent redirect."
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/obsluzhvane-na-kola-vnos-ot-amerika/",
+      "oldStatus": 200,
+      "oldFinal": "https://koliotamerika.bg/obsluzhvane-na-kola-vnos-ot-amerika/",
+      "action": "KEEP_PATH",
+      "targetPath": "/obsluzhvane-na-kola-vnos-ot-amerika",
+      "previewTargetStatus": 200,
+      "previewSourceStatus": 200,
+      "previewSourceFinal": "https://papayawhip-ram-220810.hostingersite.com/obsluzhvane-na-kola-vnos-ot-amerika",
+      "previewSourceHops": [
+        {
+          "status": 308,
+          "from": "https://papayawhip-ram-220810.hostingersite.com/obsluzhvane-na-kola-vnos-ot-amerika/",
+          "to": "/obsluzhvane-na-kola-vnos-ot-amerika"
+        }
+      ],
+      "previewCanonical": [
+        "https://papayawhip-ram-220810.hostingersite.com/obsluzhvane-na-kola-vnos-ot-amerika"
+      ],
+      "previewRobots": [
+        "noindex, nofollow"
+      ],
+      "previewXRobots": "",
+      "note": "Preserve content path; trailing slash normalization is a permanent redirect."
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/parvonachalna-registracziya-v-kat/",
+      "oldStatus": 200,
+      "oldFinal": "https://koliotamerika.bg/parvonachalna-registracziya-v-kat/",
+      "action": "KEEP_PATH",
+      "targetPath": "/parvonachalna-registracziya-v-kat",
+      "previewTargetStatus": 200,
+      "previewSourceStatus": 200,
+      "previewSourceFinal": "https://papayawhip-ram-220810.hostingersite.com/parvonachalna-registracziya-v-kat",
+      "previewSourceHops": [
+        {
+          "status": 308,
+          "from": "https://papayawhip-ram-220810.hostingersite.com/parvonachalna-registracziya-v-kat/",
+          "to": "/parvonachalna-registracziya-v-kat"
+        }
+      ],
+      "previewCanonical": [
+        "https://papayawhip-ram-220810.hostingersite.com/parvonachalna-registracziya-v-kat"
+      ],
+      "previewRobots": [
+        "noindex, nofollow"
+      ],
+      "previewXRobots": "",
+      "note": "Preserve content path; trailing slash normalization is a permanent redirect."
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/podgotovka-na-avtomobila-za-zimata/",
+      "oldStatus": 200,
+      "oldFinal": "https://koliotamerika.bg/podgotovka-na-avtomobila-za-zimata/",
+      "action": "KEEP_PATH",
+      "targetPath": "/podgotovka-na-avtomobila-za-zimata",
+      "previewTargetStatus": 200,
+      "previewSourceStatus": 200,
+      "previewSourceFinal": "https://papayawhip-ram-220810.hostingersite.com/podgotovka-na-avtomobila-za-zimata",
+      "previewSourceHops": [
+        {
+          "status": 308,
+          "from": "https://papayawhip-ram-220810.hostingersite.com/podgotovka-na-avtomobila-za-zimata/",
+          "to": "/podgotovka-na-avtomobila-za-zimata"
+        }
+      ],
+      "previewCanonical": [
+        "https://papayawhip-ram-220810.hostingersite.com/podgotovka-na-avtomobila-za-zimata"
+      ],
+      "previewRobots": [
+        "noindex, nofollow"
+      ],
+      "previewXRobots": "",
+      "note": "Preserve content path; trailing slash normalization is a permanent redirect."
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/pokupka-na-avtomobili-ot-sasht-2025/",
+      "oldStatus": 200,
+      "oldFinal": "https://koliotamerika.bg/pokupka-na-avtomobili-ot-sasht-2025/",
+      "action": "KEEP_PATH",
+      "targetPath": "/pokupka-na-avtomobili-ot-sasht-2025",
+      "previewTargetStatus": 200,
+      "previewSourceStatus": 200,
+      "previewSourceFinal": "https://papayawhip-ram-220810.hostingersite.com/pokupka-na-avtomobili-ot-sasht-2025",
+      "previewSourceHops": [
+        {
+          "status": 308,
+          "from": "https://papayawhip-ram-220810.hostingersite.com/pokupka-na-avtomobili-ot-sasht-2025/",
+          "to": "/pokupka-na-avtomobili-ot-sasht-2025"
+        }
+      ],
+      "previewCanonical": [
+        "https://papayawhip-ram-220810.hostingersite.com/pokupka-na-avtomobili-ot-sasht-2025"
+      ],
+      "previewRobots": [
+        "noindex, nofollow"
+      ],
+      "previewXRobots": "",
+      "note": "Preserve content path; trailing slash normalization is a permanent redirect."
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/polezna-informaciq/",
+      "oldStatus": 200,
+      "oldFinal": "https://koliotamerika.bg/aukcioni-za-koli-v-amerika/",
+      "action": "PERMANENT_REDIRECT",
+      "targetPath": "/aukcioni-za-koli-v-amerika",
+      "previewTargetStatus": 200,
+      "previewSourceStatus": 200,
+      "previewSourceFinal": "https://papayawhip-ram-220810.hostingersite.com/aukcioni-za-koli-v-amerika",
+      "previewSourceHops": [
+        {
+          "status": 308,
+          "from": "https://papayawhip-ram-220810.hostingersite.com/polezna-informaciq/",
+          "to": "/polezna-informaciq"
+        },
+        {
+          "status": 308,
+          "from": "https://papayawhip-ram-220810.hostingersite.com/polezna-informaciq",
+          "to": "/aukcioni-za-koli-v-amerika"
+        }
+      ],
+      "previewCanonical": [
+        "https://papayawhip-ram-220810.hostingersite.com/aukcioni-za-koli-v-amerika"
+      ],
+      "previewRobots": [
+        "noindex, nofollow"
+      ],
+      "previewXRobots": "",
+      "note": "Existing configured redirect; verify final destination and number of hops."
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/polezna-informaciq/vnos-na-koli-ot-amerika/",
+      "oldStatus": 200,
+      "oldFinal": "https://koliotamerika.bg/vnos-na-koli-ot-usa/vnos-na-koli-ot-amerika-cena/",
+      "action": "PERMANENT_REDIRECT",
+      "targetPath": "/vnos-na-koli-ot-usa/vnos-na-koli-ot-amerika-cena",
+      "previewTargetStatus": 200,
+      "previewSourceStatus": 200,
+      "previewSourceFinal": "https://papayawhip-ram-220810.hostingersite.com/vnos-na-koli-ot-usa/vnos-na-koli-ot-amerika-cena",
+      "previewSourceHops": [
+        {
+          "status": 308,
+          "from": "https://papayawhip-ram-220810.hostingersite.com/polezna-informaciq/vnos-na-koli-ot-amerika/",
+          "to": "/polezna-informaciq/vnos-na-koli-ot-amerika"
+        },
+        {
+          "status": 308,
+          "from": "https://papayawhip-ram-220810.hostingersite.com/polezna-informaciq/vnos-na-koli-ot-amerika",
+          "to": "/vnos-na-koli-ot-usa/vnos-na-koli-ot-amerika-cena"
+        }
+      ],
+      "previewCanonical": [
+        "https://papayawhip-ram-220810.hostingersite.com/vnos-na-koli-ot-usa/vnos-na-koli-ot-amerika-cena"
+      ],
+      "previewRobots": [
+        "noindex, nofollow"
+      ],
+      "previewXRobots": "",
+      "note": "Existing configured redirect; verify final destination and number of hops."
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/proverka-na-istoriya-na-avtomobil/",
+      "oldStatus": 200,
+      "oldFinal": "https://koliotamerika.bg/proverka-na-istoriya-na-avtomobil/",
+      "action": "KEEP_PATH",
+      "targetPath": "/proverka-na-istoriya-na-avtomobil",
+      "previewTargetStatus": 200,
+      "previewSourceStatus": 200,
+      "previewSourceFinal": "https://papayawhip-ram-220810.hostingersite.com/proverka-na-istoriya-na-avtomobil",
+      "previewSourceHops": [
+        {
+          "status": 308,
+          "from": "https://papayawhip-ram-220810.hostingersite.com/proverka-na-istoriya-na-avtomobil/",
+          "to": "/proverka-na-istoriya-na-avtomobil"
+        }
+      ],
+      "previewCanonical": [
+        "https://papayawhip-ram-220810.hostingersite.com/proverka-na-istoriya-na-avtomobil"
+      ],
+      "previewRobots": [
+        "noindex, nofollow"
+      ],
+      "previewXRobots": "",
+      "note": "Preserve content path; trailing slash normalization is a permanent redirect."
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/run-and-drive-koli-ot-amerika/",
+      "oldStatus": 200,
+      "oldFinal": "https://koliotamerika.bg/run-and-drive-koli-ot-amerika/",
+      "action": "KEEP_PATH",
+      "targetPath": "/run-and-drive-koli-ot-amerika",
+      "previewTargetStatus": 200,
+      "previewSourceStatus": 200,
+      "previewSourceFinal": "https://papayawhip-ram-220810.hostingersite.com/run-and-drive-koli-ot-amerika",
+      "previewSourceHops": [
+        {
+          "status": 308,
+          "from": "https://papayawhip-ram-220810.hostingersite.com/run-and-drive-koli-ot-amerika/",
+          "to": "/run-and-drive-koli-ot-amerika"
+        }
+      ],
+      "previewCanonical": [
+        "https://papayawhip-ram-220810.hostingersite.com/run-and-drive-koli-ot-amerika"
+      ],
+      "previewRobots": [
+        "noindex, nofollow"
+      ],
+      "previewXRobots": "",
+      "note": "Preserve content path; trailing slash normalization is a permanent redirect."
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/salvage-title-kola-ot-amerika/",
+      "oldStatus": 200,
+      "oldFinal": "https://koliotamerika.bg/salvage-title-kola-ot-amerika/",
+      "action": "KEEP_PATH",
+      "targetPath": "/salvage-title-kola-ot-amerika",
+      "previewTargetStatus": 200,
+      "previewSourceStatus": 200,
+      "previewSourceFinal": "https://papayawhip-ram-220810.hostingersite.com/salvage-title-kola-ot-amerika",
+      "previewSourceHops": [
+        {
+          "status": 308,
+          "from": "https://papayawhip-ram-220810.hostingersite.com/salvage-title-kola-ot-amerika/",
+          "to": "/salvage-title-kola-ot-amerika"
+        }
+      ],
+      "previewCanonical": [
+        "https://papayawhip-ram-220810.hostingersite.com/salvage-title-kola-ot-amerika"
+      ],
+      "previewRobots": [
+        "noindex, nofollow"
+      ],
+      "previewXRobots": "",
+      "note": "Preserve content path; trailing slash normalization is a permanent redirect."
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/tag/aukczioni-ot-sasth/",
+      "oldStatus": 200,
+      "oldFinal": "https://koliotamerika.bg/tag/aukczioni-ot-sasth/",
+      "action": "REVIEW_ARCHIVE",
+      "targetPath": "/tag/aukczioni-ot-sasth",
+      "previewTargetStatus": 404,
+      "previewSourceStatus": 404,
+      "previewSourceFinal": "https://papayawhip-ram-220810.hostingersite.com/tag/aukczioni-ot-sasth",
+      "previewSourceHops": [
+        {
+          "status": 308,
+          "from": "https://papayawhip-ram-220810.hostingersite.com/tag/aukczioni-ot-sasth/",
+          "to": "/tag/aukczioni-ot-sasth"
+        }
+      ],
+      "previewCanonical": [],
+      "previewRobots": [
+        "noindex",
+        "noindex, nofollow"
+      ],
+      "previewXRobots": "",
+      "note": "Preserve equivalent archive or choose a relevant replacement using membership and GSC. No blanket homepage/blog redirect."
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/tag/aukczioni-ot-sasth/page/2/",
+      "oldStatus": 200,
+      "oldFinal": "https://koliotamerika.bg/tag/aukczioni-ot-sasth/page/2/",
+      "action": "REVIEW_ARCHIVE",
+      "targetPath": "/tag/aukczioni-ot-sasth/page/2",
+      "previewTargetStatus": 404,
+      "previewSourceStatus": 404,
+      "previewSourceFinal": "https://papayawhip-ram-220810.hostingersite.com/tag/aukczioni-ot-sasth/page/2",
+      "previewSourceHops": [
+        {
+          "status": 308,
+          "from": "https://papayawhip-ram-220810.hostingersite.com/tag/aukczioni-ot-sasth/page/2/",
+          "to": "/tag/aukczioni-ot-sasth/page/2"
+        }
+      ],
+      "previewCanonical": [],
+      "previewRobots": [
+        "noindex",
+        "noindex, nofollow"
+      ],
+      "previewXRobots": "",
+      "note": "Preserve equivalent archive or choose a relevant replacement using membership and GSC. No blanket homepage/blog redirect."
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/tag/aukczioni-ot-sasth/page/3/",
+      "oldStatus": 200,
+      "oldFinal": "https://koliotamerika.bg/tag/aukczioni-ot-sasth/page/3/",
+      "action": "REVIEW_ARCHIVE",
+      "targetPath": "/tag/aukczioni-ot-sasth/page/3",
+      "previewTargetStatus": 404,
+      "previewSourceStatus": 404,
+      "previewSourceFinal": "https://papayawhip-ram-220810.hostingersite.com/tag/aukczioni-ot-sasth/page/3",
+      "previewSourceHops": [
+        {
+          "status": 308,
+          "from": "https://papayawhip-ram-220810.hostingersite.com/tag/aukczioni-ot-sasth/page/3/",
+          "to": "/tag/aukczioni-ot-sasth/page/3"
+        }
+      ],
+      "previewCanonical": [],
+      "previewRobots": [
+        "noindex",
+        "noindex, nofollow"
+      ],
+      "previewXRobots": "",
+      "note": "Preserve equivalent archive or choose a relevant replacement using membership and GSC. No blanket homepage/blog redirect."
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/tag/aukczioni-za-motori/",
+      "oldStatus": 200,
+      "oldFinal": "https://koliotamerika.bg/tag/aukczioni-za-motori/",
+      "action": "REVIEW_ARCHIVE",
+      "targetPath": "/tag/aukczioni-za-motori",
+      "previewTargetStatus": 404,
+      "previewSourceStatus": 404,
+      "previewSourceFinal": "https://papayawhip-ram-220810.hostingersite.com/tag/aukczioni-za-motori",
+      "previewSourceHops": [
+        {
+          "status": 308,
+          "from": "https://papayawhip-ram-220810.hostingersite.com/tag/aukczioni-za-motori/",
+          "to": "/tag/aukczioni-za-motori"
+        }
+      ],
+      "previewCanonical": [],
+      "previewRobots": [
+        "noindex",
+        "noindex, nofollow"
+      ],
+      "previewXRobots": "",
+      "note": "Preserve equivalent archive or choose a relevant replacement using membership and GSC. No blanket homepage/blog redirect."
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/tag/avtochasti-vtora-upotreba/",
+      "oldStatus": 200,
+      "oldFinal": "https://koliotamerika.bg/tag/avtochasti-vtora-upotreba/",
+      "action": "REVIEW_ARCHIVE",
+      "targetPath": "/tag/avtochasti-vtora-upotreba",
+      "previewTargetStatus": 404,
+      "previewSourceStatus": 404,
+      "previewSourceFinal": "https://papayawhip-ram-220810.hostingersite.com/tag/avtochasti-vtora-upotreba",
+      "previewSourceHops": [
+        {
+          "status": 308,
+          "from": "https://papayawhip-ram-220810.hostingersite.com/tag/avtochasti-vtora-upotreba/",
+          "to": "/tag/avtochasti-vtora-upotreba"
+        }
+      ],
+      "previewCanonical": [],
+      "previewRobots": [
+        "noindex",
+        "noindex, nofollow"
+      ],
+      "previewXRobots": "",
+      "note": "Preserve equivalent archive or choose a relevant replacement using membership and GSC. No blanket homepage/blog redirect."
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/tag/avtochasti-za-koli/",
+      "oldStatus": 200,
+      "oldFinal": "https://koliotamerika.bg/tag/avtochasti-za-koli/",
+      "action": "REVIEW_ARCHIVE",
+      "targetPath": "/tag/avtochasti-za-koli",
+      "previewTargetStatus": 404,
+      "previewSourceStatus": 404,
+      "previewSourceFinal": "https://papayawhip-ram-220810.hostingersite.com/tag/avtochasti-za-koli",
+      "previewSourceHops": [
+        {
+          "status": 308,
+          "from": "https://papayawhip-ram-220810.hostingersite.com/tag/avtochasti-za-koli/",
+          "to": "/tag/avtochasti-za-koli"
+        }
+      ],
+      "previewCanonical": [],
+      "previewRobots": [
+        "noindex",
+        "noindex, nofollow"
+      ],
+      "previewXRobots": "",
+      "note": "Preserve equivalent archive or choose a relevant replacement using membership and GSC. No blanket homepage/blog redirect."
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/tag/avtomobili-ot-manheim/",
+      "oldStatus": 200,
+      "oldFinal": "https://koliotamerika.bg/tag/avtomobili-ot-manheim/",
+      "action": "REVIEW_ARCHIVE",
+      "targetPath": "/tag/avtomobili-ot-manheim",
+      "previewTargetStatus": 404,
+      "previewSourceStatus": 404,
+      "previewSourceFinal": "https://papayawhip-ram-220810.hostingersite.com/tag/avtomobili-ot-manheim",
+      "previewSourceHops": [
+        {
+          "status": 308,
+          "from": "https://papayawhip-ram-220810.hostingersite.com/tag/avtomobili-ot-manheim/",
+          "to": "/tag/avtomobili-ot-manheim"
+        }
+      ],
+      "previewCanonical": [],
+      "previewRobots": [
+        "noindex",
+        "noindex, nofollow"
+      ],
+      "previewXRobots": "",
+      "note": "Preserve equivalent archive or choose a relevant replacement using membership and GSC. No blanket homepage/blog redirect."
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/tag/b58/",
+      "oldStatus": 200,
+      "oldFinal": "https://koliotamerika.bg/tag/b58/",
+      "action": "REVIEW_ARCHIVE",
+      "targetPath": "/tag/b58",
+      "previewTargetStatus": 404,
+      "previewSourceStatus": 404,
+      "previewSourceFinal": "https://papayawhip-ram-220810.hostingersite.com/tag/b58",
+      "previewSourceHops": [
+        {
+          "status": 308,
+          "from": "https://papayawhip-ram-220810.hostingersite.com/tag/b58/",
+          "to": "/tag/b58"
+        }
+      ],
+      "previewCanonical": [],
+      "previewRobots": [
+        "noindex",
+        "noindex, nofollow"
+      ],
+      "previewXRobots": "",
+      "note": "Preserve equivalent archive or choose a relevant replacement using membership and GSC. No blanket homepage/blog redirect."
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/tag/bmw/",
+      "oldStatus": 200,
+      "oldFinal": "https://koliotamerika.bg/tag/bmw/",
+      "action": "REVIEW_ARCHIVE",
+      "targetPath": "/tag/bmw",
+      "previewTargetStatus": 404,
+      "previewSourceStatus": 404,
+      "previewSourceFinal": "https://papayawhip-ram-220810.hostingersite.com/tag/bmw",
+      "previewSourceHops": [
+        {
+          "status": 308,
+          "from": "https://papayawhip-ram-220810.hostingersite.com/tag/bmw/",
+          "to": "/tag/bmw"
+        }
+      ],
+      "previewCanonical": [],
+      "previewRobots": [
+        "noindex",
+        "noindex, nofollow"
+      ],
+      "previewXRobots": "",
+      "note": "Preserve equivalent archive or choose a relevant replacement using membership and GSC. No blanket homepage/blog redirect."
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/tag/carfax/",
+      "oldStatus": 200,
+      "oldFinal": "https://koliotamerika.bg/tag/carfax/",
+      "action": "REVIEW_ARCHIVE",
+      "targetPath": "/tag/carfax",
+      "previewTargetStatus": 404,
+      "previewSourceStatus": 404,
+      "previewSourceFinal": "https://papayawhip-ram-220810.hostingersite.com/tag/carfax",
+      "previewSourceHops": [
+        {
+          "status": 308,
+          "from": "https://papayawhip-ram-220810.hostingersite.com/tag/carfax/",
+          "to": "/tag/carfax"
+        }
+      ],
+      "previewCanonical": [],
+      "previewRobots": [
+        "noindex",
+        "noindex, nofollow"
+      ],
+      "previewXRobots": "",
+      "note": "Preserve equivalent archive or choose a relevant replacement using membership and GSC. No blanket homepage/blog redirect."
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/tag/koli-na-targ/",
+      "oldStatus": 200,
+      "oldFinal": "https://koliotamerika.bg/tag/koli-na-targ/",
+      "action": "REVIEW_ARCHIVE",
+      "targetPath": "/tag/koli-na-targ",
+      "previewTargetStatus": 404,
+      "previewSourceStatus": 404,
+      "previewSourceFinal": "https://papayawhip-ram-220810.hostingersite.com/tag/koli-na-targ",
+      "previewSourceHops": [
+        {
+          "status": 308,
+          "from": "https://papayawhip-ram-220810.hostingersite.com/tag/koli-na-targ/",
+          "to": "/tag/koli-na-targ"
+        }
+      ],
+      "previewCanonical": [],
+      "previewRobots": [
+        "noindex",
+        "noindex, nofollow"
+      ],
+      "previewXRobots": "",
+      "note": "Preserve equivalent archive or choose a relevant replacement using membership and GSC. No blanket homepage/blog redirect."
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/tag/koli-na-targ/page/2/",
+      "oldStatus": 200,
+      "oldFinal": "https://koliotamerika.bg/tag/koli-na-targ/page/2/",
+      "action": "REVIEW_ARCHIVE",
+      "targetPath": "/tag/koli-na-targ/page/2",
+      "previewTargetStatus": 404,
+      "previewSourceStatus": 404,
+      "previewSourceFinal": "https://papayawhip-ram-220810.hostingersite.com/tag/koli-na-targ/page/2",
+      "previewSourceHops": [
+        {
+          "status": 308,
+          "from": "https://papayawhip-ram-220810.hostingersite.com/tag/koli-na-targ/page/2/",
+          "to": "/tag/koli-na-targ/page/2"
+        }
+      ],
+      "previewCanonical": [],
+      "previewRobots": [
+        "noindex",
+        "noindex, nofollow"
+      ],
+      "previewXRobots": "",
+      "note": "Preserve equivalent archive or choose a relevant replacement using membership and GSC. No blanket homepage/blog redirect."
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/tag/koli-na-targ/page/3/",
+      "oldStatus": 200,
+      "oldFinal": "https://koliotamerika.bg/tag/koli-na-targ/page/3/",
+      "action": "REVIEW_ARCHIVE",
+      "targetPath": "/tag/koli-na-targ/page/3",
+      "previewTargetStatus": 404,
+      "previewSourceStatus": 404,
+      "previewSourceFinal": "https://papayawhip-ram-220810.hostingersite.com/tag/koli-na-targ/page/3",
+      "previewSourceHops": [
+        {
+          "status": 308,
+          "from": "https://papayawhip-ram-220810.hostingersite.com/tag/koli-na-targ/page/3/",
+          "to": "/tag/koli-na-targ/page/3"
+        }
+      ],
+      "previewCanonical": [],
+      "previewRobots": [
+        "noindex",
+        "noindex, nofollow"
+      ],
+      "previewXRobots": "",
+      "note": "Preserve equivalent archive or choose a relevant replacement using membership and GSC. No blanket homepage/blog redirect."
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/tag/koli-ot-amerika/",
+      "oldStatus": 200,
+      "oldFinal": "https://koliotamerika.bg/tag/koli-ot-amerika/",
+      "action": "REVIEW_ARCHIVE",
+      "targetPath": "/tag/koli-ot-amerika",
+      "previewTargetStatus": 404,
+      "previewSourceStatus": 404,
+      "previewSourceFinal": "https://papayawhip-ram-220810.hostingersite.com/tag/koli-ot-amerika",
+      "previewSourceHops": [
+        {
+          "status": 308,
+          "from": "https://papayawhip-ram-220810.hostingersite.com/tag/koli-ot-amerika/",
+          "to": "/tag/koli-ot-amerika"
+        }
+      ],
+      "previewCanonical": [],
+      "previewRobots": [
+        "noindex",
+        "noindex, nofollow"
+      ],
+      "previewXRobots": "",
+      "note": "Preserve equivalent archive or choose a relevant replacement using membership and GSC. No blanket homepage/blog redirect."
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/tag/koli-ot-amerika/page/2/",
+      "oldStatus": 200,
+      "oldFinal": "https://koliotamerika.bg/tag/koli-ot-amerika/page/2/",
+      "action": "REVIEW_ARCHIVE",
+      "targetPath": "/tag/koli-ot-amerika/page/2",
+      "previewTargetStatus": 404,
+      "previewSourceStatus": 404,
+      "previewSourceFinal": "https://papayawhip-ram-220810.hostingersite.com/tag/koli-ot-amerika/page/2",
+      "previewSourceHops": [
+        {
+          "status": 308,
+          "from": "https://papayawhip-ram-220810.hostingersite.com/tag/koli-ot-amerika/page/2/",
+          "to": "/tag/koli-ot-amerika/page/2"
+        }
+      ],
+      "previewCanonical": [],
+      "previewRobots": [
+        "noindex",
+        "noindex, nofollow"
+      ],
+      "previewXRobots": "",
+      "note": "Preserve equivalent archive or choose a relevant replacement using membership and GSC. No blanket homepage/blog redirect."
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/tag/koli-ot-amerika/page/3/",
+      "oldStatus": 200,
+      "oldFinal": "https://koliotamerika.bg/tag/koli-ot-amerika/page/3/",
+      "action": "REVIEW_ARCHIVE",
+      "targetPath": "/tag/koli-ot-amerika/page/3",
+      "previewTargetStatus": 404,
+      "previewSourceStatus": 404,
+      "previewSourceFinal": "https://papayawhip-ram-220810.hostingersite.com/tag/koli-ot-amerika/page/3",
+      "previewSourceHops": [
+        {
+          "status": 308,
+          "from": "https://papayawhip-ram-220810.hostingersite.com/tag/koli-ot-amerika/page/3/",
+          "to": "/tag/koli-ot-amerika/page/3"
+        }
+      ],
+      "previewCanonical": [],
+      "previewRobots": [
+        "noindex",
+        "noindex, nofollow"
+      ],
+      "previewXRobots": "",
+      "note": "Preserve equivalent archive or choose a relevant replacement using membership and GSC. No blanket homepage/blog redirect."
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/tag/koli-ot-amerika/page/4/",
+      "oldStatus": 200,
+      "oldFinal": "https://koliotamerika.bg/tag/koli-ot-amerika/page/4/",
+      "action": "REVIEW_ARCHIVE",
+      "targetPath": "/tag/koli-ot-amerika/page/4",
+      "previewTargetStatus": 404,
+      "previewSourceStatus": 404,
+      "previewSourceFinal": "https://papayawhip-ram-220810.hostingersite.com/tag/koli-ot-amerika/page/4",
+      "previewSourceHops": [
+        {
+          "status": 308,
+          "from": "https://papayawhip-ram-220810.hostingersite.com/tag/koli-ot-amerika/page/4/",
+          "to": "/tag/koli-ot-amerika/page/4"
+        }
+      ],
+      "previewCanonical": [],
+      "previewRobots": [
+        "noindex",
+        "noindex, nofollow"
+      ],
+      "previewXRobots": "",
+      "note": "Preserve equivalent archive or choose a relevant replacement using membership and GSC. No blanket homepage/blog redirect."
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/tag/koli-ot-manheim/",
+      "oldStatus": 200,
+      "oldFinal": "https://koliotamerika.bg/tag/koli-ot-manheim/",
+      "action": "REVIEW_ARCHIVE",
+      "targetPath": "/tag/koli-ot-manheim",
+      "previewTargetStatus": 404,
+      "previewSourceStatus": 404,
+      "previewSourceFinal": "https://papayawhip-ram-220810.hostingersite.com/tag/koli-ot-manheim",
+      "previewSourceHops": [
+        {
+          "status": 308,
+          "from": "https://papayawhip-ram-220810.hostingersite.com/tag/koli-ot-manheim/",
+          "to": "/tag/koli-ot-manheim"
+        }
+      ],
+      "previewCanonical": [],
+      "previewRobots": [
+        "noindex",
+        "noindex, nofollow"
+      ],
+      "previewXRobots": "",
+      "note": "Preserve equivalent archive or choose a relevant replacement using membership and GSC. No blanket homepage/blog redirect."
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/tag/manheim/",
+      "oldStatus": 200,
+      "oldFinal": "https://koliotamerika.bg/tag/manheim/",
+      "action": "REVIEW_ARCHIVE",
+      "targetPath": "/tag/manheim",
+      "previewTargetStatus": 404,
+      "previewSourceStatus": 404,
+      "previewSourceFinal": "https://papayawhip-ram-220810.hostingersite.com/tag/manheim",
+      "previewSourceHops": [
+        {
+          "status": 308,
+          "from": "https://papayawhip-ram-220810.hostingersite.com/tag/manheim/",
+          "to": "/tag/manheim"
+        }
+      ],
+      "previewCanonical": [],
+      "previewRobots": [
+        "noindex",
+        "noindex, nofollow"
+      ],
+      "previewXRobots": "",
+      "note": "Preserve equivalent archive or choose a relevant replacement using membership and GSC. No blanket homepage/blog redirect."
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/tag/motor-ot-sasth/",
+      "oldStatus": 200,
+      "oldFinal": "https://koliotamerika.bg/tag/motor-ot-sasth/",
+      "action": "REVIEW_ARCHIVE",
+      "targetPath": "/tag/motor-ot-sasth",
+      "previewTargetStatus": 404,
+      "previewSourceStatus": 404,
+      "previewSourceFinal": "https://papayawhip-ram-220810.hostingersite.com/tag/motor-ot-sasth",
+      "previewSourceHops": [
+        {
+          "status": 308,
+          "from": "https://papayawhip-ram-220810.hostingersite.com/tag/motor-ot-sasth/",
+          "to": "/tag/motor-ot-sasth"
+        }
+      ],
+      "previewCanonical": [],
+      "previewRobots": [
+        "noindex",
+        "noindex, nofollow"
+      ],
+      "previewXRobots": "",
+      "note": "Preserve equivalent archive or choose a relevant replacement using membership and GSC. No blanket homepage/blog redirect."
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/tag/n55/",
+      "oldStatus": 200,
+      "oldFinal": "https://koliotamerika.bg/tag/n55/",
+      "action": "REVIEW_ARCHIVE",
+      "targetPath": "/tag/n55",
+      "previewTargetStatus": 404,
+      "previewSourceStatus": 404,
+      "previewSourceFinal": "https://papayawhip-ram-220810.hostingersite.com/tag/n55",
+      "previewSourceHops": [
+        {
+          "status": 308,
+          "from": "https://papayawhip-ram-220810.hostingersite.com/tag/n55/",
+          "to": "/tag/n55"
+        }
+      ],
+      "previewCanonical": [],
+      "previewRobots": [
+        "noindex",
+        "noindex, nofollow"
+      ],
+      "previewXRobots": "",
+      "note": "Preserve equivalent archive or choose a relevant replacement using membership and GSC. No blanket homepage/blog redirect."
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/tag/partsworld-bg/",
+      "oldStatus": 200,
+      "oldFinal": "https://koliotamerika.bg/tag/partsworld-bg/",
+      "action": "REVIEW_ARCHIVE",
+      "targetPath": "/tag/partsworld-bg",
+      "previewTargetStatus": 404,
+      "previewSourceStatus": 404,
+      "previewSourceFinal": "https://papayawhip-ram-220810.hostingersite.com/tag/partsworld-bg",
+      "previewSourceHops": [
+        {
+          "status": 308,
+          "from": "https://papayawhip-ram-220810.hostingersite.com/tag/partsworld-bg/",
+          "to": "/tag/partsworld-bg"
+        }
+      ],
+      "previewCanonical": [],
+      "previewRobots": [
+        "noindex",
+        "noindex, nofollow"
+      ],
+      "previewXRobots": "",
+      "note": "Preserve equivalent archive or choose a relevant replacement using membership and GSC. No blanket homepage/blog redirect."
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/tag/poddrazhka/",
+      "oldStatus": 200,
+      "oldFinal": "https://koliotamerika.bg/tag/poddrazhka/",
+      "action": "REVIEW_ARCHIVE",
+      "targetPath": "/tag/poddrazhka",
+      "previewTargetStatus": 404,
+      "previewSourceStatus": 404,
+      "previewSourceFinal": "https://papayawhip-ram-220810.hostingersite.com/tag/poddrazhka",
+      "previewSourceHops": [
+        {
+          "status": 308,
+          "from": "https://papayawhip-ram-220810.hostingersite.com/tag/poddrazhka/",
+          "to": "/tag/poddrazhka"
+        }
+      ],
+      "previewCanonical": [],
+      "previewRobots": [
+        "noindex",
+        "noindex, nofollow"
+      ],
+      "previewXRobots": "",
+      "note": "Preserve equivalent archive or choose a relevant replacement using membership and GSC. No blanket homepage/blog redirect."
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/tag/s55/",
+      "oldStatus": 200,
+      "oldFinal": "https://koliotamerika.bg/tag/s55/",
+      "action": "REVIEW_ARCHIVE",
+      "targetPath": "/tag/s55",
+      "previewTargetStatus": 404,
+      "previewSourceStatus": 404,
+      "previewSourceFinal": "https://papayawhip-ram-220810.hostingersite.com/tag/s55",
+      "previewSourceHops": [
+        {
+          "status": 308,
+          "from": "https://papayawhip-ram-220810.hostingersite.com/tag/s55/",
+          "to": "/tag/s55"
+        }
+      ],
+      "previewCanonical": [],
+      "previewRobots": [
+        "noindex",
+        "noindex, nofollow"
+      ],
+      "previewXRobots": "",
+      "note": "Preserve equivalent archive or choose a relevant replacement using membership and GSC. No blanket homepage/blog redirect."
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/tag/salvage/",
+      "oldStatus": 200,
+      "oldFinal": "https://koliotamerika.bg/tag/salvage/",
+      "action": "REVIEW_ARCHIVE",
+      "targetPath": "/tag/salvage",
+      "previewTargetStatus": 404,
+      "previewSourceStatus": 404,
+      "previewSourceFinal": "https://papayawhip-ram-220810.hostingersite.com/tag/salvage",
+      "previewSourceHops": [
+        {
+          "status": 308,
+          "from": "https://papayawhip-ram-220810.hostingersite.com/tag/salvage/",
+          "to": "/tag/salvage"
+        }
+      ],
+      "previewCanonical": [],
+      "previewRobots": [
+        "noindex",
+        "noindex, nofollow"
+      ],
+      "previewXRobots": "",
+      "note": "Preserve equivalent archive or choose a relevant replacement using membership and GSC. No blanket homepage/blog redirect."
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/tag/saveti-za-vnos/",
+      "oldStatus": 200,
+      "oldFinal": "https://koliotamerika.bg/tag/saveti-za-vnos/",
+      "action": "REVIEW_ARCHIVE",
+      "targetPath": "/tag/saveti-za-vnos",
+      "previewTargetStatus": 404,
+      "previewSourceStatus": 404,
+      "previewSourceFinal": "https://papayawhip-ram-220810.hostingersite.com/tag/saveti-za-vnos",
+      "previewSourceHops": [
+        {
+          "status": 308,
+          "from": "https://papayawhip-ram-220810.hostingersite.com/tag/saveti-za-vnos/",
+          "to": "/tag/saveti-za-vnos"
+        }
+      ],
+      "previewCanonical": [],
+      "previewRobots": [
+        "noindex",
+        "noindex, nofollow"
+      ],
+      "previewXRobots": "",
+      "note": "Preserve equivalent archive or choose a relevant replacement using membership and GSC. No blanket homepage/blog redirect."
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/tag/tehnotest/",
+      "oldStatus": 200,
+      "oldFinal": "https://koliotamerika.bg/tag/tehnotest/",
+      "action": "REVIEW_ARCHIVE",
+      "targetPath": "/tag/tehnotest",
+      "previewTargetStatus": 404,
+      "previewSourceStatus": 404,
+      "previewSourceFinal": "https://papayawhip-ram-220810.hostingersite.com/tag/tehnotest",
+      "previewSourceHops": [
+        {
+          "status": 308,
+          "from": "https://papayawhip-ram-220810.hostingersite.com/tag/tehnotest/",
+          "to": "/tag/tehnotest"
+        }
+      ],
+      "previewCanonical": [],
+      "previewRobots": [
+        "noindex",
+        "noindex, nofollow"
+      ],
+      "previewXRobots": "",
+      "note": "Preserve equivalent archive or choose a relevant replacement using membership and GSC. No blanket homepage/blog redirect."
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/tag/vnos-na-atv-ot-amerika/",
+      "oldStatus": 200,
+      "oldFinal": "https://koliotamerika.bg/tag/vnos-na-atv-ot-amerika/",
+      "action": "REVIEW_ARCHIVE",
+      "targetPath": "/tag/vnos-na-atv-ot-amerika",
+      "previewTargetStatus": 404,
+      "previewSourceStatus": 404,
+      "previewSourceFinal": "https://papayawhip-ram-220810.hostingersite.com/tag/vnos-na-atv-ot-amerika",
+      "previewSourceHops": [
+        {
+          "status": 308,
+          "from": "https://papayawhip-ram-220810.hostingersite.com/tag/vnos-na-atv-ot-amerika/",
+          "to": "/tag/vnos-na-atv-ot-amerika"
+        }
+      ],
+      "previewCanonical": [],
+      "previewRobots": [
+        "noindex",
+        "noindex, nofollow"
+      ],
+      "previewXRobots": "",
+      "note": "Preserve equivalent archive or choose a relevant replacement using membership and GSC. No blanket homepage/blog redirect."
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/tag/vnos-na-koli-ot-amerika/",
+      "oldStatus": 200,
+      "oldFinal": "https://koliotamerika.bg/tag/vnos-na-koli-ot-amerika/",
+      "action": "REVIEW_ARCHIVE",
+      "targetPath": "/tag/vnos-na-koli-ot-amerika",
+      "previewTargetStatus": 404,
+      "previewSourceStatus": 404,
+      "previewSourceFinal": "https://papayawhip-ram-220810.hostingersite.com/tag/vnos-na-koli-ot-amerika",
+      "previewSourceHops": [
+        {
+          "status": 308,
+          "from": "https://papayawhip-ram-220810.hostingersite.com/tag/vnos-na-koli-ot-amerika/",
+          "to": "/tag/vnos-na-koli-ot-amerika"
+        }
+      ],
+      "previewCanonical": [],
+      "previewRobots": [
+        "noindex",
+        "noindex, nofollow"
+      ],
+      "previewXRobots": "",
+      "note": "Preserve equivalent archive or choose a relevant replacement using membership and GSC. No blanket homepage/blog redirect."
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/tag/vnos-na-koli-ot-amerika/page/2/",
+      "oldStatus": 200,
+      "oldFinal": "https://koliotamerika.bg/tag/vnos-na-koli-ot-amerika/page/2/",
+      "action": "REVIEW_ARCHIVE",
+      "targetPath": "/tag/vnos-na-koli-ot-amerika/page/2",
+      "previewTargetStatus": 404,
+      "previewSourceStatus": 404,
+      "previewSourceFinal": "https://papayawhip-ram-220810.hostingersite.com/tag/vnos-na-koli-ot-amerika/page/2",
+      "previewSourceHops": [
+        {
+          "status": 308,
+          "from": "https://papayawhip-ram-220810.hostingersite.com/tag/vnos-na-koli-ot-amerika/page/2/",
+          "to": "/tag/vnos-na-koli-ot-amerika/page/2"
+        }
+      ],
+      "previewCanonical": [],
+      "previewRobots": [
+        "noindex",
+        "noindex, nofollow"
+      ],
+      "previewXRobots": "",
+      "note": "Preserve equivalent archive or choose a relevant replacement using membership and GSC. No blanket homepage/blog redirect."
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/tag/vnos-na-koli-ot-amerika/page/3/",
+      "oldStatus": 200,
+      "oldFinal": "https://koliotamerika.bg/tag/vnos-na-koli-ot-amerika/page/3/",
+      "action": "REVIEW_ARCHIVE",
+      "targetPath": "/tag/vnos-na-koli-ot-amerika/page/3",
+      "previewTargetStatus": 404,
+      "previewSourceStatus": 404,
+      "previewSourceFinal": "https://papayawhip-ram-220810.hostingersite.com/tag/vnos-na-koli-ot-amerika/page/3",
+      "previewSourceHops": [
+        {
+          "status": 308,
+          "from": "https://papayawhip-ram-220810.hostingersite.com/tag/vnos-na-koli-ot-amerika/page/3/",
+          "to": "/tag/vnos-na-koli-ot-amerika/page/3"
+        }
+      ],
+      "previewCanonical": [],
+      "previewRobots": [
+        "noindex",
+        "noindex, nofollow"
+      ],
+      "previewXRobots": "",
+      "note": "Preserve equivalent archive or choose a relevant replacement using membership and GSC. No blanket homepage/blog redirect."
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/tag/vnos-na-koli-ot-amerika/page/4/",
+      "oldStatus": 200,
+      "oldFinal": "https://koliotamerika.bg/tag/vnos-na-koli-ot-amerika/page/4/",
+      "action": "REVIEW_ARCHIVE",
+      "targetPath": "/tag/vnos-na-koli-ot-amerika/page/4",
+      "previewTargetStatus": 404,
+      "previewSourceStatus": 404,
+      "previewSourceFinal": "https://papayawhip-ram-220810.hostingersite.com/tag/vnos-na-koli-ot-amerika/page/4",
+      "previewSourceHops": [
+        {
+          "status": 308,
+          "from": "https://papayawhip-ram-220810.hostingersite.com/tag/vnos-na-koli-ot-amerika/page/4/",
+          "to": "/tag/vnos-na-koli-ot-amerika/page/4"
+        }
+      ],
+      "previewCanonical": [],
+      "previewRobots": [
+        "noindex",
+        "noindex, nofollow"
+      ],
+      "previewXRobots": "",
+      "note": "Preserve equivalent archive or choose a relevant replacement using membership and GSC. No blanket homepage/blog redirect."
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/tag/vnos-na-koli/",
+      "oldStatus": 200,
+      "oldFinal": "https://koliotamerika.bg/tag/vnos-na-koli/",
+      "action": "REVIEW_ARCHIVE",
+      "targetPath": "/tag/vnos-na-koli",
+      "previewTargetStatus": 404,
+      "previewSourceStatus": 404,
+      "previewSourceFinal": "https://papayawhip-ram-220810.hostingersite.com/tag/vnos-na-koli",
+      "previewSourceHops": [
+        {
+          "status": 308,
+          "from": "https://papayawhip-ram-220810.hostingersite.com/tag/vnos-na-koli/",
+          "to": "/tag/vnos-na-koli"
+        }
+      ],
+      "previewCanonical": [],
+      "previewRobots": [
+        "noindex",
+        "noindex, nofollow"
+      ],
+      "previewXRobots": "",
+      "note": "Preserve equivalent archive or choose a relevant replacement using membership and GSC. No blanket homepage/blog redirect."
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/tag/vnos-na-koli/page/2/",
+      "oldStatus": 200,
+      "oldFinal": "https://koliotamerika.bg/tag/vnos-na-koli/page/2/",
+      "action": "REVIEW_ARCHIVE",
+      "targetPath": "/tag/vnos-na-koli/page/2",
+      "previewTargetStatus": 404,
+      "previewSourceStatus": 404,
+      "previewSourceFinal": "https://papayawhip-ram-220810.hostingersite.com/tag/vnos-na-koli/page/2",
+      "previewSourceHops": [
+        {
+          "status": 308,
+          "from": "https://papayawhip-ram-220810.hostingersite.com/tag/vnos-na-koli/page/2/",
+          "to": "/tag/vnos-na-koli/page/2"
+        }
+      ],
+      "previewCanonical": [],
+      "previewRobots": [
+        "noindex",
+        "noindex, nofollow"
+      ],
+      "previewXRobots": "",
+      "note": "Preserve equivalent archive or choose a relevant replacement using membership and GSC. No blanket homepage/blog redirect."
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/tag/vnos-na-koli/page/3/",
+      "oldStatus": 200,
+      "oldFinal": "https://koliotamerika.bg/tag/vnos-na-koli/page/3/",
+      "action": "REVIEW_ARCHIVE",
+      "targetPath": "/tag/vnos-na-koli/page/3",
+      "previewTargetStatus": 404,
+      "previewSourceStatus": 404,
+      "previewSourceFinal": "https://papayawhip-ram-220810.hostingersite.com/tag/vnos-na-koli/page/3",
+      "previewSourceHops": [
+        {
+          "status": 308,
+          "from": "https://papayawhip-ram-220810.hostingersite.com/tag/vnos-na-koli/page/3/",
+          "to": "/tag/vnos-na-koli/page/3"
+        }
+      ],
+      "previewCanonical": [],
+      "previewRobots": [
+        "noindex",
+        "noindex, nofollow"
+      ],
+      "previewXRobots": "",
+      "note": "Preserve equivalent archive or choose a relevant replacement using membership and GSC. No blanket homepage/blog redirect."
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/tag/vnos-na-motori-ot-amerika/",
+      "oldStatus": 200,
+      "oldFinal": "https://koliotamerika.bg/tag/vnos-na-motori-ot-amerika/",
+      "action": "REVIEW_ARCHIVE",
+      "targetPath": "/tag/vnos-na-motori-ot-amerika",
+      "previewTargetStatus": 404,
+      "previewSourceStatus": 404,
+      "previewSourceFinal": "https://papayawhip-ram-220810.hostingersite.com/tag/vnos-na-motori-ot-amerika",
+      "previewSourceHops": [
+        {
+          "status": 308,
+          "from": "https://papayawhip-ram-220810.hostingersite.com/tag/vnos-na-motori-ot-amerika/",
+          "to": "/tag/vnos-na-motori-ot-amerika"
+        }
+      ],
+      "previewCanonical": [],
+      "previewRobots": [
+        "noindex",
+        "noindex, nofollow"
+      ],
+      "previewXRobots": "",
+      "note": "Preserve equivalent archive or choose a relevant replacement using membership and GSC. No blanket homepage/blog redirect."
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/tag/vnos-na-motori-ot-sasth/",
+      "oldStatus": 200,
+      "oldFinal": "https://koliotamerika.bg/tag/vnos-na-motori-ot-sasth/",
+      "action": "REVIEW_ARCHIVE",
+      "targetPath": "/tag/vnos-na-motori-ot-sasth",
+      "previewTargetStatus": 404,
+      "previewSourceStatus": 404,
+      "previewSourceFinal": "https://papayawhip-ram-220810.hostingersite.com/tag/vnos-na-motori-ot-sasth",
+      "previewSourceHops": [
+        {
+          "status": 308,
+          "from": "https://papayawhip-ram-220810.hostingersite.com/tag/vnos-na-motori-ot-sasth/",
+          "to": "/tag/vnos-na-motori-ot-sasth"
+        }
+      ],
+      "previewCanonical": [],
+      "previewRobots": [
+        "noindex",
+        "noindex, nofollow"
+      ],
+      "previewXRobots": "",
+      "note": "Preserve equivalent archive or choose a relevant replacement using membership and GSC. No blanket homepage/blog redirect."
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/tag/vnos/",
+      "oldStatus": 200,
+      "oldFinal": "https://koliotamerika.bg/tag/vnos/",
+      "action": "REVIEW_ARCHIVE",
+      "targetPath": "/tag/vnos",
+      "previewTargetStatus": 404,
+      "previewSourceStatus": 404,
+      "previewSourceFinal": "https://papayawhip-ram-220810.hostingersite.com/tag/vnos",
+      "previewSourceHops": [
+        {
+          "status": 308,
+          "from": "https://papayawhip-ram-220810.hostingersite.com/tag/vnos/",
+          "to": "/tag/vnos"
+        }
+      ],
+      "previewCanonical": [],
+      "previewRobots": [
+        "noindex",
+        "noindex, nofollow"
+      ],
+      "previewXRobots": "",
+      "note": "Preserve equivalent archive or choose a relevant replacement using membership and GSC. No blanket homepage/blog redirect."
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/tag/zima/",
+      "oldStatus": 200,
+      "oldFinal": "https://koliotamerika.bg/tag/zima/",
+      "action": "REVIEW_ARCHIVE",
+      "targetPath": "/tag/zima",
+      "previewTargetStatus": 404,
+      "previewSourceStatus": 404,
+      "previewSourceFinal": "https://papayawhip-ram-220810.hostingersite.com/tag/zima",
+      "previewSourceHops": [
+        {
+          "status": 308,
+          "from": "https://papayawhip-ram-220810.hostingersite.com/tag/zima/",
+          "to": "/tag/zima"
+        }
+      ],
+      "previewCanonical": [],
+      "previewRobots": [
+        "noindex",
+        "noindex, nofollow"
+      ],
+      "previewXRobots": "",
+      "note": "Preserve equivalent archive or choose a relevant replacement using membership and GSC. No blanket homepage/blog redirect."
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/targove",
+      "oldStatus": 200,
+      "oldFinal": "https://koliotamerika.bg/targove/",
+      "action": "KEEP_PATH",
+      "targetPath": "/targove",
+      "previewTargetStatus": 200,
+      "previewSourceStatus": 200,
+      "previewSourceFinal": "https://papayawhip-ram-220810.hostingersite.com/targove",
+      "previewSourceHops": [],
+      "previewCanonical": [
+        "https://papayawhip-ram-220810.hostingersite.com/targove"
+      ],
+      "previewRobots": [
+        "noindex, nofollow"
+      ],
+      "previewXRobots": "",
+      "note": "Preserve content path; trailing slash normalization is a permanent redirect."
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/targove/",
+      "oldStatus": 200,
+      "oldFinal": "https://koliotamerika.bg/targove/",
+      "action": "KEEP_PATH",
+      "targetPath": "/targove",
+      "previewTargetStatus": 200,
+      "previewSourceStatus": 200,
+      "previewSourceFinal": "https://papayawhip-ram-220810.hostingersite.com/targove",
+      "previewSourceHops": [
+        {
+          "status": 308,
+          "from": "https://papayawhip-ram-220810.hostingersite.com/targove/",
+          "to": "/targove"
+        }
+      ],
+      "previewCanonical": [
+        "https://papayawhip-ram-220810.hostingersite.com/targove"
+      ],
+      "previewRobots": [
+        "noindex, nofollow"
+      ],
+      "previewXRobots": "",
+      "note": "Preserve content path; trailing slash normalization is a permanent redirect."
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/targove/?make=BMW",
+      "oldStatus": 200,
+      "oldFinal": "https://koliotamerika.bg/targove/?make=BMW",
+      "action": "KEEP_PATH",
+      "targetPath": "/targove?make=BMW",
+      "previewTargetStatus": 200,
+      "previewSourceStatus": 200,
+      "previewSourceFinal": "https://papayawhip-ram-220810.hostingersite.com/targove?make=BMW",
+      "previewSourceHops": [
+        {
+          "status": 308,
+          "from": "https://papayawhip-ram-220810.hostingersite.com/targove/?make=BMW",
+          "to": "/targove?make=BMW"
+        }
+      ],
+      "previewCanonical": [
+        "https://papayawhip-ram-220810.hostingersite.com/targove?make=BMW"
+      ],
+      "previewRobots": [
+        "noindex, nofollow"
+      ],
+      "previewXRobots": "",
+      "note": "Preserve content path; trailing slash normalization is a permanent redirect."
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/targove/kola/",
+      "oldStatus": 200,
+      "oldFinal": "https://koliotamerika.bg/targove/kola/",
+      "action": "DYNAMIC_TEMPLATE",
+      "targetPath": "/targove/kola",
+      "previewTargetStatus": 200,
+      "previewSourceStatus": 200,
+      "previewSourceFinal": "https://papayawhip-ram-220810.hostingersite.com/targove/kola",
+      "previewSourceHops": [
+        {
+          "status": 308,
+          "from": "https://papayawhip-ram-220810.hostingersite.com/targove/kola/",
+          "to": "/targove/kola"
+        }
+      ],
+      "previewCanonical": [],
+      "previewRobots": [
+        "noindex"
+      ],
+      "previewXRobots": "",
+      "note": "Empty lot is not a content landing page. Real lot URLs require separate inventory."
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/tehnotest-na-koli/",
+      "oldStatus": 200,
+      "oldFinal": "https://koliotamerika.bg/homologacia-na-koli/",
+      "action": "PERMANENT_REDIRECT",
+      "targetPath": "/homologacia-na-koli",
+      "previewTargetStatus": 200,
+      "previewSourceStatus": 200,
+      "previewSourceFinal": "https://papayawhip-ram-220810.hostingersite.com/homologacia-na-koli",
+      "previewSourceHops": [
+        {
+          "status": 308,
+          "from": "https://papayawhip-ram-220810.hostingersite.com/tehnotest-na-koli/",
+          "to": "/tehnotest-na-koli"
+        },
+        {
+          "status": 308,
+          "from": "https://papayawhip-ram-220810.hostingersite.com/tehnotest-na-koli",
+          "to": "/homologacia-na-koli"
+        }
+      ],
+      "previewCanonical": [
+        "https://papayawhip-ram-220810.hostingersite.com/homologacia-na-koli"
+      ],
+      "previewRobots": [
+        "noindex, nofollow"
+      ],
+      "previewXRobots": "",
+      "note": "Existing configured redirect; verify final destination and number of hops."
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/tehnotest-za-avtomobili/",
+      "oldStatus": 200,
+      "oldFinal": "https://koliotamerika.bg/tehnotest-za-avtomobili/",
+      "action": "KEEP_PATH",
+      "targetPath": "/tehnotest-za-avtomobili",
+      "previewTargetStatus": 200,
+      "previewSourceStatus": 200,
+      "previewSourceFinal": "https://papayawhip-ram-220810.hostingersite.com/tehnotest-za-avtomobili",
+      "previewSourceHops": [
+        {
+          "status": 308,
+          "from": "https://papayawhip-ram-220810.hostingersite.com/tehnotest-za-avtomobili/",
+          "to": "/tehnotest-za-avtomobili"
+        }
+      ],
+      "previewCanonical": [
+        "https://papayawhip-ram-220810.hostingersite.com/tehnotest-za-avtomobili"
+      ],
+      "previewRobots": [
+        "noindex, nofollow"
+      ],
+      "previewXRobots": "",
+      "note": "Preserve content path; trailing slash normalization is a permanent redirect."
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/tehnotest/",
+      "oldStatus": 200,
+      "oldFinal": "https://koliotamerika.bg/homologacia/",
+      "action": "PERMANENT_REDIRECT",
+      "targetPath": "/homologacia",
+      "previewTargetStatus": 200,
+      "previewSourceStatus": 200,
+      "previewSourceFinal": "https://papayawhip-ram-220810.hostingersite.com/homologacia",
+      "previewSourceHops": [
+        {
+          "status": 308,
+          "from": "https://papayawhip-ram-220810.hostingersite.com/tehnotest/",
+          "to": "/tehnotest"
+        },
+        {
+          "status": 308,
+          "from": "https://papayawhip-ram-220810.hostingersite.com/tehnotest",
+          "to": "/homologacia"
+        }
+      ],
+      "previewCanonical": [
+        "https://papayawhip-ram-220810.hostingersite.com/homologacia"
+      ],
+      "previewRobots": [
+        "noindex, nofollow"
+      ],
+      "previewXRobots": "",
+      "note": "Existing configured redirect; verify final destination and number of hops."
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/vnos-na-elektromobili-ot-sasht/",
+      "oldStatus": 200,
+      "oldFinal": "https://koliotamerika.bg/vnos-na-elektromobili-ot-sasht/",
+      "action": "KEEP_PATH",
+      "targetPath": "/vnos-na-elektromobili-ot-sasht",
+      "previewTargetStatus": 200,
+      "previewSourceStatus": 200,
+      "previewSourceFinal": "https://papayawhip-ram-220810.hostingersite.com/vnos-na-elektromobili-ot-sasht",
+      "previewSourceHops": [
+        {
+          "status": 308,
+          "from": "https://papayawhip-ram-220810.hostingersite.com/vnos-na-elektromobili-ot-sasht/",
+          "to": "/vnos-na-elektromobili-ot-sasht"
+        }
+      ],
+      "previewCanonical": [
+        "https://papayawhip-ram-220810.hostingersite.com/vnos-na-elektromobili-ot-sasht"
+      ],
+      "previewRobots": [
+        "noindex, nofollow"
+      ],
+      "previewXRobots": "",
+      "note": "Preserve content path; trailing slash normalization is a permanent redirect."
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/vnos-na-koli-ot-usa",
+      "oldStatus": 200,
+      "oldFinal": "https://koliotamerika.bg/vnos-na-koli-ot-usa/",
+      "action": "KEEP_PATH",
+      "targetPath": "/vnos-na-koli-ot-usa",
+      "previewTargetStatus": 200,
+      "previewSourceStatus": 200,
+      "previewSourceFinal": "https://papayawhip-ram-220810.hostingersite.com/vnos-na-koli-ot-usa",
+      "previewSourceHops": [],
+      "previewCanonical": [
+        "https://papayawhip-ram-220810.hostingersite.com/vnos-na-koli-ot-usa"
+      ],
+      "previewRobots": [
+        "noindex, nofollow"
+      ],
+      "previewXRobots": "",
+      "note": "Preserve content path; trailing slash normalization is a permanent redirect."
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/vnos-na-koli-ot-usa/",
+      "oldStatus": 200,
+      "oldFinal": "https://koliotamerika.bg/vnos-na-koli-ot-usa/",
+      "action": "KEEP_PATH",
+      "targetPath": "/vnos-na-koli-ot-usa",
+      "previewTargetStatus": 200,
+      "previewSourceStatus": 200,
+      "previewSourceFinal": "https://papayawhip-ram-220810.hostingersite.com/vnos-na-koli-ot-usa",
+      "previewSourceHops": [
+        {
+          "status": 308,
+          "from": "https://papayawhip-ram-220810.hostingersite.com/vnos-na-koli-ot-usa/",
+          "to": "/vnos-na-koli-ot-usa"
+        }
+      ],
+      "previewCanonical": [
+        "https://papayawhip-ram-220810.hostingersite.com/vnos-na-koli-ot-usa"
+      ],
+      "previewRobots": [
+        "noindex, nofollow"
+      ],
+      "previewXRobots": "",
+      "note": "Preserve content path; trailing slash normalization is a permanent redirect."
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/vnos-na-koli-ot-usa/vnos-na-koli-ot-amerika-cena/",
+      "oldStatus": 200,
+      "oldFinal": "https://koliotamerika.bg/vnos-na-koli-ot-usa/vnos-na-koli-ot-amerika-cena/",
+      "action": "KEEP_PATH",
+      "targetPath": "/vnos-na-koli-ot-usa/vnos-na-koli-ot-amerika-cena",
+      "previewTargetStatus": 200,
+      "previewSourceStatus": 200,
+      "previewSourceFinal": "https://papayawhip-ram-220810.hostingersite.com/vnos-na-koli-ot-usa/vnos-na-koli-ot-amerika-cena",
+      "previewSourceHops": [
+        {
+          "status": 308,
+          "from": "https://papayawhip-ram-220810.hostingersite.com/vnos-na-koli-ot-usa/vnos-na-koli-ot-amerika-cena/",
+          "to": "/vnos-na-koli-ot-usa/vnos-na-koli-ot-amerika-cena"
+        }
+      ],
+      "previewCanonical": [
+        "https://papayawhip-ram-220810.hostingersite.com/vnos-na-koli-ot-usa/vnos-na-koli-ot-amerika-cena"
+      ],
+      "previewRobots": [
+        "noindex, nofollow"
+      ],
+      "previewXRobots": "",
+      "note": "Preserve content path; trailing slash normalization is a permanent redirect."
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/vnos-na-motori-ot-sasht/",
+      "oldStatus": 200,
+      "oldFinal": "https://koliotamerika.bg/vnos-na-motori-ot-sasht/",
+      "action": "KEEP_PATH",
+      "targetPath": "/vnos-na-motori-ot-sasht",
+      "previewTargetStatus": 200,
+      "previewSourceStatus": 200,
+      "previewSourceFinal": "https://papayawhip-ram-220810.hostingersite.com/vnos-na-motori-ot-sasht",
+      "previewSourceHops": [
+        {
+          "status": 308,
+          "from": "https://papayawhip-ram-220810.hostingersite.com/vnos-na-motori-ot-sasht/",
+          "to": "/vnos-na-motori-ot-sasht"
+        }
+      ],
+      "previewCanonical": [
+        "https://papayawhip-ram-220810.hostingersite.com/vnos-na-motori-ot-sasht"
+      ],
+      "previewRobots": [
+        "noindex, nofollow"
+      ],
+      "previewXRobots": "",
+      "note": "Preserve content path; trailing slash normalization is a permanent redirect."
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/zakupuvane-na-koli-ot-amerika/",
+      "oldStatus": 200,
+      "oldFinal": "https://koliotamerika.bg/zakupuvane-na-koli-ot-amerika/",
+      "action": "KEEP_PATH",
+      "targetPath": "/zakupuvane-na-koli-ot-amerika",
+      "previewTargetStatus": 200,
+      "previewSourceStatus": 200,
+      "previewSourceFinal": "https://papayawhip-ram-220810.hostingersite.com/zakupuvane-na-koli-ot-amerika",
+      "previewSourceHops": [
+        {
+          "status": 308,
+          "from": "https://papayawhip-ram-220810.hostingersite.com/zakupuvane-na-koli-ot-amerika/",
+          "to": "/zakupuvane-na-koli-ot-amerika"
+        }
+      ],
+      "previewCanonical": [
+        "https://papayawhip-ram-220810.hostingersite.com/zakupuvane-na-koli-ot-amerika"
+      ],
+      "previewRobots": [
+        "noindex, nofollow"
+      ],
+      "previewXRobots": "",
+      "note": "Preserve content path; trailing slash normalization is a permanent redirect."
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/zashtita-na-lichni-danni/",
+      "oldStatus": 200,
+      "oldFinal": "https://koliotamerika.bg/zashtita-na-lichni-danni/",
+      "action": "KEEP_PATH",
+      "targetPath": "/zashtita-na-lichni-danni",
+      "previewTargetStatus": 200,
+      "previewSourceStatus": 200,
+      "previewSourceFinal": "https://papayawhip-ram-220810.hostingersite.com/zashtita-na-lichni-danni",
+      "previewSourceHops": [
+        {
+          "status": 308,
+          "from": "https://papayawhip-ram-220810.hostingersite.com/zashtita-na-lichni-danni/",
+          "to": "/zashtita-na-lichni-danni"
+        }
+      ],
+      "previewCanonical": [
+        "https://papayawhip-ram-220810.hostingersite.com/zashtita-na-lichni-danni"
+      ],
+      "previewRobots": [
+        "noindex, nofollow"
+      ],
+      "previewXRobots": "",
+      "note": "Preserve content path; trailing slash normalization is a permanent redirect."
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/zastrahovka-na-avtomobili-ot-sasht/",
+      "oldStatus": 200,
+      "oldFinal": "https://koliotamerika.bg/zastrahovka-na-avtomobili-ot-sasht/",
+      "action": "KEEP_PATH",
+      "targetPath": "/zastrahovka-na-avtomobili-ot-sasht",
+      "previewTargetStatus": 200,
+      "previewSourceStatus": 200,
+      "previewSourceFinal": "https://papayawhip-ram-220810.hostingersite.com/zastrahovka-na-avtomobili-ot-sasht",
+      "previewSourceHops": [
+        {
+          "status": 308,
+          "from": "https://papayawhip-ram-220810.hostingersite.com/zastrahovka-na-avtomobili-ot-sasht/",
+          "to": "/zastrahovka-na-avtomobili-ot-sasht"
+        }
+      ],
+      "previewCanonical": [
+        "https://papayawhip-ram-220810.hostingersite.com/zastrahovka-na-avtomobili-ot-sasht"
+      ],
+      "previewRobots": [
+        "noindex, nofollow"
+      ],
+      "previewXRobots": "",
+      "note": "Preserve content path; trailing slash normalization is a permanent redirect."
+    }
+  ],
+  "media": [
+    {
+      "oldURL": "https://koliotamerika.bg/wp-content/uploads/2022/04/cargo-ship-wallpaper-1024x683.webp",
+      "matchingImportedCover": null,
+      "action": "PRESERVE_UPLOAD_REQUIRED"
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/wp-content/uploads/2022/04/cargo-ship-wallpaper.webp",
+      "matchingImportedCover": "/images/legacy/wp-1431.webp",
+      "action": "MAP_EXISTING_COVER"
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/wp-content/uploads/2022/05/atlantic-export-logo.webp",
+      "matchingImportedCover": null,
+      "action": "PRESERVE_UPLOAD_REQUIRED"
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/wp-content/uploads/2022/05/autocheck-logo.webp",
+      "matchingImportedCover": null,
+      "action": "PRESERVE_UPLOAD_REQUIRED"
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/wp-content/uploads/2022/05/carfax-logo.webp",
+      "matchingImportedCover": null,
+      "action": "PRESERVE_UPLOAD_REQUIRED"
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/wp-content/uploads/2022/05/copart-logo.webp",
+      "matchingImportedCover": null,
+      "action": "PRESERVE_UPLOAD_REQUIRED"
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/wp-content/uploads/2022/05/customers-1024x723.webp",
+      "matchingImportedCover": null,
+      "action": "PRESERVE_UPLOAD_REQUIRED"
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/wp-content/uploads/2022/05/iaai-logo.webp",
+      "matchingImportedCover": null,
+      "action": "PRESERVE_UPLOAD_REQUIRED"
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/wp-content/uploads/2022/05/mechanic-work-picture-1024x723.webp",
+      "matchingImportedCover": null,
+      "action": "PRESERVE_UPLOAD_REQUIRED"
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/wp-content/uploads/2022/08/na-kola-ot-sasth-czena-768x441.jpg",
+      "matchingImportedCover": null,
+      "action": "PRESERVE_UPLOAD_REQUIRED"
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/wp-content/uploads/2022/08/sajt-za-koli-1024x449.jpg",
+      "matchingImportedCover": null,
+      "action": "PRESERVE_UPLOAD_REQUIRED"
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/wp-content/uploads/2022/09/avtomobili-nov-vnos-e1662642443945.jpg",
+      "matchingImportedCover": "/images/legacy/wp-2608.jpg",
+      "action": "MAP_EXISTING_COVER"
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/wp-content/uploads/2022/09/kola-nov-vnos.png",
+      "matchingImportedCover": "/images/legacy/wp-2564.png",
+      "action": "MAP_EXISTING_COVER"
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/wp-content/uploads/2022/09/neobhodimi-dokumenti-za-vnos-na-kola-ot-sasth-scaled-e1662961062108.jpg",
+      "matchingImportedCover": "/images/legacy/wp-2695.jpg",
+      "action": "MAP_EXISTING_COVER"
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/wp-content/uploads/2022/09/obsluzhvane-na-kola-vnos-ot-amerika.png",
+      "matchingImportedCover": "/images/legacy/wp-2788.png",
+      "action": "MAP_EXISTING_COVER"
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/wp-content/uploads/2022/09/parvonachalna-registracziya-v-kat.jpg",
+      "matchingImportedCover": "/images/legacy/wp-2728.jpg",
+      "action": "MAP_EXISTING_COVER"
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/wp-content/uploads/2022/09/tehnotest.jpg",
+      "matchingImportedCover": "/images/legacy/wp-2809.jpg",
+      "action": "MAP_EXISTING_COVER"
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/wp-content/uploads/2024/12/aukczioni-ot-amerika-vnos-na-koli-ot-sasth.webp",
+      "matchingImportedCover": "/images/legacy/wp-3795.webp",
+      "action": "MAP_EXISTING_COVER"
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/wp-content/uploads/2024/12/avtochasti-za-koli-ot-targove-koliotamerika.bg_.webp",
+      "matchingImportedCover": "/images/legacy/wp-3706.webp",
+      "action": "MAP_EXISTING_COVER"
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/wp-content/uploads/2024/12/bmw-m4-koli-ot-targ-768x500.webp",
+      "matchingImportedCover": null,
+      "action": "PRESERVE_UPLOAD_REQUIRED"
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/wp-content/uploads/2024/12/dodge-ram-interior-kola-ot-amerika-768x523.webp",
+      "matchingImportedCover": null,
+      "action": "PRESERVE_UPLOAD_REQUIRED"
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/wp-content/uploads/2024/12/dovolen-klient-sled-vnos-na-kola-ot-sasth-1-300x199.webp",
+      "matchingImportedCover": null,
+      "action": "PRESERVE_UPLOAD_REQUIRED"
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/wp-content/uploads/2024/12/ford-f-150-vnos-na-koli-ot-amerika-768x512.webp",
+      "matchingImportedCover": null,
+      "action": "PRESERVE_UPLOAD_REQUIRED"
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/wp-content/uploads/2024/12/kola-izlizastha-ot-kontejner-300x225.webp",
+      "matchingImportedCover": null,
+      "action": "PRESERVE_UPLOAD_REQUIRED"
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/wp-content/uploads/2024/12/kola-ot-sasth-vnos-kolitoamerika.bg_.webp",
+      "matchingImportedCover": "/images/legacy/wp-3346.webp",
+      "action": "MAP_EXISTING_COVER"
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/wp-content/uploads/2024/12/koli-ot-america-novoto-logo.webp",
+      "matchingImportedCover": "/images/legacy/wp-1311.webp",
+      "action": "MAP_EXISTING_COVER"
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/wp-content/uploads/2024/12/koli-ot-amerika-bmw-340ix-m-perf-768x576.webp",
+      "matchingImportedCover": null,
+      "action": "PRESERVE_UPLOAD_REQUIRED"
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/wp-content/uploads/2024/12/koli-ot-amerika-ford-mustang-gt-5.0-2015-768x576.webp",
+      "matchingImportedCover": null,
+      "action": "PRESERVE_UPLOAD_REQUIRED"
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/wp-content/uploads/2024/12/koli-ot-amerika-ford-mustang-gt-5.0-2018-768x576.webp",
+      "matchingImportedCover": null,
+      "action": "PRESERVE_UPLOAD_REQUIRED"
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/wp-content/uploads/2024/12/koli-ot-amerika-logo-300x69.webp",
+      "matchingImportedCover": null,
+      "action": "PRESERVE_UPLOAD_REQUIRED"
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/wp-content/uploads/2024/12/koli-ot-amerika-pomosth-v-izbora-1-300x199.webp",
+      "matchingImportedCover": null,
+      "action": "PRESERVE_UPLOAD_REQUIRED"
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/wp-content/uploads/2024/12/koli-ot-amerika-sertifikat-1-300x199.webp",
+      "matchingImportedCover": null,
+      "action": "PRESERVE_UPLOAD_REQUIRED"
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/wp-content/uploads/2024/12/koli-ot-ameriskanski-aukczioni-v-amerika-chevrolet-camaro-768x432.webp",
+      "matchingImportedCover": null,
+      "action": "PRESERVE_UPLOAD_REQUIRED"
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/wp-content/uploads/2024/12/koli-ot-ameriskanski-aukczioni-v-amerika-ford-mustang_niko__chamishki-768x512.webp",
+      "matchingImportedCover": null,
+      "action": "PRESERVE_UPLOAD_REQUIRED"
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/wp-content/uploads/2024/12/koli-ot-ameriskanski-aukczioni-v-amerika-ford-mustang_niko__chamishki.webp",
+      "matchingImportedCover": "/images/legacy/wp-4046.webp",
+      "action": "MAP_EXISTING_COVER"
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/wp-content/uploads/2024/12/koli-ot-ameriskanski-aukczioni-v-amerika-jeep-wrangler-768x399.webp",
+      "matchingImportedCover": null,
+      "action": "PRESERVE_UPLOAD_REQUIRED"
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/wp-content/uploads/2024/12/koli-ot-ameriskanski-aukczioni-v-amerika-tesla-model-3-768x512.webp",
+      "matchingImportedCover": null,
+      "action": "PRESERVE_UPLOAD_REQUIRED"
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/wp-content/uploads/2024/12/motori-ot-sasth.webp",
+      "matchingImportedCover": "/images/legacy/wp-4475.webp",
+      "action": "MAP_EXISTING_COVER"
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/wp-content/uploads/2024/12/podgotovka-na-avtomobila-za-zimata.webp",
+      "matchingImportedCover": "/images/legacy/wp-4404.webp",
+      "action": "MAP_EXISTING_COVER"
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/wp-content/uploads/2024/12/prosledyavane-na-koli-ot-amerika-1-300x199.webp",
+      "matchingImportedCover": null,
+      "action": "PRESERVE_UPLOAD_REQUIRED"
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/wp-content/uploads/2024/12/toyota-koli-ot-aukcioni-768x512.webp",
+      "matchingImportedCover": null,
+      "action": "PRESERVE_UPLOAD_REQUIRED"
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/wp-content/uploads/2024/12/usimportauto.com-vnos-na-kola-ot-sasht-viber-grupa-qr-300x300.webp",
+      "matchingImportedCover": null,
+      "action": "PRESERVE_UPLOAD_REQUIRED"
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/wp-content/uploads/2024/12/vnos-na-koli-ot-amerika-porsche.webp",
+      "matchingImportedCover": "/images/legacy/wp-3232.webp",
+      "action": "MAP_EXISTING_COVER"
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/wp-content/uploads/2024/12/vnos-na-koli-ot-sasth-logo-na-garazhna-vrata-mobile.webp",
+      "matchingImportedCover": null,
+      "action": "PRESERVE_UPLOAD_REQUIRED"
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/wp-content/uploads/2024/12/vnos-na-koli-ot-sasth-logo-na-garazhna-vrata-scaled.webp",
+      "matchingImportedCover": "/images/legacy/wp-3445.webp",
+      "action": "MAP_EXISTING_COVER"
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/wp-content/uploads/2024/12/vnos-na-motori-ot-sasth-crashed-toys-logo.webp",
+      "matchingImportedCover": null,
+      "action": "PRESERVE_UPLOAD_REQUIRED"
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/wp-content/uploads/2024/12/vnos-na-motori-ot-sasth-harley-davidson-koliotmaerika.bg_-1024x768.webp",
+      "matchingImportedCover": null,
+      "action": "PRESERVE_UPLOAD_REQUIRED"
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/wp-content/uploads/2024/12/vnos-na-motori-ot-sasth-indian-koliotmaerika.bg_-1024x768.webp",
+      "matchingImportedCover": null,
+      "action": "PRESERVE_UPLOAD_REQUIRED"
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/wp-content/uploads/2025/01/carfax-logo-koli-ot-amerika.webp",
+      "matchingImportedCover": "/images/legacy/wp-5184.webp",
+      "action": "MAP_EXISTING_COVER"
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/wp-content/uploads/2025/01/izmami-pri-pokupka-na-avtomobil-kak-da-se-predpazim.webp",
+      "matchingImportedCover": "/images/legacy/wp-4677.webp",
+      "action": "MAP_EXISTING_COVER"
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/wp-content/uploads/2025/01/mitove-za-avtomobilite-ot-amerika.webp",
+      "matchingImportedCover": "/images/legacy/wp-5212.webp",
+      "action": "MAP_EXISTING_COVER"
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/wp-content/uploads/2025/01/vehicle-identity-number.webp",
+      "matchingImportedCover": "/images/legacy/wp-5240.webp",
+      "action": "MAP_EXISTING_COVER"
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/wp-content/uploads/2025/01/vnos-na-koli-ot-sasth-m3-ot-kontejner.webp",
+      "matchingImportedCover": "/images/legacy/wp-32.webp",
+      "action": "MAP_EXISTING_COVER"
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/wp-content/uploads/2025/02/audi-promenya-imenata-na-svoite-modeli-%E2%80%93-kakvo-oznachava-tova-za-klientite.webp",
+      "matchingImportedCover": "/images/legacy/wp-5281.webp",
+      "action": "MAP_EXISTING_COVER"
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/wp-content/uploads/2025/02/koli-ot-sasth-kak-novite-regulaczii-i-tehnologii-promenyat-pazara-prez-2025-g.webp",
+      "matchingImportedCover": "/images/legacy/wp-5302.webp",
+      "action": "MAP_EXISTING_COVER"
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/wp-content/uploads/2025/02/zakupuvane-na-koli-ot-amerika.-kak-se-vnasyat-koli-ot-sasth.webp",
+      "matchingImportedCover": "/images/legacy/wp-5313.webp",
+      "action": "MAP_EXISTING_COVER"
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/wp-content/uploads/2025/03/amerikanski-avtomobilen-pazar-kakvo-tryabva-da-znaete-predi-da-kupite-avtomobil-ot-sasth.webp",
+      "matchingImportedCover": "/images/legacy/wp-5379.webp",
+      "action": "MAP_EXISTING_COVER"
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/wp-content/uploads/2025/04/pokupka-na-avtomobili-ot-sasth-koliotamerika.bg_.webp",
+      "matchingImportedCover": "/images/legacy/wp-5413.webp",
+      "action": "MAP_EXISTING_COVER"
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/wp-content/uploads/2025/05/morski-transport-na-avtomobili-za-koli-ot-amerika.webp",
+      "matchingImportedCover": "/images/legacy/wp-5467.webp",
+      "action": "MAP_EXISTING_COVER"
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/wp-content/uploads/2025/05/salvage-title.webp",
+      "matchingImportedCover": "/images/legacy/wp-5457.webp",
+      "action": "MAP_EXISTING_COVER"
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/wp-content/uploads/2025/08/navodneni-koli-ot-amerika.webp",
+      "matchingImportedCover": "/images/legacy/wp-5521.webp",
+      "action": "MAP_EXISTING_COVER"
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/wp-content/uploads/2025/08/run-drive-koli-ot-amerika.webp",
+      "matchingImportedCover": "/images/legacy/wp-5494.webp",
+      "action": "MAP_EXISTING_COVER"
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/wp-content/uploads/2025/08/vnos-na-elektromobili-ot-sasth.jpg",
+      "matchingImportedCover": "/images/legacy/wp-5503.jpg",
+      "action": "MAP_EXISTING_COVER"
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/wp-content/uploads/2025/09/bmw-b58-sresthu-n55-i-s55.webp",
+      "matchingImportedCover": "/images/legacy/wp-5706.webp",
+      "action": "MAP_EXISTING_COVER"
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/wp-content/uploads/2025/09/tehnotest-za-avtomobili.webp",
+      "matchingImportedCover": "/images/legacy/wp-5589.webp",
+      "action": "MAP_EXISTING_COVER"
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/wp-content/uploads/2025/09/zastrahovka-na-avtomobili-ot-sasth.webp",
+      "matchingImportedCover": "/images/legacy/wp-5688.webp",
+      "action": "MAP_EXISTING_COVER"
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/wp-content/uploads/2025/10/koli-ot-manheim.webp",
+      "matchingImportedCover": "/images/legacy/wp-5733.webp",
+      "action": "MAP_EXISTING_COVER"
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/wp-content/uploads/2026/07/41819e8f-ee96-4235-81c4-0611f1a096f3-1-105-c.jpeg",
+      "matchingImportedCover": "/images/legacy/wp-5541.jpeg",
+      "action": "MAP_EXISTING_COVER"
+    }
+  ]
+}

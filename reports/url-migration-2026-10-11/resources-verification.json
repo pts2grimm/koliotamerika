@@ -1,0 +1,1262 @@
+{
+  "summary": {
+    "checkedAt": "2026-10-11T16:28:46Z",
+    "media": 68,
+    "oldNon200": 0,
+    "previewOldNon200": 68,
+    "coverNon200": 0
+  },
+  "media": [
+    {
+      "oldURL": "https://koliotamerika.bg/wp-content/uploads/2022/04/cargo-ship-wallpaper-1024x683.webp",
+      "old": {
+        "status": 200,
+        "final": "https://koliotamerika.bg/wp-content/uploads/2022/04/cargo-ship-wallpaper-1024x683.webp",
+        "type": "image/webp"
+      },
+      "previewOldPath": {
+        "status": 404,
+        "final": "https://papayawhip-ram-220810.hostingersite.com/wp-content/uploads/2022/04/cargo-ship-wallpaper-1024x683.webp",
+        "type": "text/html; charset=utf-8"
+      },
+      "matchingImportedCover": null
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/wp-content/uploads/2022/04/cargo-ship-wallpaper.webp",
+      "old": {
+        "status": 200,
+        "final": "https://koliotamerika.bg/wp-content/uploads/2022/04/cargo-ship-wallpaper.webp",
+        "type": "image/webp"
+      },
+      "previewOldPath": {
+        "status": 404,
+        "final": "https://papayawhip-ram-220810.hostingersite.com/wp-content/uploads/2022/04/cargo-ship-wallpaper.webp",
+        "type": "text/html; charset=utf-8"
+      },
+      "matchingImportedCover": "/images/legacy/wp-1431.webp",
+      "previewCover": {
+        "status": 200,
+        "final": "https://papayawhip-ram-220810.hostingersite.com/images/legacy/wp-1431.webp",
+        "type": "image/webp"
+      }
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/wp-content/uploads/2022/05/atlantic-export-logo.webp",
+      "old": {
+        "status": 200,
+        "final": "https://koliotamerika.bg/wp-content/uploads/2022/05/atlantic-export-logo.webp",
+        "type": "image/webp"
+      },
+      "previewOldPath": {
+        "status": 404,
+        "final": "https://papayawhip-ram-220810.hostingersite.com/wp-content/uploads/2022/05/atlantic-export-logo.webp",
+        "type": "text/html; charset=utf-8"
+      },
+      "matchingImportedCover": null
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/wp-content/uploads/2022/05/autocheck-logo.webp",
+      "old": {
+        "status": 200,
+        "final": "https://koliotamerika.bg/wp-content/uploads/2022/05/autocheck-logo.webp",
+        "type": "image/webp"
+      },
+      "previewOldPath": {
+        "status": 404,
+        "final": "https://papayawhip-ram-220810.hostingersite.com/wp-content/uploads/2022/05/autocheck-logo.webp",
+        "type": "text/html; charset=utf-8"
+      },
+      "matchingImportedCover": null
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/wp-content/uploads/2022/05/carfax-logo.webp",
+      "old": {
+        "status": 200,
+        "final": "https://koliotamerika.bg/wp-content/uploads/2022/05/carfax-logo.webp",
+        "type": "image/webp"
+      },
+      "previewOldPath": {
+        "status": 404,
+        "final": "https://papayawhip-ram-220810.hostingersite.com/wp-content/uploads/2022/05/carfax-logo.webp",
+        "type": "text/html; charset=utf-8"
+      },
+      "matchingImportedCover": null
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/wp-content/uploads/2022/05/copart-logo.webp",
+      "old": {
+        "status": 200,
+        "final": "https://koliotamerika.bg/wp-content/uploads/2022/05/copart-logo.webp",
+        "type": "image/webp"
+      },
+      "previewOldPath": {
+        "status": 404,
+        "final": "https://papayawhip-ram-220810.hostingersite.com/wp-content/uploads/2022/05/copart-logo.webp",
+        "type": "text/html; charset=utf-8"
+      },
+      "matchingImportedCover": null
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/wp-content/uploads/2022/05/customers-1024x723.webp",
+      "old": {
+        "status": 200,
+        "final": "https://koliotamerika.bg/wp-content/uploads/2022/05/customers-1024x723.webp",
+        "type": "image/webp"
+      },
+      "previewOldPath": {
+        "status": 404,
+        "final": "https://papayawhip-ram-220810.hostingersite.com/wp-content/uploads/2022/05/customers-1024x723.webp",
+        "type": "text/html; charset=utf-8"
+      },
+      "matchingImportedCover": null
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/wp-content/uploads/2022/05/iaai-logo.webp",
+      "old": {
+        "status": 200,
+        "final": "https://koliotamerika.bg/wp-content/uploads/2022/05/iaai-logo.webp",
+        "type": "image/webp"
+      },
+      "previewOldPath": {
+        "status": 404,
+        "final": "https://papayawhip-ram-220810.hostingersite.com/wp-content/uploads/2022/05/iaai-logo.webp",
+        "type": "text/html; charset=utf-8"
+      },
+      "matchingImportedCover": null
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/wp-content/uploads/2022/05/mechanic-work-picture-1024x723.webp",
+      "old": {
+        "status": 200,
+        "final": "https://koliotamerika.bg/wp-content/uploads/2022/05/mechanic-work-picture-1024x723.webp",
+        "type": "image/webp"
+      },
+      "previewOldPath": {
+        "status": 404,
+        "final": "https://papayawhip-ram-220810.hostingersite.com/wp-content/uploads/2022/05/mechanic-work-picture-1024x723.webp",
+        "type": "text/html; charset=utf-8"
+      },
+      "matchingImportedCover": null
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/wp-content/uploads/2022/08/na-kola-ot-sasth-czena-768x441.jpg",
+      "old": {
+        "status": 200,
+        "final": "https://koliotamerika.bg/wp-content/uploads/2022/08/na-kola-ot-sasth-czena-768x441.jpg",
+        "type": "image/jpeg"
+      },
+      "previewOldPath": {
+        "status": 404,
+        "final": "https://papayawhip-ram-220810.hostingersite.com/wp-content/uploads/2022/08/na-kola-ot-sasth-czena-768x441.jpg",
+        "type": "text/html; charset=utf-8"
+      },
+      "matchingImportedCover": null
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/wp-content/uploads/2022/08/sajt-za-koli-1024x449.jpg",
+      "old": {
+        "status": 200,
+        "final": "https://koliotamerika.bg/wp-content/uploads/2022/08/sajt-za-koli-1024x449.jpg",
+        "type": "image/jpeg"
+      },
+      "previewOldPath": {
+        "status": 404,
+        "final": "https://papayawhip-ram-220810.hostingersite.com/wp-content/uploads/2022/08/sajt-za-koli-1024x449.jpg",
+        "type": "text/html; charset=utf-8"
+      },
+      "matchingImportedCover": null
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/wp-content/uploads/2022/09/avtomobili-nov-vnos-e1662642443945.jpg",
+      "old": {
+        "status": 200,
+        "final": "https://koliotamerika.bg/wp-content/uploads/2022/09/avtomobili-nov-vnos-e1662642443945.jpg",
+        "type": "image/jpeg"
+      },
+      "previewOldPath": {
+        "status": 404,
+        "final": "https://papayawhip-ram-220810.hostingersite.com/wp-content/uploads/2022/09/avtomobili-nov-vnos-e1662642443945.jpg",
+        "type": "text/html; charset=utf-8"
+      },
+      "matchingImportedCover": "/images/legacy/wp-2608.jpg",
+      "previewCover": {
+        "status": 200,
+        "final": "https://papayawhip-ram-220810.hostingersite.com/images/legacy/wp-2608.jpg",
+        "type": "image/jpeg"
+      }
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/wp-content/uploads/2022/09/kola-nov-vnos.png",
+      "old": {
+        "status": 200,
+        "final": "https://koliotamerika.bg/wp-content/uploads/2022/09/kola-nov-vnos.png",
+        "type": "image/png"
+      },
+      "previewOldPath": {
+        "status": 404,
+        "final": "https://papayawhip-ram-220810.hostingersite.com/wp-content/uploads/2022/09/kola-nov-vnos.png",
+        "type": "text/html; charset=utf-8"
+      },
+      "matchingImportedCover": "/images/legacy/wp-2564.png",
+      "previewCover": {
+        "status": 200,
+        "final": "https://papayawhip-ram-220810.hostingersite.com/images/legacy/wp-2564.png",
+        "type": "image/png"
+      }
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/wp-content/uploads/2022/09/neobhodimi-dokumenti-za-vnos-na-kola-ot-sasth-scaled-e1662961062108.jpg",
+      "old": {
+        "status": 200,
+        "final": "https://koliotamerika.bg/wp-content/uploads/2022/09/neobhodimi-dokumenti-za-vnos-na-kola-ot-sasth-scaled-e1662961062108.jpg",
+        "type": "image/jpeg"
+      },
+      "previewOldPath": {
+        "status": 404,
+        "final": "https://papayawhip-ram-220810.hostingersite.com/wp-content/uploads/2022/09/neobhodimi-dokumenti-za-vnos-na-kola-ot-sasth-scaled-e1662961062108.jpg",
+        "type": "text/html; charset=utf-8"
+      },
+      "matchingImportedCover": "/images/legacy/wp-2695.jpg",
+      "previewCover": {
+        "status": 200,
+        "final": "https://papayawhip-ram-220810.hostingersite.com/images/legacy/wp-2695.jpg",
+        "type": "image/jpeg"
+      }
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/wp-content/uploads/2022/09/obsluzhvane-na-kola-vnos-ot-amerika.png",
+      "old": {
+        "status": 200,
+        "final": "https://koliotamerika.bg/wp-content/uploads/2022/09/obsluzhvane-na-kola-vnos-ot-amerika.png",
+        "type": "image/png"
+      },
+      "previewOldPath": {
+        "status": 404,
+        "final": "https://papayawhip-ram-220810.hostingersite.com/wp-content/uploads/2022/09/obsluzhvane-na-kola-vnos-ot-amerika.png",
+        "type": "text/html; charset=utf-8"
+      },
+      "matchingImportedCover": "/images/legacy/wp-2788.png",
+      "previewCover": {
+        "status": 200,
+        "final": "https://papayawhip-ram-220810.hostingersite.com/images/legacy/wp-2788.png",
+        "type": "image/png"
+      }
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/wp-content/uploads/2022/09/parvonachalna-registracziya-v-kat.jpg",
+      "old": {
+        "status": 200,
+        "final": "https://koliotamerika.bg/wp-content/uploads/2022/09/parvonachalna-registracziya-v-kat.jpg",
+        "type": "image/jpeg"
+      },
+      "previewOldPath": {
+        "status": 404,
+        "final": "https://papayawhip-ram-220810.hostingersite.com/wp-content/uploads/2022/09/parvonachalna-registracziya-v-kat.jpg",
+        "type": "text/html; charset=utf-8"
+      },
+      "matchingImportedCover": "/images/legacy/wp-2728.jpg",
+      "previewCover": {
+        "status": 200,
+        "final": "https://papayawhip-ram-220810.hostingersite.com/images/legacy/wp-2728.jpg",
+        "type": "image/jpeg"
+      }
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/wp-content/uploads/2022/09/tehnotest.jpg",
+      "old": {
+        "status": 200,
+        "final": "https://koliotamerika.bg/wp-content/uploads/2022/09/tehnotest.jpg",
+        "type": "image/jpeg"
+      },
+      "previewOldPath": {
+        "status": 404,
+        "final": "https://papayawhip-ram-220810.hostingersite.com/wp-content/uploads/2022/09/tehnotest.jpg",
+        "type": "text/html; charset=utf-8"
+      },
+      "matchingImportedCover": "/images/legacy/wp-2809.jpg",
+      "previewCover": {
+        "status": 200,
+        "final": "https://papayawhip-ram-220810.hostingersite.com/images/legacy/wp-2809.jpg",
+        "type": "image/jpeg"
+      }
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/wp-content/uploads/2024/12/aukczioni-ot-amerika-vnos-na-koli-ot-sasth.webp",
+      "old": {
+        "status": 200,
+        "final": "https://koliotamerika.bg/wp-content/uploads/2024/12/aukczioni-ot-amerika-vnos-na-koli-ot-sasth.webp",
+        "type": "image/webp"
+      },
+      "previewOldPath": {
+        "status": 404,
+        "final": "https://papayawhip-ram-220810.hostingersite.com/wp-content/uploads/2024/12/aukczioni-ot-amerika-vnos-na-koli-ot-sasth.webp",
+        "type": "text/html; charset=utf-8"
+      },
+      "matchingImportedCover": "/images/legacy/wp-3795.webp",
+      "previewCover": {
+        "status": 200,
+        "final": "https://papayawhip-ram-220810.hostingersite.com/images/legacy/wp-3795.webp",
+        "type": "image/webp"
+      }
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/wp-content/uploads/2024/12/avtochasti-za-koli-ot-targove-koliotamerika.bg_.webp",
+      "old": {
+        "status": 200,
+        "final": "https://koliotamerika.bg/wp-content/uploads/2024/12/avtochasti-za-koli-ot-targove-koliotamerika.bg_.webp",
+        "type": "image/webp"
+      },
+      "previewOldPath": {
+        "status": 404,
+        "final": "https://papayawhip-ram-220810.hostingersite.com/wp-content/uploads/2024/12/avtochasti-za-koli-ot-targove-koliotamerika.bg_.webp",
+        "type": "text/html; charset=utf-8"
+      },
+      "matchingImportedCover": "/images/legacy/wp-3706.webp",
+      "previewCover": {
+        "status": 200,
+        "final": "https://papayawhip-ram-220810.hostingersite.com/images/legacy/wp-3706.webp",
+        "type": "image/webp"
+      }
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/wp-content/uploads/2024/12/bmw-m4-koli-ot-targ-768x500.webp",
+      "old": {
+        "status": 200,
+        "final": "https://koliotamerika.bg/wp-content/uploads/2024/12/bmw-m4-koli-ot-targ-768x500.webp",
+        "type": "image/webp"
+      },
+      "previewOldPath": {
+        "status": 404,
+        "final": "https://papayawhip-ram-220810.hostingersite.com/wp-content/uploads/2024/12/bmw-m4-koli-ot-targ-768x500.webp",
+        "type": "text/html; charset=utf-8"
+      },
+      "matchingImportedCover": null
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/wp-content/uploads/2024/12/dodge-ram-interior-kola-ot-amerika-768x523.webp",
+      "old": {
+        "status": 200,
+        "final": "https://koliotamerika.bg/wp-content/uploads/2024/12/dodge-ram-interior-kola-ot-amerika-768x523.webp",
+        "type": "image/webp"
+      },
+      "previewOldPath": {
+        "status": 404,
+        "final": "https://papayawhip-ram-220810.hostingersite.com/wp-content/uploads/2024/12/dodge-ram-interior-kola-ot-amerika-768x523.webp",
+        "type": "text/html; charset=utf-8"
+      },
+      "matchingImportedCover": null
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/wp-content/uploads/2024/12/dovolen-klient-sled-vnos-na-kola-ot-sasth-1-300x199.webp",
+      "old": {
+        "status": 200,
+        "final": "https://koliotamerika.bg/wp-content/uploads/2024/12/dovolen-klient-sled-vnos-na-kola-ot-sasth-1-300x199.webp",
+        "type": "image/webp"
+      },
+      "previewOldPath": {
+        "status": 404,
+        "final": "https://papayawhip-ram-220810.hostingersite.com/wp-content/uploads/2024/12/dovolen-klient-sled-vnos-na-kola-ot-sasth-1-300x199.webp",
+        "type": "text/html; charset=utf-8"
+      },
+      "matchingImportedCover": null
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/wp-content/uploads/2024/12/ford-f-150-vnos-na-koli-ot-amerika-768x512.webp",
+      "old": {
+        "status": 200,
+        "final": "https://koliotamerika.bg/wp-content/uploads/2024/12/ford-f-150-vnos-na-koli-ot-amerika-768x512.webp",
+        "type": "image/webp"
+      },
+      "previewOldPath": {
+        "status": 404,
+        "final": "https://papayawhip-ram-220810.hostingersite.com/wp-content/uploads/2024/12/ford-f-150-vnos-na-koli-ot-amerika-768x512.webp",
+        "type": "text/html; charset=utf-8"
+      },
+      "matchingImportedCover": null
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/wp-content/uploads/2024/12/kola-izlizastha-ot-kontejner-300x225.webp",
+      "old": {
+        "status": 200,
+        "final": "https://koliotamerika.bg/wp-content/uploads/2024/12/kola-izlizastha-ot-kontejner-300x225.webp",
+        "type": "image/webp"
+      },
+      "previewOldPath": {
+        "status": 404,
+        "final": "https://papayawhip-ram-220810.hostingersite.com/wp-content/uploads/2024/12/kola-izlizastha-ot-kontejner-300x225.webp",
+        "type": "text/html; charset=utf-8"
+      },
+      "matchingImportedCover": null
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/wp-content/uploads/2024/12/kola-ot-sasth-vnos-kolitoamerika.bg_.webp",
+      "old": {
+        "status": 200,
+        "final": "https://koliotamerika.bg/wp-content/uploads/2024/12/kola-ot-sasth-vnos-kolitoamerika.bg_.webp",
+        "type": "image/webp"
+      },
+      "previewOldPath": {
+        "status": 404,
+        "final": "https://papayawhip-ram-220810.hostingersite.com/wp-content/uploads/2024/12/kola-ot-sasth-vnos-kolitoamerika.bg_.webp",
+        "type": "text/html; charset=utf-8"
+      },
+      "matchingImportedCover": "/images/legacy/wp-3346.webp",
+      "previewCover": {
+        "status": 200,
+        "final": "https://papayawhip-ram-220810.hostingersite.com/images/legacy/wp-3346.webp",
+        "type": "image/webp"
+      }
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/wp-content/uploads/2024/12/koli-ot-america-novoto-logo.webp",
+      "old": {
+        "status": 200,
+        "final": "https://koliotamerika.bg/wp-content/uploads/2024/12/koli-ot-america-novoto-logo.webp",
+        "type": "image/webp"
+      },
+      "previewOldPath": {
+        "status": 404,
+        "final": "https://papayawhip-ram-220810.hostingersite.com/wp-content/uploads/2024/12/koli-ot-america-novoto-logo.webp",
+        "type": "text/html; charset=utf-8"
+      },
+      "matchingImportedCover": "/images/legacy/wp-1311.webp",
+      "previewCover": {
+        "status": 200,
+        "final": "https://papayawhip-ram-220810.hostingersite.com/images/legacy/wp-1311.webp",
+        "type": "image/webp"
+      }
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/wp-content/uploads/2024/12/koli-ot-amerika-bmw-340ix-m-perf-768x576.webp",
+      "old": {
+        "status": 200,
+        "final": "https://koliotamerika.bg/wp-content/uploads/2024/12/koli-ot-amerika-bmw-340ix-m-perf-768x576.webp",
+        "type": "image/webp"
+      },
+      "previewOldPath": {
+        "status": 404,
+        "final": "https://papayawhip-ram-220810.hostingersite.com/wp-content/uploads/2024/12/koli-ot-amerika-bmw-340ix-m-perf-768x576.webp",
+        "type": "text/html; charset=utf-8"
+      },
+      "matchingImportedCover": null
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/wp-content/uploads/2024/12/koli-ot-amerika-ford-mustang-gt-5.0-2015-768x576.webp",
+      "old": {
+        "status": 200,
+        "final": "https://koliotamerika.bg/wp-content/uploads/2024/12/koli-ot-amerika-ford-mustang-gt-5.0-2015-768x576.webp",
+        "type": "image/webp"
+      },
+      "previewOldPath": {
+        "status": 404,
+        "final": "https://papayawhip-ram-220810.hostingersite.com/wp-content/uploads/2024/12/koli-ot-amerika-ford-mustang-gt-5.0-2015-768x576.webp",
+        "type": "text/html; charset=utf-8"
+      },
+      "matchingImportedCover": null
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/wp-content/uploads/2024/12/koli-ot-amerika-ford-mustang-gt-5.0-2018-768x576.webp",
+      "old": {
+        "status": 200,
+        "final": "https://koliotamerika.bg/wp-content/uploads/2024/12/koli-ot-amerika-ford-mustang-gt-5.0-2018-768x576.webp",
+        "type": "image/webp"
+      },
+      "previewOldPath": {
+        "status": 404,
+        "final": "https://papayawhip-ram-220810.hostingersite.com/wp-content/uploads/2024/12/koli-ot-amerika-ford-mustang-gt-5.0-2018-768x576.webp",
+        "type": "text/html; charset=utf-8"
+      },
+      "matchingImportedCover": null
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/wp-content/uploads/2024/12/koli-ot-amerika-logo-300x69.webp",
+      "old": {
+        "status": 200,
+        "final": "https://koliotamerika.bg/wp-content/uploads/2024/12/koli-ot-amerika-logo-300x69.webp",
+        "type": "image/webp"
+      },
+      "previewOldPath": {
+        "status": 404,
+        "final": "https://papayawhip-ram-220810.hostingersite.com/wp-content/uploads/2024/12/koli-ot-amerika-logo-300x69.webp",
+        "type": "text/html; charset=utf-8"
+      },
+      "matchingImportedCover": null
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/wp-content/uploads/2024/12/koli-ot-amerika-pomosth-v-izbora-1-300x199.webp",
+      "old": {
+        "status": 200,
+        "final": "https://koliotamerika.bg/wp-content/uploads/2024/12/koli-ot-amerika-pomosth-v-izbora-1-300x199.webp",
+        "type": "image/webp"
+      },
+      "previewOldPath": {
+        "status": 404,
+        "final": "https://papayawhip-ram-220810.hostingersite.com/wp-content/uploads/2024/12/koli-ot-amerika-pomosth-v-izbora-1-300x199.webp",
+        "type": "text/html; charset=utf-8"
+      },
+      "matchingImportedCover": null
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/wp-content/uploads/2024/12/koli-ot-amerika-sertifikat-1-300x199.webp",
+      "old": {
+        "status": 200,
+        "final": "https://koliotamerika.bg/wp-content/uploads/2024/12/koli-ot-amerika-sertifikat-1-300x199.webp",
+        "type": "image/webp"
+      },
+      "previewOldPath": {
+        "status": 404,
+        "final": "https://papayawhip-ram-220810.hostingersite.com/wp-content/uploads/2024/12/koli-ot-amerika-sertifikat-1-300x199.webp",
+        "type": "text/html; charset=utf-8"
+      },
+      "matchingImportedCover": null
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/wp-content/uploads/2024/12/koli-ot-ameriskanski-aukczioni-v-amerika-chevrolet-camaro-768x432.webp",
+      "old": {
+        "status": 200,
+        "final": "https://koliotamerika.bg/wp-content/uploads/2024/12/koli-ot-ameriskanski-aukczioni-v-amerika-chevrolet-camaro-768x432.webp",
+        "type": "image/webp"
+      },
+      "previewOldPath": {
+        "status": 404,
+        "final": "https://papayawhip-ram-220810.hostingersite.com/wp-content/uploads/2024/12/koli-ot-ameriskanski-aukczioni-v-amerika-chevrolet-camaro-768x432.webp",
+        "type": "text/html; charset=utf-8"
+      },
+      "matchingImportedCover": null
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/wp-content/uploads/2024/12/koli-ot-ameriskanski-aukczioni-v-amerika-ford-mustang_niko__chamishki-768x512.webp",
+      "old": {
+        "status": 200,
+        "final": "https://koliotamerika.bg/wp-content/uploads/2024/12/koli-ot-ameriskanski-aukczioni-v-amerika-ford-mustang_niko__chamishki-768x512.webp",
+        "type": "image/webp"
+      },
+      "previewOldPath": {
+        "status": 404,
+        "final": "https://papayawhip-ram-220810.hostingersite.com/wp-content/uploads/2024/12/koli-ot-ameriskanski-aukczioni-v-amerika-ford-mustang_niko__chamishki-768x512.webp",
+        "type": "text/html; charset=utf-8"
+      },
+      "matchingImportedCover": null
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/wp-content/uploads/2024/12/koli-ot-ameriskanski-aukczioni-v-amerika-ford-mustang_niko__chamishki.webp",
+      "old": {
+        "status": 200,
+        "final": "https://koliotamerika.bg/wp-content/uploads/2024/12/koli-ot-ameriskanski-aukczioni-v-amerika-ford-mustang_niko__chamishki.webp",
+        "type": "image/webp"
+      },
+      "previewOldPath": {
+        "status": 404,
+        "final": "https://papayawhip-ram-220810.hostingersite.com/wp-content/uploads/2024/12/koli-ot-ameriskanski-aukczioni-v-amerika-ford-mustang_niko__chamishki.webp",
+        "type": "text/html; charset=utf-8"
+      },
+      "matchingImportedCover": "/images/legacy/wp-4046.webp",
+      "previewCover": {
+        "status": 200,
+        "final": "https://papayawhip-ram-220810.hostingersite.com/images/legacy/wp-4046.webp",
+        "type": "image/webp"
+      }
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/wp-content/uploads/2024/12/koli-ot-ameriskanski-aukczioni-v-amerika-jeep-wrangler-768x399.webp",
+      "old": {
+        "status": 200,
+        "final": "https://koliotamerika.bg/wp-content/uploads/2024/12/koli-ot-ameriskanski-aukczioni-v-amerika-jeep-wrangler-768x399.webp",
+        "type": "image/webp"
+      },
+      "previewOldPath": {
+        "status": 404,
+        "final": "https://papayawhip-ram-220810.hostingersite.com/wp-content/uploads/2024/12/koli-ot-ameriskanski-aukczioni-v-amerika-jeep-wrangler-768x399.webp",
+        "type": "text/html; charset=utf-8"
+      },
+      "matchingImportedCover": null
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/wp-content/uploads/2024/12/koli-ot-ameriskanski-aukczioni-v-amerika-tesla-model-3-768x512.webp",
+      "old": {
+        "status": 200,
+        "final": "https://koliotamerika.bg/wp-content/uploads/2024/12/koli-ot-ameriskanski-aukczioni-v-amerika-tesla-model-3-768x512.webp",
+        "type": "image/webp"
+      },
+      "previewOldPath": {
+        "status": 404,
+        "final": "https://papayawhip-ram-220810.hostingersite.com/wp-content/uploads/2024/12/koli-ot-ameriskanski-aukczioni-v-amerika-tesla-model-3-768x512.webp",
+        "type": "text/html; charset=utf-8"
+      },
+      "matchingImportedCover": null
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/wp-content/uploads/2024/12/motori-ot-sasth.webp",
+      "old": {
+        "status": 200,
+        "final": "https://koliotamerika.bg/wp-content/uploads/2024/12/motori-ot-sasth.webp",
+        "type": "image/webp"
+      },
+      "previewOldPath": {
+        "status": 404,
+        "final": "https://papayawhip-ram-220810.hostingersite.com/wp-content/uploads/2024/12/motori-ot-sasth.webp",
+        "type": "text/html; charset=utf-8"
+      },
+      "matchingImportedCover": "/images/legacy/wp-4475.webp",
+      "previewCover": {
+        "status": 200,
+        "final": "https://papayawhip-ram-220810.hostingersite.com/images/legacy/wp-4475.webp",
+        "type": "image/webp"
+      }
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/wp-content/uploads/2024/12/podgotovka-na-avtomobila-za-zimata.webp",
+      "old": {
+        "status": 200,
+        "final": "https://koliotamerika.bg/wp-content/uploads/2024/12/podgotovka-na-avtomobila-za-zimata.webp",
+        "type": "image/webp"
+      },
+      "previewOldPath": {
+        "status": 404,
+        "final": "https://papayawhip-ram-220810.hostingersite.com/wp-content/uploads/2024/12/podgotovka-na-avtomobila-za-zimata.webp",
+        "type": "text/html; charset=utf-8"
+      },
+      "matchingImportedCover": "/images/legacy/wp-4404.webp",
+      "previewCover": {
+        "status": 200,
+        "final": "https://papayawhip-ram-220810.hostingersite.com/images/legacy/wp-4404.webp",
+        "type": "image/webp"
+      }
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/wp-content/uploads/2024/12/prosledyavane-na-koli-ot-amerika-1-300x199.webp",
+      "old": {
+        "status": 200,
+        "final": "https://koliotamerika.bg/wp-content/uploads/2024/12/prosledyavane-na-koli-ot-amerika-1-300x199.webp",
+        "type": "image/webp"
+      },
+      "previewOldPath": {
+        "status": 404,
+        "final": "https://papayawhip-ram-220810.hostingersite.com/wp-content/uploads/2024/12/prosledyavane-na-koli-ot-amerika-1-300x199.webp",
+        "type": "text/html; charset=utf-8"
+      },
+      "matchingImportedCover": null
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/wp-content/uploads/2024/12/toyota-koli-ot-aukcioni-768x512.webp",
+      "old": {
+        "status": 200,
+        "final": "https://koliotamerika.bg/wp-content/uploads/2024/12/toyota-koli-ot-aukcioni-768x512.webp",
+        "type": "image/webp"
+      },
+      "previewOldPath": {
+        "status": 404,
+        "final": "https://papayawhip-ram-220810.hostingersite.com/wp-content/uploads/2024/12/toyota-koli-ot-aukcioni-768x512.webp",
+        "type": "text/html; charset=utf-8"
+      },
+      "matchingImportedCover": null
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/wp-content/uploads/2024/12/usimportauto.com-vnos-na-kola-ot-sasht-viber-grupa-qr-300x300.webp",
+      "old": {
+        "status": 200,
+        "final": "https://koliotamerika.bg/wp-content/uploads/2024/12/usimportauto.com-vnos-na-kola-ot-sasht-viber-grupa-qr-300x300.webp",
+        "type": "image/webp"
+      },
+      "previewOldPath": {
+        "status": 404,
+        "final": "https://papayawhip-ram-220810.hostingersite.com/wp-content/uploads/2024/12/usimportauto.com-vnos-na-kola-ot-sasht-viber-grupa-qr-300x300.webp",
+        "type": "text/html; charset=utf-8"
+      },
+      "matchingImportedCover": null
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/wp-content/uploads/2024/12/vnos-na-koli-ot-amerika-porsche.webp",
+      "old": {
+        "status": 200,
+        "final": "https://koliotamerika.bg/wp-content/uploads/2024/12/vnos-na-koli-ot-amerika-porsche.webp",
+        "type": "image/webp"
+      },
+      "previewOldPath": {
+        "status": 404,
+        "final": "https://papayawhip-ram-220810.hostingersite.com/wp-content/uploads/2024/12/vnos-na-koli-ot-amerika-porsche.webp",
+        "type": "text/html; charset=utf-8"
+      },
+      "matchingImportedCover": "/images/legacy/wp-3232.webp",
+      "previewCover": {
+        "status": 200,
+        "final": "https://papayawhip-ram-220810.hostingersite.com/images/legacy/wp-3232.webp",
+        "type": "image/webp"
+      }
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/wp-content/uploads/2024/12/vnos-na-koli-ot-sasth-logo-na-garazhna-vrata-mobile.webp",
+      "old": {
+        "status": 200,
+        "final": "https://koliotamerika.bg/wp-content/uploads/2024/12/vnos-na-koli-ot-sasth-logo-na-garazhna-vrata-mobile.webp",
+        "type": "image/webp"
+      },
+      "previewOldPath": {
+        "status": 404,
+        "final": "https://papayawhip-ram-220810.hostingersite.com/wp-content/uploads/2024/12/vnos-na-koli-ot-sasth-logo-na-garazhna-vrata-mobile.webp",
+        "type": "text/html; charset=utf-8"
+      },
+      "matchingImportedCover": null
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/wp-content/uploads/2024/12/vnos-na-koli-ot-sasth-logo-na-garazhna-vrata-scaled.webp",
+      "old": {
+        "status": 200,
+        "final": "https://koliotamerika.bg/wp-content/uploads/2024/12/vnos-na-koli-ot-sasth-logo-na-garazhna-vrata-scaled.webp",
+        "type": "image/webp"
+      },
+      "previewOldPath": {
+        "status": 404,
+        "final": "https://papayawhip-ram-220810.hostingersite.com/wp-content/uploads/2024/12/vnos-na-koli-ot-sasth-logo-na-garazhna-vrata-scaled.webp",
+        "type": "text/html; charset=utf-8"
+      },
+      "matchingImportedCover": "/images/legacy/wp-3445.webp",
+      "previewCover": {
+        "status": 200,
+        "final": "https://papayawhip-ram-220810.hostingersite.com/images/legacy/wp-3445.webp",
+        "type": "image/webp"
+      }
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/wp-content/uploads/2024/12/vnos-na-motori-ot-sasth-crashed-toys-logo.webp",
+      "old": {
+        "status": 200,
+        "final": "https://koliotamerika.bg/wp-content/uploads/2024/12/vnos-na-motori-ot-sasth-crashed-toys-logo.webp",
+        "type": "image/webp"
+      },
+      "previewOldPath": {
+        "status": 404,
+        "final": "https://papayawhip-ram-220810.hostingersite.com/wp-content/uploads/2024/12/vnos-na-motori-ot-sasth-crashed-toys-logo.webp",
+        "type": "text/html; charset=utf-8"
+      },
+      "matchingImportedCover": null
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/wp-content/uploads/2024/12/vnos-na-motori-ot-sasth-harley-davidson-koliotmaerika.bg_-1024x768.webp",
+      "old": {
+        "status": 200,
+        "final": "https://koliotamerika.bg/wp-content/uploads/2024/12/vnos-na-motori-ot-sasth-harley-davidson-koliotmaerika.bg_-1024x768.webp",
+        "type": "image/webp"
+      },
+      "previewOldPath": {
+        "status": 404,
+        "final": "https://papayawhip-ram-220810.hostingersite.com/wp-content/uploads/2024/12/vnos-na-motori-ot-sasth-harley-davidson-koliotmaerika.bg_-1024x768.webp",
+        "type": "text/html; charset=utf-8"
+      },
+      "matchingImportedCover": null
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/wp-content/uploads/2024/12/vnos-na-motori-ot-sasth-indian-koliotmaerika.bg_-1024x768.webp",
+      "old": {
+        "status": 200,
+        "final": "https://koliotamerika.bg/wp-content/uploads/2024/12/vnos-na-motori-ot-sasth-indian-koliotmaerika.bg_-1024x768.webp",
+        "type": "image/webp"
+      },
+      "previewOldPath": {
+        "status": 404,
+        "final": "https://papayawhip-ram-220810.hostingersite.com/wp-content/uploads/2024/12/vnos-na-motori-ot-sasth-indian-koliotmaerika.bg_-1024x768.webp",
+        "type": "text/html; charset=utf-8"
+      },
+      "matchingImportedCover": null
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/wp-content/uploads/2025/01/carfax-logo-koli-ot-amerika.webp",
+      "old": {
+        "status": 200,
+        "final": "https://koliotamerika.bg/wp-content/uploads/2025/01/carfax-logo-koli-ot-amerika.webp",
+        "type": "image/webp"
+      },
+      "previewOldPath": {
+        "status": 404,
+        "final": "https://papayawhip-ram-220810.hostingersite.com/wp-content/uploads/2025/01/carfax-logo-koli-ot-amerika.webp",
+        "type": "text/html; charset=utf-8"
+      },
+      "matchingImportedCover": "/images/legacy/wp-5184.webp",
+      "previewCover": {
+        "status": 200,
+        "final": "https://papayawhip-ram-220810.hostingersite.com/images/legacy/wp-5184.webp",
+        "type": "image/webp"
+      }
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/wp-content/uploads/2025/01/izmami-pri-pokupka-na-avtomobil-kak-da-se-predpazim.webp",
+      "old": {
+        "status": 200,
+        "final": "https://koliotamerika.bg/wp-content/uploads/2025/01/izmami-pri-pokupka-na-avtomobil-kak-da-se-predpazim.webp",
+        "type": "image/webp"
+      },
+      "previewOldPath": {
+        "status": 404,
+        "final": "https://papayawhip-ram-220810.hostingersite.com/wp-content/uploads/2025/01/izmami-pri-pokupka-na-avtomobil-kak-da-se-predpazim.webp",
+        "type": "text/html; charset=utf-8"
+      },
+      "matchingImportedCover": "/images/legacy/wp-4677.webp",
+      "previewCover": {
+        "status": 200,
+        "final": "https://papayawhip-ram-220810.hostingersite.com/images/legacy/wp-4677.webp",
+        "type": "image/webp"
+      }
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/wp-content/uploads/2025/01/mitove-za-avtomobilite-ot-amerika.webp",
+      "old": {
+        "status": 200,
+        "final": "https://koliotamerika.bg/wp-content/uploads/2025/01/mitove-za-avtomobilite-ot-amerika.webp",
+        "type": "image/webp"
+      },
+      "previewOldPath": {
+        "status": 404,
+        "final": "https://papayawhip-ram-220810.hostingersite.com/wp-content/uploads/2025/01/mitove-za-avtomobilite-ot-amerika.webp",
+        "type": "text/html; charset=utf-8"
+      },
+      "matchingImportedCover": "/images/legacy/wp-5212.webp",
+      "previewCover": {
+        "status": 200,
+        "final": "https://papayawhip-ram-220810.hostingersite.com/images/legacy/wp-5212.webp",
+        "type": "image/webp"
+      }
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/wp-content/uploads/2025/01/vehicle-identity-number.webp",
+      "old": {
+        "status": 200,
+        "final": "https://koliotamerika.bg/wp-content/uploads/2025/01/vehicle-identity-number.webp",
+        "type": "image/webp"
+      },
+      "previewOldPath": {
+        "status": 404,
+        "final": "https://papayawhip-ram-220810.hostingersite.com/wp-content/uploads/2025/01/vehicle-identity-number.webp",
+        "type": "text/html; charset=utf-8"
+      },
+      "matchingImportedCover": "/images/legacy/wp-5240.webp",
+      "previewCover": {
+        "status": 200,
+        "final": "https://papayawhip-ram-220810.hostingersite.com/images/legacy/wp-5240.webp",
+        "type": "image/webp"
+      }
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/wp-content/uploads/2025/01/vnos-na-koli-ot-sasth-m3-ot-kontejner.webp",
+      "old": {
+        "status": 200,
+        "final": "https://koliotamerika.bg/wp-content/uploads/2025/01/vnos-na-koli-ot-sasth-m3-ot-kontejner.webp",
+        "type": "image/webp"
+      },
+      "previewOldPath": {
+        "status": 404,
+        "final": "https://papayawhip-ram-220810.hostingersite.com/wp-content/uploads/2025/01/vnos-na-koli-ot-sasth-m3-ot-kontejner.webp",
+        "type": "text/html; charset=utf-8"
+      },
+      "matchingImportedCover": "/images/legacy/wp-32.webp",
+      "previewCover": {
+        "status": 200,
+        "final": "https://papayawhip-ram-220810.hostingersite.com/images/legacy/wp-32.webp",
+        "type": "image/webp"
+      }
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/wp-content/uploads/2025/02/audi-promenya-imenata-na-svoite-modeli-%E2%80%93-kakvo-oznachava-tova-za-klientite.webp",
+      "old": {
+        "status": 200,
+        "final": "https://koliotamerika.bg/wp-content/uploads/2025/02/audi-promenya-imenata-na-svoite-modeli-%E2%80%93-kakvo-oznachava-tova-za-klientite.webp",
+        "type": "image/webp"
+      },
+      "previewOldPath": {
+        "status": 404,
+        "final": "https://papayawhip-ram-220810.hostingersite.com/wp-content/uploads/2025/02/audi-promenya-imenata-na-svoite-modeli-%E2%80%93-kakvo-oznachava-tova-za-klientite.webp",
+        "type": "text/html; charset=utf-8"
+      },
+      "matchingImportedCover": "/images/legacy/wp-5281.webp",
+      "previewCover": {
+        "status": 200,
+        "final": "https://papayawhip-ram-220810.hostingersite.com/images/legacy/wp-5281.webp",
+        "type": "image/webp"
+      }
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/wp-content/uploads/2025/02/koli-ot-sasth-kak-novite-regulaczii-i-tehnologii-promenyat-pazara-prez-2025-g.webp",
+      "old": {
+        "status": 200,
+        "final": "https://koliotamerika.bg/wp-content/uploads/2025/02/koli-ot-sasth-kak-novite-regulaczii-i-tehnologii-promenyat-pazara-prez-2025-g.webp",
+        "type": "image/webp"
+      },
+      "previewOldPath": {
+        "status": 404,
+        "final": "https://papayawhip-ram-220810.hostingersite.com/wp-content/uploads/2025/02/koli-ot-sasth-kak-novite-regulaczii-i-tehnologii-promenyat-pazara-prez-2025-g.webp",
+        "type": "text/html; charset=utf-8"
+      },
+      "matchingImportedCover": "/images/legacy/wp-5302.webp",
+      "previewCover": {
+        "status": 200,
+        "final": "https://papayawhip-ram-220810.hostingersite.com/images/legacy/wp-5302.webp",
+        "type": "image/webp"
+      }
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/wp-content/uploads/2025/02/zakupuvane-na-koli-ot-amerika.-kak-se-vnasyat-koli-ot-sasth.webp",
+      "old": {
+        "status": 200,
+        "final": "https://koliotamerika.bg/wp-content/uploads/2025/02/zakupuvane-na-koli-ot-amerika.-kak-se-vnasyat-koli-ot-sasth.webp",
+        "type": "image/webp"
+      },
+      "previewOldPath": {
+        "status": 404,
+        "final": "https://papayawhip-ram-220810.hostingersite.com/wp-content/uploads/2025/02/zakupuvane-na-koli-ot-amerika.-kak-se-vnasyat-koli-ot-sasth.webp",
+        "type": "text/html; charset=utf-8"
+      },
+      "matchingImportedCover": "/images/legacy/wp-5313.webp",
+      "previewCover": {
+        "status": 200,
+        "final": "https://papayawhip-ram-220810.hostingersite.com/images/legacy/wp-5313.webp",
+        "type": "image/webp"
+      }
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/wp-content/uploads/2025/03/amerikanski-avtomobilen-pazar-kakvo-tryabva-da-znaete-predi-da-kupite-avtomobil-ot-sasth.webp",
+      "old": {
+        "status": 200,
+        "final": "https://koliotamerika.bg/wp-content/uploads/2025/03/amerikanski-avtomobilen-pazar-kakvo-tryabva-da-znaete-predi-da-kupite-avtomobil-ot-sasth.webp",
+        "type": "image/webp"
+      },
+      "previewOldPath": {
+        "status": 404,
+        "final": "https://papayawhip-ram-220810.hostingersite.com/wp-content/uploads/2025/03/amerikanski-avtomobilen-pazar-kakvo-tryabva-da-znaete-predi-da-kupite-avtomobil-ot-sasth.webp",
+        "type": "text/html; charset=utf-8"
+      },
+      "matchingImportedCover": "/images/legacy/wp-5379.webp",
+      "previewCover": {
+        "status": 200,
+        "final": "https://papayawhip-ram-220810.hostingersite.com/images/legacy/wp-5379.webp",
+        "type": "image/webp"
+      }
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/wp-content/uploads/2025/04/pokupka-na-avtomobili-ot-sasth-koliotamerika.bg_.webp",
+      "old": {
+        "status": 200,
+        "final": "https://koliotamerika.bg/wp-content/uploads/2025/04/pokupka-na-avtomobili-ot-sasth-koliotamerika.bg_.webp",
+        "type": "image/webp"
+      },
+      "previewOldPath": {
+        "status": 404,
+        "final": "https://papayawhip-ram-220810.hostingersite.com/wp-content/uploads/2025/04/pokupka-na-avtomobili-ot-sasth-koliotamerika.bg_.webp",
+        "type": "text/html; charset=utf-8"
+      },
+      "matchingImportedCover": "/images/legacy/wp-5413.webp",
+      "previewCover": {
+        "status": 200,
+        "final": "https://papayawhip-ram-220810.hostingersite.com/images/legacy/wp-5413.webp",
+        "type": "image/webp"
+      }
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/wp-content/uploads/2025/05/morski-transport-na-avtomobili-za-koli-ot-amerika.webp",
+      "old": {
+        "status": 200,
+        "final": "https://koliotamerika.bg/wp-content/uploads/2025/05/morski-transport-na-avtomobili-za-koli-ot-amerika.webp",
+        "type": "image/webp"
+      },
+      "previewOldPath": {
+        "status": 404,
+        "final": "https://papayawhip-ram-220810.hostingersite.com/wp-content/uploads/2025/05/morski-transport-na-avtomobili-za-koli-ot-amerika.webp",
+        "type": "text/html; charset=utf-8"
+      },
+      "matchingImportedCover": "/images/legacy/wp-5467.webp",
+      "previewCover": {
+        "status": 200,
+        "final": "https://papayawhip-ram-220810.hostingersite.com/images/legacy/wp-5467.webp",
+        "type": "image/webp"
+      }
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/wp-content/uploads/2025/05/salvage-title.webp",
+      "old": {
+        "status": 200,
+        "final": "https://koliotamerika.bg/wp-content/uploads/2025/05/salvage-title.webp",
+        "type": "image/webp"
+      },
+      "previewOldPath": {
+        "status": 404,
+        "final": "https://papayawhip-ram-220810.hostingersite.com/wp-content/uploads/2025/05/salvage-title.webp",
+        "type": "text/html; charset=utf-8"
+      },
+      "matchingImportedCover": "/images/legacy/wp-5457.webp",
+      "previewCover": {
+        "status": 200,
+        "final": "https://papayawhip-ram-220810.hostingersite.com/images/legacy/wp-5457.webp",
+        "type": "image/webp"
+      }
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/wp-content/uploads/2025/08/navodneni-koli-ot-amerika.webp",
+      "old": {
+        "status": 200,
+        "final": "https://koliotamerika.bg/wp-content/uploads/2025/08/navodneni-koli-ot-amerika.webp",
+        "type": "image/webp"
+      },
+      "previewOldPath": {
+        "status": 404,
+        "final": "https://papayawhip-ram-220810.hostingersite.com/wp-content/uploads/2025/08/navodneni-koli-ot-amerika.webp",
+        "type": "text/html; charset=utf-8"
+      },
+      "matchingImportedCover": "/images/legacy/wp-5521.webp",
+      "previewCover": {
+        "status": 200,
+        "final": "https://papayawhip-ram-220810.hostingersite.com/images/legacy/wp-5521.webp",
+        "type": "image/webp"
+      }
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/wp-content/uploads/2025/08/run-drive-koli-ot-amerika.webp",
+      "old": {
+        "status": 200,
+        "final": "https://koliotamerika.bg/wp-content/uploads/2025/08/run-drive-koli-ot-amerika.webp",
+        "type": "image/webp"
+      },
+      "previewOldPath": {
+        "status": 404,
+        "final": "https://papayawhip-ram-220810.hostingersite.com/wp-content/uploads/2025/08/run-drive-koli-ot-amerika.webp",
+        "type": "text/html; charset=utf-8"
+      },
+      "matchingImportedCover": "/images/legacy/wp-5494.webp",
+      "previewCover": {
+        "status": 200,
+        "final": "https://papayawhip-ram-220810.hostingersite.com/images/legacy/wp-5494.webp",
+        "type": "image/webp"
+      }
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/wp-content/uploads/2025/08/vnos-na-elektromobili-ot-sasth.jpg",
+      "old": {
+        "status": 200,
+        "final": "https://koliotamerika.bg/wp-content/uploads/2025/08/vnos-na-elektromobili-ot-sasth.jpg",
+        "type": "image/jpeg"
+      },
+      "previewOldPath": {
+        "status": 404,
+        "final": "https://papayawhip-ram-220810.hostingersite.com/wp-content/uploads/2025/08/vnos-na-elektromobili-ot-sasth.jpg",
+        "type": "text/html; charset=utf-8"
+      },
+      "matchingImportedCover": "/images/legacy/wp-5503.jpg",
+      "previewCover": {
+        "status": 200,
+        "final": "https://papayawhip-ram-220810.hostingersite.com/images/legacy/wp-5503.jpg",
+        "type": "image/jpeg"
+      }
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/wp-content/uploads/2025/09/bmw-b58-sresthu-n55-i-s55.webp",
+      "old": {
+        "status": 200,
+        "final": "https://koliotamerika.bg/wp-content/uploads/2025/09/bmw-b58-sresthu-n55-i-s55.webp",
+        "type": "image/webp"
+      },
+      "previewOldPath": {
+        "status": 404,
+        "final": "https://papayawhip-ram-220810.hostingersite.com/wp-content/uploads/2025/09/bmw-b58-sresthu-n55-i-s55.webp",
+        "type": "text/html; charset=utf-8"
+      },
+      "matchingImportedCover": "/images/legacy/wp-5706.webp",
+      "previewCover": {
+        "status": 200,
+        "final": "https://papayawhip-ram-220810.hostingersite.com/images/legacy/wp-5706.webp",
+        "type": "image/webp"
+      }
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/wp-content/uploads/2025/09/tehnotest-za-avtomobili.webp",
+      "old": {
+        "status": 200,
+        "final": "https://koliotamerika.bg/wp-content/uploads/2025/09/tehnotest-za-avtomobili.webp",
+        "type": "image/webp"
+      },
+      "previewOldPath": {
+        "status": 404,
+        "final": "https://papayawhip-ram-220810.hostingersite.com/wp-content/uploads/2025/09/tehnotest-za-avtomobili.webp",
+        "type": "text/html; charset=utf-8"
+      },
+      "matchingImportedCover": "/images/legacy/wp-5589.webp",
+      "previewCover": {
+        "status": 200,
+        "final": "https://papayawhip-ram-220810.hostingersite.com/images/legacy/wp-5589.webp",
+        "type": "image/webp"
+      }
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/wp-content/uploads/2025/09/zastrahovka-na-avtomobili-ot-sasth.webp",
+      "old": {
+        "status": 200,
+        "final": "https://koliotamerika.bg/wp-content/uploads/2025/09/zastrahovka-na-avtomobili-ot-sasth.webp",
+        "type": "image/webp"
+      },
+      "previewOldPath": {
+        "status": 404,
+        "final": "https://papayawhip-ram-220810.hostingersite.com/wp-content/uploads/2025/09/zastrahovka-na-avtomobili-ot-sasth.webp",
+        "type": "text/html; charset=utf-8"
+      },
+      "matchingImportedCover": "/images/legacy/wp-5688.webp",
+      "previewCover": {
+        "status": 200,
+        "final": "https://papayawhip-ram-220810.hostingersite.com/images/legacy/wp-5688.webp",
+        "type": "image/webp"
+      }
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/wp-content/uploads/2025/10/koli-ot-manheim.webp",
+      "old": {
+        "status": 200,
+        "final": "https://koliotamerika.bg/wp-content/uploads/2025/10/koli-ot-manheim.webp",
+        "type": "image/webp"
+      },
+      "previewOldPath": {
+        "status": 404,
+        "final": "https://papayawhip-ram-220810.hostingersite.com/wp-content/uploads/2025/10/koli-ot-manheim.webp",
+        "type": "text/html; charset=utf-8"
+      },
+      "matchingImportedCover": "/images/legacy/wp-5733.webp",
+      "previewCover": {
+        "status": 200,
+        "final": "https://papayawhip-ram-220810.hostingersite.com/images/legacy/wp-5733.webp",
+        "type": "image/webp"
+      }
+    },
+    {
+      "oldURL": "https://koliotamerika.bg/wp-content/uploads/2026/07/41819e8f-ee96-4235-81c4-0611f1a096f3-1-105-c.jpeg",
+      "old": {
+        "status": 200,
+        "final": "https://koliotamerika.bg/wp-content/uploads/2026/07/41819e8f-ee96-4235-81c4-0611f1a096f3-1-105-c.jpeg",
+        "type": "image/jpeg"
+      },
+      "previewOldPath": {
+        "status": 404,
+        "final": "https://papayawhip-ram-220810.hostingersite.com/wp-content/uploads/2026/07/41819e8f-ee96-4235-81c4-0611f1a096f3-1-105-c.jpeg",
+        "type": "text/html; charset=utf-8"
+      },
+      "matchingImportedCover": "/images/legacy/wp-5541.jpeg",
+      "previewCover": {
+        "status": 200,
+        "final": "https://papayawhip-ram-220810.hostingersite.com/images/legacy/wp-5541.jpeg",
+        "type": "image/jpeg"
+      }
+    }
+  ],
+  "technical": [
+    {
+      "path": "/robots.txt",
+      "old": {
+        "status": 200,
+        "final": "https://koliotamerika.bg/robots.txt",
+        "type": "text/plain; charset=utf-8"
+      },
+      "preview": {
+        "status": 200,
+        "final": "https://papayawhip-ram-220810.hostingersite.com/robots.txt",
+        "type": "text/plain, text/plain"
+      }
+    },
+    {
+      "path": "/sitemap.xml",
+      "old": {
+        "status": 200,
+        "final": "https://koliotamerika.bg/sitemap_index.xml",
+        "type": "text/xml; charset=UTF-8"
+      },
+      "preview": {
+        "status": 200,
+        "final": "https://papayawhip-ram-220810.hostingersite.com/sitemap.xml",
+        "type": "application/xml"
+      }
+    },
+    {
+      "path": "/sitemap_index.xml",
+      "old": {
+        "status": 200,
+        "final": "https://koliotamerika.bg/sitemap_index.xml",
+        "type": "text/xml; charset=UTF-8"
+      },
+      "preview": {
+        "status": 404,
+        "final": "https://papayawhip-ram-220810.hostingersite.com/sitemap_index.xml",
+        "type": "text/html; charset=utf-8"
+      }
+    },
+    {
+      "path": "/post-sitemap.xml",
+      "old": {
+        "status": 200,
+        "final": "https://koliotamerika.bg/post-sitemap.xml",
+        "type": "text/xml; charset=UTF-8"
+      },
+      "preview": {
+        "status": 404,
+        "final": "https://papayawhip-ram-220810.hostingersite.com/post-sitemap.xml",
+        "type": "text/html; charset=utf-8"
+      }
+    },
+    {
+      "path": "/page-sitemap.xml",
+      "old": {
+        "status": 200,
+        "final": "https://koliotamerika.bg/page-sitemap.xml",
+        "type": "text/xml; charset=UTF-8"
+      },
+      "preview": {
+        "status": 404,
+        "final": "https://papayawhip-ram-220810.hostingersite.com/page-sitemap.xml",
+        "type": "text/html; charset=utf-8"
+      }
+    },
+    {
+      "path": "/category-sitemap.xml",
+      "old": {
+        "status": 200,
+        "final": "https://koliotamerika.bg/category-sitemap.xml",
+        "type": "text/xml; charset=UTF-8"
+      },
+      "preview": {
+        "status": 404,
+        "final": "https://papayawhip-ram-220810.hostingersite.com/category-sitemap.xml",
+        "type": "text/html; charset=utf-8"
+      }
+    },
+    {
+      "path": "/post_tag-sitemap.xml",
+      "old": {
+        "status": 200,
+        "final": "https://koliotamerika.bg/post_tag-sitemap.xml",
+        "type": "text/xml; charset=UTF-8"
+      },
+      "preview": {
+        "status": 404,
+        "final": "https://papayawhip-ram-220810.hostingersite.com/post_tag-sitemap.xml",
+        "type": "text/html; charset=utf-8"
+      }
+    },
+    {
+      "path": "/author-sitemap.xml",
+      "old": {
+        "status": 200,
+        "final": "https://koliotamerika.bg/author-sitemap.xml",
+        "type": "text/xml; charset=UTF-8"
+      },
+      "preview": {
+        "status": 404,
+        "final": "https://papayawhip-ram-220810.hostingersite.com/author-sitemap.xml",
+        "type": "text/html; charset=utf-8"
+      }
+    },
+    {
+      "path": "/wp-sitemap.xml",
+      "old": {
+        "status": 200,
+        "final": "https://koliotamerika.bg/sitemap_index.xml",
+        "type": "text/xml; charset=UTF-8"
+      },
+      "preview": {
+        "status": 404,
+        "final": "https://papayawhip-ram-220810.hostingersite.com/wp-sitemap.xml",
+        "type": "text/html; charset=utf-8"
+      }
+    }
+  ]
+}
