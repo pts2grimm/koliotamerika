@@ -5,9 +5,9 @@ on:
 permissions:
   contents: read
 jobs:
-  contracts:
+  verify:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -15,15 +15,23 @@ jobs:
           node-version: '24'
           cache: npm
       - run: npm ci --include=dev
-      - name: Read installed Next.js contracts
+      - run: npm test
+      - run: npm run build
+        env:
+          PREVIEW_MODE: 'true'
+          PAYLOAD_SECRET: ci-blog-seo-only-not-a-live-secret
+      - run: npm run typecheck
+      - run: npx playwright install --with-deps chromium
+      - name: Migration routes, media and privacy checks
         run: |
-          python - <<'PY'
-          from pathlib import Path
-          for p in Path('node_modules/next/dist/docs/01-app').rglob('*.md'):
-            if p.name in ['proxy.md', 'redirects.md', 'sitemap.md', 'static-assets.md']:
-              s=p.read_text()
-              if p.name=='proxy.md':
-                start=s.find('skipTrailingSlashRedirect')
-                s=s[max(0,start-1200):start+8500]
-              print('FILE '+str(p)+'\n'+s[:20000])
-          PY
+          node --input-type=module <<'JS'
+          import { chromium } from '@playwright/test';
+          import { spawnSync } from 'node:child_process';
+          const result = spawnSync('npx', ['playwright', 'test', '--config=playwright.migration.config.ts', '--reporter=line'], { stdio: 'inherit', env: { ...process.env, CHROMIUM_PATH: chromium.executablePath() } });
+          process.exit(result.status ?? 1);
+          JS
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: migration-results
+          path: test-results
