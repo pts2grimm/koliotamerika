@@ -15,21 +15,23 @@ jobs:
           node-version: '24'
           cache: npm
       - run: npm ci --include=dev
-      - name: Installed Next.js SEO documentation
-        run: |
-          python - <<'PY'
-          from pathlib import Path
-          root = Path('node_modules/next/dist/docs')
-          guides = [p for p in root.rglob('*.md*') if any(s in p.name for s in ['generate-metadata', 'json-ld', 'metadata-and-og-images'])]
-          for guide in guides:
-              print('GUIDE:', guide)
-              print(guide.read_text())
-          if not guides:
-              raise SystemExit('Installed documentation not found')
-          PY
       - run: npm test
       - run: npm run build
         env:
           PREVIEW_MODE: 'true'
           PAYLOAD_SECRET: ci-blog-seo-only-not-a-live-secret
       - run: npm run typecheck
+      - run: npx playwright install --with-deps chromium
+      - name: Blog browser and publishing checks
+        run: |
+          node --input-type=module <<'JS'
+          import { chromium } from '@playwright/test';
+          import { spawnSync } from 'node:child_process';
+          const result = spawnSync('npx', ['playwright', 'test', '--config=playwright.blog-seo.config.ts', '--reporter=line'], { stdio: 'inherit', env: { ...process.env, CHROMIUM_PATH: chromium.executablePath() } });
+          process.exit(result.status ?? 1);
+          JS
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: blog-seo-results
+          path: test-results

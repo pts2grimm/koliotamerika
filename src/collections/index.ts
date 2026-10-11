@@ -1,3 +1,4 @@
+import { publishedPages } from '../lib/page-access'
 import { enforcePasswordPolicy } from '../lib/password-hook'
 import { Forbidden } from 'payload'
 import type { Access, CollectionConfig, Field } from 'payload'
@@ -27,8 +28,8 @@ export const Cars: CollectionConfig = { slug: 'cars', labels: { singular: 'Ав�
   { name: 'description', label: 'Описание и какво включва цената', type: 'textarea', required: true },
   { name: 'features', label: 'Оборудване', type: 'array', fields: [{ name: 'label', label: 'Екстра', type: 'text', required: true }] }, ...seoFields
 ] }
-export const Pages: CollectionConfig = { slug: 'pages', labels: { singular: 'Страница', plural: 'Страници и статии' }, admin: { useAsTitle: 'title' }, access: { read: published, create: staff, update: staff, delete: staff }, fields: [
-  { name: 'title', label: 'Заглавие', type: 'text', required: true }, { ...slug, validate: (value: unknown) => typeof value === 'string' && /^[a-z0-9]+(?:[-/][a-z0-9]+)*$/.test(value) && !['admin', 'api', 'avtomobili', 'kontakti', 'sitemap', 'robots', 'profil', 'vhod', 'registracia', 'zabravena-parola', 'nova-parola'].includes(value) ? true : 'Невалиден или запазен URL адрес.' }, status,
+export const Pages: CollectionConfig = { slug: 'pages', labels: { singular: 'Страница', plural: 'Страници и статии' }, admin: { useAsTitle: 'title', defaultColumns: ['title', 'kind', 'status', 'publishedAt'] }, access: { read: publishedPages, create: staff, update: staff, delete: staff }, fields: [
+  { name: 'title', label: 'Заглавие', type: 'text', required: true }, { ...slug, validate: (value: unknown) => typeof value === 'string' && /^[a-z0-9]+(?:[-/][a-z0-9]+)*$/.test(value) && !['admin', 'api', 'blog', 'kalkulator', 'targove', 'avtomobili', 'kontakti', 'sitemap', 'robots', 'profil', 'vhod', 'registracia', 'zabravena-parola', 'nova-parola'].includes(value) ? true : 'Невалиден или запазен URL адрес.' }, status,
   { name: 'kind', label: 'Тип', type: 'select', defaultValue: 'page', options: [{ label: 'Страница', value: 'page' }, { label: 'Статия', value: 'article' }] },
   { name: 'eyebrow', label: 'Кратък надпис', type: 'text' },
   { name: 'intro', label: 'Въведение', type: 'textarea', required: true },
@@ -36,7 +37,7 @@ export const Pages: CollectionConfig = { slug: 'pages', labels: { singular: 'С�
   { name: 'body', label: 'Съдържание', type: 'richText' },
   { name: 'legacyImage', label: 'Пренесена снимка', type: 'text', admin: { readOnly: true, position: 'sidebar' } },
   { name: 'sourceURL', label: 'Източник при миграция', type: 'text', admin: { readOnly: true, position: 'sidebar' } },
-  { name: 'publishedAt', label: 'Дата на публикуване', type: 'date' },
+  { name: 'publishedAt', label: 'Дата на публикуване', type: 'date', admin: { date: { pickerAppearance: 'dayAndTime' }, description: 'За статии: статус „Публикувано“ и бъдеща дата означават отложено публикуване. Проверете часовата зона на избраната дата. Празна дата публикува веднага.' } },
   { name: 'sections', label: 'Секции на страницата', type: 'array', fields: [{ name: 'heading', label: 'Заглавие', type: 'text', required: true }, { name: 'body', label: 'Текст (празен ред за нов абзац)', type: 'textarea', required: true }] }, ...seoFields
 ] }
 export const Inquiries: CollectionConfig = { slug: 'inquiries', labels: { singular: 'Запитване', plural: 'Запитвания' }, admin: { useAsTitle: 'name', defaultColumns: ['name', 'email', 'status', 'createdAt'] }, access: { create: () => false, read: staff, update: staff, delete: staff }, fields: [
