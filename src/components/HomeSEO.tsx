@@ -1,33 +1,34 @@
 import snapshot from '../../content/homepage.json'
+import gallery from '../../content/legacy-gallery.json'
 import { cms, mediaUrl, imageAlt } from '@/lib/data'
 import Image from 'next/image'
-import { ArrowUpRight, FileCheck2, MapPinned, MessageCircle, Search, ShieldCheck } from 'lucide-react'
+import { ArrowUpRight } from 'lucide-react'
 import { SiteLink as Link } from './SiteLink'
-
-// Markup is an allowlisted, local snapshot produced by capture-homepage.mjs.
-function Copy({ html }: { html: string }) { return <div className="home-copy" dangerouslySetInnerHTML={{ __html: html }} /> }
-export function HomeIntroduction() {
- return <section className="container home-introduction"><span className="eyebrow orange">КОЛИ ОТ АМЕРИКА · ВНОС ОТ САЩ И КАНАДА</span><h2>{snapshot.intro.heading}</h2><Copy html={snapshot.intro.html} /></section>
+function Copy({html}:{html:string}) {return <div className="home-copy" dangerouslySetInnerHTML={{__html:html}}/>}
+type HomeQuestion={id?:string|null;question:string;answer:string}
+export function additionalHomeFAQ(faq?:HomeQuestion[]|null) {return (faq||[]).filter(item=>!snapshot.faq.some(original=>original.question===item.question))}
+export function HomeTrust({googleMapsURL}:{googleMapsURL?:string|null}) {
+ const photos=[gallery.items.find(p=>p.title==='2021 BMW M5'),gallery.items.find(p=>p.title==='2021 MERCEDES BENZ GLC 300 4MATIC'),gallery.items.find(p=>p.title==='2020 TOYOTA RAV4 LIMITED')].filter((p):p is typeof gallery.items[number]=>!!p)
+ return <section className="home-proof container" id="real-cars"><div className="section-heading"><div><span className="eyebrow orange">РЕАЛНИ АВТОМОБИЛИ. СПОДЕЛЕН ОПИТ.</span><h2>Виж автомобилите.<br/>Чуй клиентите.</h2></div><Link className="text-link" href="/koli-ot-amerika-galeriya">Цялата галерия <ArrowUpRight size={18}/></Link></div>
+ <p>Снимки от нашата галерия — примери, а не текущи наличности. За подобен автомобил ни изпрати модел и бюджет.</p>
+ <div className="home-proof-photos">{photos.map(p=><figure key={p.src}><Link href="/koli-ot-amerika-galeriya"><Image src={p.src} width={p.width} height={p.height} sizes="(max-width:700px) 85vw,33vw" alt={p.title}/><figcaption>{p.title}</figcaption></Link></figure>)}</div>
+ <div className="home-review-grid">{snapshot.testimonials.items.map(item=><figure key={item.name}><blockquote>{item.quote}</blockquote><figcaption><strong>{item.name}</strong><span>{item.car}</span></figcaption></figure>)}</div>
+ {googleMapsURL&&<a className="text-link" href={googleMapsURL} target="_blank" rel="noopener noreferrer">Виж профила и отзивите в Google <ArrowUpRight size={18}/></a>}
+ </section>
 }
-export function HomeCatalogueCopy() { return <Copy html={snapshot.catalogue} /> }
-type HomeQuestion = { id?: string | null; question: string; answer: string }
-export function additionalHomeFAQ(faq?: HomeQuestion[] | null) {
- return (faq || []).filter(item => !snapshot.faq.some(original => original.question === item.question))
+export function HomeFAQ({faq=[]}:{faq?:HomeQuestion[]|null}) {
+ // Preserve CMS answers, including overrides of imported questions.
+ const questions=[...snapshot.faq.map(item=>({...item,custom:faq?.find(q=>q.question===item.question)?.answer})),...additionalHomeFAQ(faq).map(item=>({question:item.question,text:item.answer,html:'',custom:item.answer}))]
+ const schema={'@context':'https://schema.org','@type':'FAQPage',mainEntity:questions.map(q=>({'@type':'Question',name:q.question,acceptedAnswer:{'@type':'Answer',text:q.custom??q.text}}))}
+ return <section className="container home-faq" id="home-questions"><div className="section-heading"><div><span className="eyebrow orange">ПРЕДИ ПОКУПКАТА</span><h2>Въпроси за вноса на коли от Америка</h2></div></div><div className="faq-list">{questions.map(q=><details key={q.question}><summary>{q.question}<span className="faq-plus" aria-hidden="true">+</span></summary>{q.custom!=null?<p>{q.custom}</p>:<Copy html={q.html}/>}</details>)}</div><Copy html={snapshot.faqMore}/><script type="application/ld+json" dangerouslySetInnerHTML={{__html:JSON.stringify(schema).replace(/</g,'\\u003c')}}/></section>
 }
-export async function HomeSEO({ viberURL, faq = [] }: { viberURL?: string | null; faq?: { question: string; answer: string }[] | null }) {
- const articles = (await (await cms()).find({ collection: 'pages', overrideAccess: false, where: { kind: { equals: 'article' } }, sort: '-publishedAt', limit: 3, depth: 1 })).docs
- const extraFaq = additionalHomeFAQ(faq)
- const icons = [Search, ShieldCheck, MapPinned, FileCheck2]
- const faqSchema = { '@context': 'https://schema.org', '@type': 'FAQPage', mainEntity: [...snapshot.faq, ...extraFaq.map(item => ({ question: item.question, text: item.answer }))].map(item => ({ '@type': 'Question', name: item.question, acceptedAnswer: { '@type': 'Answer', text: item.text } })) }
- return <div className="home-seo">
-  <section className="container home-services"><div className="home-section-title"><span className="eyebrow orange">ОТ ИЗБОРА ДО РЕГИСТРАЦИЯТА</span><h2>{snapshot.services.heading}</h2><p>{snapshot.services.intro}</p></div><Copy html={snapshot.services.html} /><div className="home-service-links">{[['/vnos-na-koli-ot-usa', 'Внос на коли от Америка'], ['/homologacia', 'Хомологация'], ['/vnos-na-motori-ot-sasht', 'Мотори, UTV и ATV']].map(([href, label]) => <Link key={href} href={href}>{label}<ArrowUpRight size={20} /></Link>)}</div></section>
-  <section className="home-benefits"><div className="container"><div className="home-section-title"><span className="eyebrow orange">ДОВЕРИЕ НА ВСЯКА СТЪПКА</span><h2>{snapshot.benefits.heading}</h2></div><div className="home-benefit-grid">{snapshot.benefits.items.map((item, index) => { const Icon = icons[index]; return <article key={item.title}><Icon size={30} strokeWidth={1.5} /><span className="home-card-number">0{index + 1}</span><h3>{item.title}</h3><p>{item.text}</p></article> })}</div></div></section>
-  <section className="container home-guide">{snapshot.reasons.map((item, index) => <article className="home-guide-section" key={item.heading}><div className="home-section-title"><span className="eyebrow orange">{index === 0 ? 'ВЪЗМОЖНОСТИТЕ НА АМЕРИКАНСКИЯ ПАЗАР' : 'ТВОЯТ ПАРТНЬОР ВЪВ ВНОСА'}</span><h2>{item.heading}</h2></div><Copy html={item.html} /></article>)}</section>
-  <section className="container home-community"><div><MessageCircle size={34} strokeWidth={1.5} /><h2>{snapshot.viber.heading}</h2><Copy html={snapshot.viber.html} /><a className="viber-qr" href={viberURL || snapshot.viber.url} target="_blank" rel="noopener noreferrer"><Image src="/images/legacy/home-viber-qr.webp" width={140} height={140} alt="QR код за Viber групата на Коли от Америка" /></a><a className="button button-white" href={viberURL || snapshot.viber.url} target="_blank" rel="noopener noreferrer">Към Viber групата <ArrowUpRight size={19} /></a></div><div><span className="eyebrow">БЕЗПЛАТНА КОНСУЛТАЦИЯ</span><h2>{snapshot.consultation.heading}</h2><p>{snapshot.consultation.text}</p><Link className="button button-white" href="/kontakti">Свържи се с нас <ArrowUpRight size={19} /></Link></div></section>
-  <section className="container home-faq"><div className="home-section-title"><span className="eyebrow orange">ПРЕДИ ДА ИЗБЕРЕШ</span><h2>Въпроси за вноса на коли от Америка</h2></div><div className="faq-list">{snapshot.faq.map((item, index) => <details key={item.question}><summary><span className="faq-num">0{index + 1}</span>{item.question}<span className="faq-plus">+</span></summary><Copy html={item.html} /></details>)}</div><Copy html={snapshot.faqMore} /></section>
-  <section className="home-testimonials"><div className="container"><span className="eyebrow orange">СПОДЕЛЕН ОПИТ</span><h2>{snapshot.testimonials.heading}</h2><div className="home-review-grid">{snapshot.testimonials.items.map(item => <figure key={item.name}><blockquote>{item.quote}</blockquote><figcaption><strong>{item.name}</strong><span>{item.car}</span></figcaption></figure>)}</div></div></section>
-  <section className="container home-partners"><h2>{snapshot.partners.heading}</h2><ul>{snapshot.partners.names.map(name => <li key={name}>{name}</li>)}</ul></section>
-  <section className="container home-news"><div className="section-heading"><div><span className="eyebrow orange">ПОЛЕЗНО ПРЕДИ ПОКУПКАТА</span><h2>{snapshot.news.heading}</h2></div><Link className="text-link" href="/blog">Всички статии <ArrowUpRight size={18} /></Link></div><div className="home-news-grid">{articles.map(item => { const image = mediaUrl(item.image) || item.legacyImage; const href = '/' + item.slug; return <article key={item.id}>{image && <Image className="home-news-image" src={image} width={640} height={360} alt={imageAlt(item.image, item.title)} />}<h3><Link href={href}>{item.title}</Link></h3><p>{item.intro}</p><Link className="text-link" href={href}>Прочети повече <ArrowUpRight size={18} /></Link></article> })}</div></section>
-  <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema).replace(/</g, '\\u003c') }} />
- </div>
+export function HomeGuide() {
+ return <div className="home-guide-compact">{snapshot.reasons.map(item=><details key={item.heading}><summary>{item.heading}</summary><Copy html={item.html}/></details>)}</div>
+}
+export async function HomeSEO({viberURL}:{viberURL?:string|null}) {
+ const articles=(await(await cms()).find({collection:'pages',overrideAccess:false,where:{kind:{equals:'article'}},sort:'-publishedAt',limit:3,depth:1})).docs
+ return <>
+ <section className="container home-news"><div className="section-heading"><div><span className="eyebrow orange">ПОЛЕЗНО ПРЕДИ ПОКУПКАТА</span><h2>{snapshot.news.heading}</h2></div><Link className="text-link" href="/blog">Всички статии <ArrowUpRight size={18}/></Link></div><div className="home-news-grid">{articles.map(item=>{const image=mediaUrl(item.image)||item.legacyImage;return <article key={item.id}>{image&&<Image className="home-news-image" src={image} width={640} height={360} sizes="(max-width:700px) 90vw,33vw" alt={imageAlt(item.image,item.title)}/>}<h3><Link href={'/'+item.slug}>{item.title}</Link></h3><p>{item.intro}</p><Link className="text-link" href={'/'+item.slug}>Прочети повече <ArrowUpRight size={18}/></Link></article>})}</div></section>
+ <section className="container home-community-compact"><div><span className="eyebrow orange">ОБЯВИ И РАЗГОВОРИ ЗА АВТОМОБИЛИ</span><h2>Следи предложенията във Viber.</h2><p>Обяви от аукциони, ориентировъчни цени и отговори на въпросите ти.</p><a className="button button-outline" href={viberURL||snapshot.viber.url} target="_blank" rel="noopener noreferrer">Към Viber групата <ArrowUpRight size={18}/></a></div><a className="viber-qr" href={viberURL||snapshot.viber.url} target="_blank" rel="noopener noreferrer"><Image src="/images/legacy/home-viber-qr.webp" width={140} height={140} alt="QR код за Viber групата на Коли от Америка"/></a></section>
+ </>
 }

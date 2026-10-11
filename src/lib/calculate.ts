@@ -1,11 +1,25 @@
-export type CalculatorConfig = { usdToBgn: number; fixedCosts: number; tiers: { from: number; fee: number; percent: number; extra: number }[]; defaultInland?: number | null; defaultShipping?: number | null; note?: string | null }
+import { commissionEur, environmentalUsd, gateUsd, onlineFee, purchaseFee, roundMoney } from './customer-tariff'
+export type CalculatorConfig = {
+ usdToEur: number; portHandlingEur: number; deliveryEur: number; insuranceUsd: number; documentUsd: number;
+ defaultInland: number; shippingUsd: number; note?: string | null
+}
 export function calculateImport(price: number, inland: number, shipping: number, config: CalculatorConfig) {
- if (![price,inland,shipping].every(Number.isFinite) || price <= 0 || price > 500000 || inland < 0 || inland > 100000 || shipping < 0 || shipping > 100000) return null
- const tier=[...config.tiers].sort((a,b)=>b.from-a.from).find(t=>price>=t.from)
- if(!tier || !Number.isFinite(config.usdToBgn) || config.usdToBgn<=0)return null
- const fee=tier.fee+price*tier.percent/100
- const vehicleBgn=(price+fee+inland+shipping)*config.usdToBgn
- const extra=tier.extra+config.fixedCosts
- const totalBgn=Math.round((vehicleBgn+extra)*100)/100
- return { fee, vehicleBgn, extra, totalBgn, totalEur:Math.round(totalBgn/1.95583*100)/100 }
+ const amounts = [inland,shipping,config.portHandlingEur,config.deliveryEur,config.insuranceUsd,config.documentUsd]
+ if (!Number.isFinite(price) || price <= 0 || price > 500000 ||
+     !amounts.every(n => Number.isFinite(n) && n >= 0 && n <= 100000) ||
+     !Number.isFinite(config.usdToEur) || config.usdToEur <= 0 || config.usdToEur > 10) return null
+ const fee = purchaseFee(price)!, online = onlineFee(price)!
+ const rows = [
+  ['Автомобил',price], ['Покупка и обработка — наша тарифа',fee], ['Получаване от площадката',gateUsd],
+  ['Онлайн наддаване — наша тарифа',online], ['Екологична такса',environmentalUsd],
+  ['Изпращане на документ — пример',config.documentUsd], ['Вътрешен транспорт в САЩ',inland],
+  ['Морски транспорт',shipping], ['Застраховка — примерен бюджет',config.insuranceUsd],
+ ].map(([label,usd])=>({label:String(label),usd:Number(usd),eur:roundMoney(Number(usd)*config.usdToEur)}))
+ const subtotalUsd=roundMoney(rows.reduce((sum,row)=>sum+row.usd,0))
+ const customsEur=roundMoney(subtotalUsd*config.usdToEur)
+ const dutyEur=roundMoney(customsEur*0.1)
+ const vatBaseEur=roundMoney(customsEur+dutyEur+config.portHandlingEur+config.deliveryEur)
+ const vatEur=roundMoney(vatBaseEur*0.2)
+ return {fee,online,rows,subtotalUsd,customsEur,dutyEur,vatBaseEur,vatEur,commissionEur,
+  totalEur:roundMoney(vatBaseEur+vatEur+commissionEur)}
 }

@@ -1,3 +1,4 @@
+import { clarifyCopy } from '../../src/lib/clarity-copy'
 import assert from 'node:assert/strict'
 import { getPayload } from 'payload'
 import { convertHTMLToLexical, editorConfigFactory, EXPERIMENTAL_TableFeature } from '@payloadcms/richtext-lexical'
@@ -20,7 +21,7 @@ try {
   const journal=journals.find(row=>row.key===servicesReviewKey(revision.slug))!.data as Journal
   assert.equal(journal.bodyPreserved,false,revision.slug)
   const expected=convertHTMLToLexical({editorConfig,html:revision.html,JSDOM})
-  assert.equal(stable(page.body),stable(expected),revision.slug)
+  assert.equal(stable(page.body),stable(clarifyCopy(expected)),revision.slug)
   assert.equal(page.intro,revision.intro,revision.slug)
   assert.equal(page.seo?.description,revision.seoDescription,revision.slug)
   assert.equal(page.title,revision.expectedTitle,revision.slug)

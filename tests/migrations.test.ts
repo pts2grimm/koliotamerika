@@ -37,13 +37,13 @@ function sandbox() {
     })
     assert.ifError(result.error)
     assert.equal(result.status, 0, result.stdout + result.stderr)
-    assert.doesNotMatch(result.stdout + result.stderr, /(?:Page SEO upgrade|Content review|Pricing details|Plain language update|Customer pricing update|Services review|Gallery review) deferred/, result.stdout + result.stderr)
+    assert.doesNotMatch(result.stdout + result.stderr, /(?:Page SEO upgrade|Content review|Pricing details|Plain language update|Customer pricing update|Services review|Gallery review|Clarity update) deferred/, result.stdout + result.stderr)
   }
   return { dir, filename, run }
 }
 function journal(db: DatabaseSync) {
   assert.deepEqual(db.prepare('SELECT name FROM payload_migrations ORDER BY name').all().map(row => row.name), [
-    '20261010_120440_initial', '20261010_135337_customer_accounts', '20261012_010000_contact_details', '20261012_020000_integrations',
+    '20261010_120440_initial', '20261010_135337_customer_accounts', '20261012_010000_contact_details', '20261012_020000_integrations', '20261012_030000_calculator_eur',
   ])
   for (const name of ['pages', 'site_settings', 'customers', 'saved_vehicles', 'inquiries', 'integrations']) {
     assert.ok(db.prepare("SELECT name FROM sqlite_master WHERE type = 'table' AND name = ?").get(name))
@@ -75,6 +75,9 @@ test('empty production startup and explicit preparation are repeatable', { timeo
     assert.ok(Number(count) >= 42)
     assert.ok(String(db.prepare("SELECT body FROM pages WHERE slug = 'koli-ot-amerika-galeriya'").get()?.body).includes('Намери подобен автомобил'))
     assert.ok(String(db.prepare("SELECT us_address FROM site_settings").get()?.us_address).includes('Pontus LLC'))
+    assert.ok(String(db.prepare("SELECT body FROM pages WHERE slug = 'obshti-usloviya'").get()?.body).includes('3–4 месеца'))
+    assert.ok(String(db.prepare("SELECT body FROM pages WHERE slug = 'obshti-usloviya'").get()?.body).includes('една и съща сума'))
+    assert.ok(String(db.prepare("SELECT body FROM pages WHERE slug = 'vnos-na-koli-ot-usa/vnos-na-koli-ot-amerika-cena'").get()?.body).includes('същата клиентска тарифа'))
     const hash = db.prepare('SELECT hash FROM users').get()?.hash
     db.exec("UPDATE pages SET title = 'Editorial title' WHERE slug = 'kak-rabotim'")
     assert.equal(db.prepare("SELECT status FROM pages WHERE slug = 'clean-title-kola-ot-amerika'").get()?.status, 'draft')
@@ -217,4 +220,25 @@ test('partial contact migration preserves an existing settings row and retries s
   assert.ok(String(db.prepare('SELECT google_maps_u_r_l FROM site_settings').get()?.google_maps_u_r_l).includes('ChIJXf7M8N24eyIRGQWGyPD0i9U'))
   db.close()
  }finally{rmSync(dir,{recursive:true,force:true})}
+})
+
+test('calculator migration resumes with existing new columns and preserves legacy/custom values', {timeout:300_000},()=>{
+ const {dir,filename,run}=sandbox()
+ try{
+  let db=new DatabaseSync(filename)
+  for(const statement of statements(initial))db.exec(statement)
+  db.exec("INSERT INTO payload_migrations (name,batch) VALUES ('20261010_120440_initial',1)")
+  db.exec("ALTER TABLE calculator_settings ADD COLUMN usd_to_eur numeric NOT NULL DEFAULT 0.9")
+  db.exec("INSERT INTO calculator_settings (usd_to_bgn,fixed_costs,usd_to_eur,default_inland,default_shipping,note) VALUES (2,777,0.95,650,1234,'Keep note')")
+  db.close();run();run()
+  db=new DatabaseSync(filename);journal(db)
+  assert.deepEqual({...db.prepare('SELECT usd_to_bgn,fixed_costs,usd_to_eur,default_inland,default_shipping,note FROM calculator_settings').get()},{usd_to_bgn:2,fixed_costs:777,usd_to_eur:0.95,default_inland:650,default_shipping:1234,note:'Keep note'})
+  assert.equal(db.prepare('SELECT shipping_usd FROM calculator_settings').get()?.shipping_usd,1000)
+  db.close()
+ }finally{rmSync(dir,{recursive:true,force:true})}
+})
+
+test('confirmed terms update rolls back with its journal and respects later edits', {timeout:300_000},()=>{
+ const {dir,run}=sandbox()
+ try{run();run('tests/fixtures/clarity.ts')}finally{rmSync(dir,{recursive:true,force:true})}
 })
