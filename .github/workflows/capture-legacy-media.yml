@@ -1,0 +1,31 @@
+name: Capture legacy media
+on:
+  push:
+    branches: ['codex/restore-migration-urls']
+    paths: ['scripts/restore-legacy-media.mjs']
+permissions:
+  contents: write
+jobs:
+  capture:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: codex/restore-migration-urls
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci --include=dev
+      - run: node scripts/restore-legacy-media.mjs
+      - name: Commit restored image files only
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -- public/wp-content/uploads content/legacy-media.json
+          if ! git diff --cached --quiet; then
+            git commit -m "Restore original WordPress image URLs with verified image files"
+            git push origin HEAD:codex/restore-migration-urls
+          fi
+          git rev-parse HEAD
