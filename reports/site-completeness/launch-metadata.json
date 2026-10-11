@@ -1,0 +1,14 @@
+{
+  "capturedAt": "2026-10-11T22:12:28.3880200",
+  "source": "https://koliotamerika.bg/",
+  "verification": [],
+  "trackingIDs": [
+    "G-PMKKD7P2GQ",
+    "GTM-WHZQ4GG"
+  ],
+  "trackingScripts": [
+    "https://koliotamerika.bg/wp-content/plugins/cookie-law-info/lite/frontend/js/gcm.min.js",
+    "https://cdn-cookieyes.com/client_data/737b4b0209eb37bae8ad2108/script.js",
+    "https://koliotamerika.bg/wp-content/plugins/pixelyoursite/dist/scripts/js.cookie-2.1.3.min.js?ver=2.1.3"
+  ]
+}

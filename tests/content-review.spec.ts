@@ -171,7 +171,7 @@ test('gallery and recovered photos render before JavaScript and filter on mobile
    await expect(page.locator('#gallery-photos figure')).toHaveCount(41)
    await page.getByLabel('Марка',{exact:true}).selectOption('BMW')
    await expect(page.locator('#gallery-photos figure')).toHaveCount(gallery.items.filter(x=>x.brand==='BMW').length)
-   await page.locator('#gallery-photos').scrollIntoViewIfNeeded()
+   await page.locator('#gallery-photos figure').first().scrollIntoViewIfNeeded()
    await expect(page.locator('#gallery-photos img').first()).toBeVisible()
    await expect.poll(()=>page.locator('#gallery-photos img').first().evaluate((img:HTMLImageElement)=>img.complete&&img.naturalWidth>0)).toBe(true)
    expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1)).toBe(true)
