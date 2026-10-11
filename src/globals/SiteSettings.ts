@@ -4,6 +4,11 @@ export const SiteSettings: GlobalConfig = {
   fields: [
     { name: 'brand', label: 'Име на бизнеса', type: 'text', defaultValue: 'Коли от Америка', required: true },
     { name: 'phone', label: 'Телефон', type: 'text' }, { name: 'email', label: 'Имейл за контакт', type: 'email' },
+    { name: 'usAddress', label: 'Фирма и адрес в САЩ', type: 'textarea' },
+    { name: 'googleMapsURL', label: 'Профил на бизнеса в Google Maps', type: 'text', validate: (value: unknown) => {
+      if (!value) return true
+      try { const url = new URL(String(value)); return url.protocol === 'https:' && ['google.com', 'www.google.com', 'maps.google.com', 'maps.app.goo.gl'].includes(url.hostname) ? true : 'Въведете HTTPS адрес на Google Maps.' } catch { return 'Невалиден адрес.' }
+    } },
     { name: 'viberURL', label: 'Viber група', type: 'text' },
     { name: 'facebookURL', label: 'Facebook', type: 'text' },
     { name: 'workingHours', label: 'Работно време', type: 'text' },

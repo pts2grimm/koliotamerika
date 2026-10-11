@@ -1,0 +1,23 @@
+.legacy-gallery{padding-block:56px}
+.legacy-gallery-heading{display:flex;align-items:end;justify-content:space-between;gap:24px;margin-bottom:20px}
+.legacy-gallery-heading h2{margin:12px 0;font-size:clamp(26px,3vw,40px);line-height:1.15}
+.legacy-gallery-heading p{max-width:640px;line-height:1.65;margin:0}
+.legacy-gallery-filter{display:grid;gap:8px;font-weight:700;min-width:220px}
+.legacy-gallery-filter select{width:100%;min-height:48px;padding:12px 42px 12px 14px;border:1px solid var(--line);border-radius:8px;background-color:var(--paper);color:var(--ink);font:inherit}
+.legacy-gallery-count{font-size:14px;opacity:.8}
+.legacy-photo-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:24px}
+.legacy-photo-grid figure{margin:0;min-width:0;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:var(--paper)}
+.legacy-photo-grid a{display:block}
+.legacy-photo-grid a:focus-visible{outline:3px solid var(--orange);outline-offset:-3px}
+.legacy-photo-grid img{display:block;width:100%;height:auto;aspect-ratio:4/3;object-fit:contain;background:var(--soft)}
+.legacy-photo-grid figcaption{padding:16px;line-height:1.5;overflow-wrap:anywhere}
+.legacy-photo-grid figcaption span{display:block;font-size:12px;margin-bottom:4px;opacity:.7}
+.legacy-photo-grid figcaption strong{font-size:15px}
+.legacy-examples .text-link{display:inline-block;margin-top:24px}
+.contact-methods .contact-address{white-space:pre-line}
+.contact-map-link{display:inline-block;margin-top:8px;font-weight:700}
+.footer-address{white-space:pre-line}
+@media(max-width:1000px){.legacy-photo-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:600px){.legacy-gallery{padding-block:32px}.legacy-gallery-heading{display:block}.legacy-gallery-filter{margin-top:20px;min-width:0}.legacy-photo-grid{grid-template-columns:minmax(0,1fr);gap:20px}}
+
+.legacy-gallery-select{display:block;position:relative}.legacy-gallery-select select{appearance:none}.legacy-gallery-select svg{position:absolute;right:14px;top:50%;transform:translateY(-50%);pointer-events:none}

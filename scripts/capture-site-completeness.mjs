@@ -48,7 +48,14 @@ gallery.sort((a,b)=>a.brand.localeCompare(b.brand)||a.title.localeCompare(b.titl
 const contactHTML=await(await get(origin+'/kontakti/')).text()
 const contacts=new JSDOM(contactHTML)
 const contactLinks=[...new Set([...contacts.window.document.querySelectorAll('a[href]')].map(el=>el.getAttribute('href')).filter(x=>/^(tel:|mailto:|viber:)|whatsapp|viber\.com|facebook|maps/.test(x)))]
-const report={capturedAt:new Date().toISOString(),source:origin,pages:pages.length,posts:posts.length,uncovered:records.filter(x=>!x.covered),contactLinks,records}
+const homeHTML=await(await get(origin+'/')).text()
+const home=new JSDOM(homeHTML)
+const verification=[...home.window.document.querySelectorAll('meta[name*="verification"]')].map(el=>({name:el.getAttribute('name'),content:el.getAttribute('content')}))
+const trackingIDs=[...new Set(homeHTML.match(/\b(?:GTM-[A-Z0-9]+|G-[A-Z0-9]{6,}|UA-\d+-\d+|AW-\d+)\b/g)||[])]
+const trackingScripts=[...home.window.document.querySelectorAll('script[src]')].map(el=>el.getAttribute('src')).filter(x=>/google|tagmanager|facebook|trustindex|cookie/i.test(x))
+home.window.close()
+console.log('LAUNCH_METADATA',JSON.stringify({verification,trackingIDs,trackingScripts}))
+const report={verification,trackingIDs,trackingScripts,capturedAt:new Date().toISOString(),source:origin,pages:pages.length,posts:posts.length,uncovered:records.filter(x=>!x.covered),contactLinks,records}
 await mkdir('reports/site-completeness',{recursive:true})
 await writeFile('reports/site-completeness/inventory.json',JSON.stringify(report,null,2)+'\n')
 await writeFile('reports/site-completeness/gallery-source.html',galleryHTML)

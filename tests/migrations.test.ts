@@ -37,13 +37,13 @@ function sandbox() {
     })
     assert.ifError(result.error)
     assert.equal(result.status, 0, result.stdout + result.stderr)
-    assert.doesNotMatch(result.stdout + result.stderr, /(?:Page SEO upgrade|Content review|Pricing details|Plain language update|Customer pricing update|Services review) deferred/, result.stdout + result.stderr)
+    assert.doesNotMatch(result.stdout + result.stderr, /(?:Page SEO upgrade|Content review|Pricing details|Plain language update|Customer pricing update|Services review|Gallery review) deferred/, result.stdout + result.stderr)
   }
   return { dir, filename, run }
 }
 function journal(db: DatabaseSync) {
   assert.deepEqual(db.prepare('SELECT name FROM payload_migrations ORDER BY name').all().map(row => row.name), [
-    '20261010_120440_initial', '20261010_135337_customer_accounts',
+    '20261010_120440_initial', '20261010_135337_customer_accounts', '20261012_010000_contact_details',
   ])
   for (const name of ['pages', 'site_settings', 'customers', 'saved_vehicles', 'inquiries']) {
     assert.ok(db.prepare("SELECT name FROM sqlite_master WHERE type = 'table' AND name = ?").get(name))
@@ -73,11 +73,13 @@ test('empty production startup and explicit preparation are repeatable', { timeo
     db = new DatabaseSync(filename)
     const count = db.prepare('SELECT COUNT(*) AS n FROM pages').get()?.n
     assert.ok(Number(count) >= 42)
+    assert.ok(String(db.prepare("SELECT body FROM pages WHERE slug = 'koli-ot-amerika-galeriya'").get()?.body).includes('Намери подобен автомобил'))
+    assert.ok(String(db.prepare("SELECT us_address FROM site_settings").get()?.us_address).includes('Pontus LLC'))
     const hash = db.prepare('SELECT hash FROM users').get()?.hash
     db.exec("UPDATE pages SET title = 'Editorial title' WHERE slug = 'kak-rabotim'")
     assert.equal(db.prepare("SELECT status FROM pages WHERE slug = 'clean-title-kola-ot-amerika'").get()?.status, 'draft')
     db.exec("UPDATE pages SET title = 'Edited blog draft', status = 'published', published_at = '2099-01-01T10:00:00.000Z' WHERE slug = 'clean-title-kola-ot-amerika'")
-    db.exec("UPDATE site_settings SET phone = '', email = 'edited@example.test'")
+    db.exec("UPDATE site_settings SET phone = '', email = 'edited@example.test', us_address = 'Edited US address', google_maps_u_r_l = ''")
     db.close()
     run()
     run('tests/fixtures/initialize-database.ts')
@@ -89,7 +91,7 @@ test('empty production startup and explicit preparation are repeatable', { timeo
     assert.deepEqual({ ...db.prepare("SELECT title, status, published_at FROM pages WHERE slug = 'clean-title-kola-ot-amerika'").get() }, {
       title: 'Edited blog draft', status: 'published', published_at: '2099-01-01T10:00:00.000Z',
     })
-    assert.deepEqual({ ...db.prepare('SELECT phone, email FROM site_settings').get() }, { phone: '', email: 'edited@example.test' })
+    assert.deepEqual({ ...db.prepare('SELECT phone, email, us_address, google_maps_u_r_l FROM site_settings').get() }, { phone: '', email: 'edited@example.test', us_address: 'Edited US address', google_maps_u_r_l: '' })
     db.close()
   } finally { rmSync(dir, { recursive: true, force: true }) }
 })
@@ -197,4 +199,22 @@ test('customer pricing update is atomic, preserves manual edits and runs once', 
 test('service review preserves custom fields and seed sections with transactional rollback', { timeout:300_000 },()=>{
  const {dir,run}=sandbox()
  try{run();run('tests/fixtures/services-review.ts')}finally{rmSync(dir,{recursive:true,force:true})}
+})
+
+test('partial contact migration preserves an existing settings row and retries safely', {timeout:300_000},()=>{
+ const {dir,filename,run}=sandbox()
+ try{
+  let db=new DatabaseSync(filename)
+  for(const statement of statements(initial))db.exec(statement)
+  for(const statement of statements(accounts))db.exec(statement)
+  db.exec("INSERT INTO payload_migrations (name,batch) VALUES ('20261010_120440_initial',1),('20261010_135337_customer_accounts',1)")
+  db.exec("ALTER TABLE site_settings ADD COLUMN us_address text")
+  db.exec("INSERT INTO site_settings (brand,phone,email,us_address) VALUES ('My business','123','owner@example.test','My US address')")
+  db.close()
+  run();run()
+  db=new DatabaseSync(filename);journal(db)
+  assert.deepEqual({...db.prepare('SELECT brand,phone,email,us_address FROM site_settings').get()},{brand:'My business',phone:'123',email:'owner@example.test',us_address:'My US address'})
+  assert.ok(String(db.prepare('SELECT google_maps_u_r_l FROM site_settings').get()?.google_maps_u_r_l).includes('ChIJXf7M8N24eyIRGQWGyPD0i9U'))
+  db.close()
+ }finally{rmSync(dir,{recursive:true,force:true})}
 })

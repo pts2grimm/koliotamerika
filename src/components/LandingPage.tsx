@@ -7,6 +7,8 @@ import { SiteLink as Link } from './SiteLink'
 import { EditorialContent } from './EditorialContent'
 import { LandingHero } from './LandingHero'
 import { CTA } from './CTA'
+import { LegacyGallery } from './LegacyGallery'
+import { LegacyExamples } from './LegacyExamples'
 import type { ReactNode } from 'react'
 
 const profiles: Record<string, { eyebrow: string; image?: string; tags: string[] }> = {
@@ -38,6 +40,7 @@ export async function LandingPage({ page, children }: { page: Page; children?: R
  return <div className="landing-page">
   <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(landingStructuredData(page, siteURL(), site.brand)).replace(/</g, '\\u003c') }} />
   <LandingHero title={page.title} intro={page.intro} eyebrow={page.eyebrow || profile?.eyebrow || 'Коли от Америка'} image={image} imageAlt={imageAlt(page.image, page.title)} tags={profile?.tags} />
+  {page.slug === 'koli-ot-amerika-galeriya' && <LegacyGallery />}
   {isServices && <section className="container landing-services" aria-labelledby="services-title"><div className="landing-section-heading"><span className="eyebrow orange">ОТ КАКВО ИМАШ НУЖДА?</span><h2 id="services-title">Всяка стъпка има значение.</h2></div><div className="landing-service-grid">{services.map(({ href, title, description, icon: Icon }, i) => <Link href={href} className="landing-service-card" key={href}><span className="landing-service-top"><Icon size={30} strokeWidth={1.5} /><span>0{i + 1}</span></span><h3>{title}</h3><p>{description}</p><span className="landing-service-link">Разгледай услугата<ArrowUpRight size={21} /></span></Link>)}</div></section>}
   <div className="container landing-content-grid" id="landing-content">
    <aside className="landing-aside"><div className="landing-aside-inner"><nav aria-label="На тази страница"><span className="eyebrow orange">НА ТАЗИ СТРАНИЦА</span><ol>{sections.map((section, i) => <li key={section.id}><a href={'#' + section.id}><span>{String(i + 1).padStart(2, '0')}</span>{section.title}</a></li>)}</ol></nav><div className="landing-help"><span className="eyebrow">ТВОЯТА СЛЕДВАЩА СТЪПКА</span><h2>Имаш конкретен автомобил предвид?</h2><p>Изпрати модела или обявата. Нека обсъдим възможностите.</p><Link href="/kontakti">Изпрати запитване<ArrowUpRight size={19} /></Link></div></div></aside>
@@ -46,6 +49,7 @@ export async function LandingPage({ page, children }: { page: Page; children?: R
     return /[?？]\s*$/.test(section.title) ? <details className="landing-question" id={section.id} key={section.id}><summary><span>{section.title}</span><ChevronDown size={22} /></summary><div className="landing-rich">{content}</div></details> : <section className="landing-chapter" id={section.id} key={section.id}><span className="landing-chapter-number" aria-hidden="true">{String(i + 1).padStart(2, '0')}</span><h2>{section.title}</h2><div className="landing-rich">{content}</div></section>
    })}</div>
   </div>
+  <LegacyExamples slug={page.slug} />
   {children}
   <section className="container landing-next"><div><span className="eyebrow orange">ПЛАНИРАЙ СЛЕДВАЩИЯ ХОД</span><h2>От информацията<br />към твоя автомобил.</h2></div><div className="landing-next-links">{related.map(link => <Link key={link.href} href={link.href}><span>{link.label}</span><ArrowUpRight /></Link>)}</div></section>
   <CTA />

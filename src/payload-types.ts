@@ -790,6 +790,8 @@ export interface PayloadMigrationsSelect<T extends boolean = true> {
  */
 export interface SiteSetting {
   id: number;
+  usAddress?: string | null;
+  googleMapsURL?: string | null;
   brand: string;
   phone?: string | null;
   email?: string | null;
@@ -840,6 +842,8 @@ export interface CalculatorSetting {
  * via the `definition` "site-settings_select".
  */
 export interface SiteSettingsSelect<T extends boolean = true> {
+  usAddress?: T;
+  googleMapsURL?: T;
   brand?: T;
   phone?: T;
   email?: T;
