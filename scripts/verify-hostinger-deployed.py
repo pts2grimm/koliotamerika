@@ -6,7 +6,7 @@ from concurrent.futures import ThreadPoolExecutor
 from html.parser import HTMLParser
 from urllib.parse import urlsplit
 import requests
-from PIL import Image, ImageOps
+from PIL import Image, ImageOps, ImageChops, ImageStat
 from io import BytesIO
 
 BASE = 'https://papayawhip-ram-220810.hostingersite.com'
@@ -52,13 +52,19 @@ def image_check(item):
   errors=[]
   if r.status_code!=200: errors.append('HTTP '+str(r.status_code))
   same_pixels=None
+  difference=None
   if not r.headers.get('Content-Type','').startswith('image/'): errors.append('not an image response')
   if digest!=item['sha256']:
    original=ImageOps.exif_transpose(Image.open(Path('public')/item['path'].lstrip('/'))).convert('RGBA')
    served=ImageOps.exif_transpose(Image.open(BytesIO(r.content))).convert('RGBA')
    same_pixels=original.size==served.size and original.tobytes()==served.tobytes()
-   if not same_pixels: errors.append('decoded pixels differ from original')
-  return {'path':path,'status':r.status_code,'bytes':len(r.content),'sha256':digest,'byteIdentical':digest==item['sha256'],'pixelsIdentical':same_pixels,'errors':errors}
+   if not same_pixels:
+    if original.size!=served.size: errors.append('image dimensions changed')
+    else:
+     stats=ImageStat.Stat(ImageChops.difference(original.convert('RGB'),served.convert('RGB')))
+     difference={'dimensions':list(original.size),'meanChannelDifference':stats.mean,'rmsChannelDifference':stats.rms,'maxChannelDifference':[v[1] for v in stats.extrema]}
+     errors.append('decoded pixels differ from original')
+  return {'path':path,'status':r.status_code,'bytes':len(r.content),'sha256':digest,'byteIdentical':digest==item['sha256'],'pixelsIdentical':same_pixels,'difference':difference,'headers':{k:v for k,v in r.headers.items() if k.lower() in ['server','content-type','etag','cache-control','x-hcdn-cache-status','x-hcdn-request-id','vary']},'errors':errors}
  except Exception as e:return {'path':path,'errors':[str(e)]}
 with ThreadPoolExecutor(max_workers=3) as pool:
  pages=list(pool.map(page_check,baseline['rows']))
