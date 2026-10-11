@@ -47,6 +47,14 @@ export function reviewedHTML(original: string, revision: ContentRevision): strin
   for (const link of document.querySelectorAll('a')) {
    const label = plain(link.textContent || '')
    let href = reviewedHref(link.getAttribute('href') || '')
+   if (href.startsWith('/') && !href.startsWith('//')) {
+    if (/калкулатор/i.test(label)) href = '/kalkulator'
+    else if (/термини|термините|терминология|терминологията|термини и кодове/i.test(label)) href = '/aukcioni-za-koli-v-amerika'
+    else if (/^(актуалните коли на търг|кола от търг|търгове в Америка)$/i.test(label)) href = '/targove'
+    else if (label === 'Copart') href = 'https://www.copart.com/'
+    if (revision.slug === 'amerikanski-avtomobilen-pazar' && label === 'нашата подробна статия') href = '/homologacia-na-koli'
+    if (revision.slug === 'tehnotest-za-avtomobili' && /технотест/i.test(label)) href = '/homologacia'
+   }
    if (href === '/' && /технотест|хомологаци|адаптаци/i.test(label)) href = '/homologacia'
    else if (href === '/' && /мотори|ATV|АТВ/i.test(label)) href = '/vnos-na-motori-ot-sasht'
    else if (href === '/' && /свърж|контакт/i.test(label)) href = '/kontakti'

@@ -20,6 +20,7 @@ for (const revision of revisions as ContentRevision[]) test('review applies exac
   for (const a of dom.window.document.querySelectorAll('a')) {
    const href = a.getAttribute('href')!
    assert.equal(reviewedHref(href), href)
+   if (/калкулатор/i.test(a.textContent || '')) assert.equal(href, '/kalkulator')
    assert.ok(a.textContent?.trim() || a.querySelector('img[alt]'), 'empty link: ' + href)
    assert.doesNotMatch(href, /usimportauto|^http:\/\/(?:www\.)?(?:copart|iaai)/)
   }

@@ -11,7 +11,24 @@ try {
  const count = await payload.count({collection:'payload-kv',where:{key:{like:'content:review:2026-10:v1:'}}})
  assert.equal(count.totalDocs,revisions.length)
  const journals = await payload.find({collection:'payload-kv',limit:revisions.length,where:{key:{in:revisions.map(r=>contentReviewKey(r.slug))}}})
- for(const row of journals.docs) assert.equal((row.data as {bodyPreserved:boolean}).bodyPreserved,false,'Untouched body should be reviewed: '+row.key)
+ const diagnosticConfig = await editorConfigFactory.default({config:payload.config})
+ function differences(a:unknown,b:unknown,path=''):string[]{
+  if(JSON.stringify(a)===JSON.stringify(b))return []
+  if(a && b && typeof a==='object' && typeof b==='object'){
+   return [...new Set([...Object.keys(a),...Object.keys(b)])].flatMap(k=>differences((a as Record<string,unknown>)[k],(b as Record<string,unknown>)[k],path+'.'+k)).slice(0,15)
+  }
+  return [path+': '+JSON.stringify(a)+' != '+JSON.stringify(b)]
+ }
+ const skipped=[]
+ for(const row of journals.docs){
+  const data=row.data as {bodyPreserved:boolean;before:{body:unknown}}
+  if(data.bodyPreserved){
+   const source=snapshot.items.find(item=>contentReviewKey(item.slug)===row.key)!
+   const converted=convertHTMLToLexical({editorConfig:diagnosticConfig,html:source.html,JSDOM})
+   skipped.push({slug:source.slug,differences:differences(data.before.body,converted)})
+  }
+ }
+ assert.deepEqual(skipped,[],'Untouched bodies must all be updated')
  assert.equal(await upgradeContentReview(payload),0)
  const original = snapshot.items.find(item=>item.slug==='homologacia')!
  const page = (await payload.find({collection:'pages',where:{slug:{equals:original.slug}},depth:0,limit:1})).docs[0]
