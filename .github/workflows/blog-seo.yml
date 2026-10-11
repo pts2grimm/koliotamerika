@@ -1,7 +1,7 @@
 name: Blog SEO verification
 on:
   push:
-    branches: [codex/blog-seo-foundation]
+    branches: ['codex/blog-*']
 permissions:
   contents: read
 jobs:

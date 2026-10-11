@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test'
-import redirects from '../content/legacy-redirects.json'
+import redirects from '../content/legacy-redirects.json' with { type: 'json' }
+import snapshot from '../content/wordpress.json' with { type: 'json' }
 test('blog SEO, migration URLs, draft protection and timed release', async ({ page, playwright }) => {
  const baseURL = 'http://localhost:3100'
  const visitor = await playwright.request.newContext({ baseURL, userAgent: 'Twitterbot/1.0' })
@@ -37,6 +38,10 @@ test('blog SEO, migration URLs, draft protection and timed release', async ({ pa
     await page.reload()
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true)
    }
+  }
+  for (const article of snapshot.items.filter(item => item.kind === 'article')) {
+   const response = await visitor.get('/' + article.slug)
+   expect(response.status(), article.slug).toBe(200)
   }
   const slug = 'clean-title-kola-ot-amerika'
   expect((await visitor.get('/' + slug)).status()).toBe(404)
