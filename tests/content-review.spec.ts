@@ -1,6 +1,7 @@
 import { test, expect } from '@playwright/test'
 import { JSDOM } from 'jsdom'
 import snapshot from '../content/wordpress.json' with { type:'json' }
+import customer from '../content/customer-pricing-2026-10.json' with { type:'json' }
 import plain from '../content/plain-language-2026-10.json' with { type:'json' }
 import details from '../content/pricing-details-2026-10.json' with { type:'json' }
 import revisions from '../content/content-review-2026-10.json' with { type:'json' }
@@ -36,9 +37,15 @@ test('all public content has working contextual links, metadata and one H1',asyn
  }
  for(const detail of details) {
   const doc=new JSDOM(documents.get('/'+detail.slug)!)
-  const source=new JSDOM(plain.find(item=>item.slug===detail.slug)?.html ?? detail.html)
+  const source=new JSDOM(customer.find(item=>item.slug===detail.slug)?.html ?? plain.find(item=>item.slug===detail.slug)?.html ?? detail.html)
   expect(doc.window.document.querySelectorAll('table').length,detail.slug).toBeGreaterThanOrEqual(source.window.document.querySelectorAll('table').length)
   expect(doc.window.document.body.textContent,detail.slug).toContain(source.window.document.querySelector('h2,h3')!.textContent)
+  if(customer.some(item=>item.slug===detail.slug)) {
+   // Assert the server response, before clicks: collapsed sections must already contain the copy.
+   expect(doc.window.document.body.textContent).toContain('Наша цена за покупка и обработка')
+   expect(doc.window.document.body.textContent).not.toMatch(/secured|clean/i)
+   expect(doc.window.document.querySelector('table')?.querySelectorAll('th').length).toBe(2)
+  }
   doc.window.close();source.window.close()
  }
  const broken:string[]=[]
@@ -105,7 +112,7 @@ test('services dropdown supports keyboard, outside click and mobile navigation i
    await expect(page).toHaveURL(/vnos-na-koli-ot-amerika-cena$/)
    await expect(page.locator('#services-navigation')).toBeHidden()
    await expect(page.locator('table')).toHaveCount(5)
-   await expect(page.getByText('€17 661.84',{exact:true})).toBeVisible()
+   await expect(page.getByText('€18 335.44',{exact:true})).toBeVisible()
    expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1)).toBe(true)
    await page.screenshot({path:`test-results/prices-${theme}-${width}.png`,fullPage:true})
   }

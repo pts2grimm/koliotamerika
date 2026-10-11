@@ -37,7 +37,7 @@ function sandbox() {
     })
     assert.ifError(result.error)
     assert.equal(result.status, 0, result.stdout + result.stderr)
-    assert.doesNotMatch(result.stdout + result.stderr, /(?:Page SEO upgrade|Content review|Pricing details|Plain language update) deferred/, result.stdout + result.stderr)
+    assert.doesNotMatch(result.stdout + result.stderr, /(?:Page SEO upgrade|Content review|Pricing details|Plain language update|Customer pricing update) deferred/, result.stdout + result.stderr)
   }
   return { dir, filename, run }
 }
@@ -187,4 +187,9 @@ test('pricing detail upgrade preserves manual edits and commits tables with its 
 test('plain-language revision preserves custom content, metadata and transaction rollback', { timeout:300_000 },()=>{
  const {dir,run}=sandbox()
  try{run();run('tests/fixtures/plain-language.ts')}finally{rmSync(dir,{recursive:true,force:true})}
+})
+
+test('customer pricing update is atomic, preserves manual edits and runs once', { timeout:300_000 },()=>{
+ const {dir,run}=sandbox()
+ try{run();run('tests/fixtures/customer-pricing.ts')}finally{rmSync(dir,{recursive:true,force:true})}
 })

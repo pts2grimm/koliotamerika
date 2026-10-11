@@ -60,5 +60,14 @@ export async function initializeContent(payload: Payload, options: { preview: bo
       payload.logger.warn({ err: error }, '[bootstrap] Plain language update deferred; existing content preserved.')
     }
   }
+  if (options.importLegacy) {
+    try {
+      const { upgradeCustomerPricing } = await import('./customer-pricing-upgrade')
+      const updated = await upgradeCustomerPricing(payload)
+      if (updated) payload.logger.info(`[bootstrap] Updated customer pricing on ${updated} pages.`)
+    } catch (error) {
+      payload.logger.warn({ err: error }, '[bootstrap] Customer pricing update deferred; existing content preserved.')
+    }
+  }
   payload.logger.info('[bootstrap] Ready.')
 }
