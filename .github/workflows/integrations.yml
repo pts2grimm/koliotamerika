@@ -16,5 +16,6 @@ jobs:
       - run: npm ci --include=dev
       - name: Installed Next documentation
         run: |
-          find node_modules/next/dist/docs -type f | grep -E '(script|after|server-and-client-components)'
-          find node_modules/next/dist/docs -type f | grep -E '(01-app/.*(script|after)\\.md$|server-and-client-components\\.md$)' | xargs cat
+          cat node_modules/next/dist/docs/01-app/03-api-reference/04-functions/after.md
+          cat node_modules/next/dist/docs/01-app/03-api-reference/02-components/script.md
+          cat node_modules/next/dist/docs/01-app/01-getting-started/05-server-and-client-components.md
