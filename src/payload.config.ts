@@ -23,7 +23,17 @@ export default buildConfig({
   secret: process.env.PAYLOAD_SECRET,
   serverURL: process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:3000',
   graphQL: { disable: true },
-  admin: { user: 'users', meta: { titleSuffix: ' · Коли от Америка' } },
+  admin: {
+    user: 'users',
+    meta: { titleSuffix: ' · Коли от Америка' },
+    components: {
+      beforeNavLinks: ['/src/components/admin/ContentNav#ContentNav'],
+      views: {
+        sitePages: { Component: '/src/components/admin/ContentList#SitePagesView', path: '/site-pages', exact: true, meta: { title: 'Страници' } },
+        blogPosts: { Component: '/src/components/admin/ContentList#BlogPostsView', path: '/blog-posts', exact: true, meta: { title: 'Блог' } },
+      },
+    },
+  },
   i18n: { fallbackLanguage: 'bg', supportedLanguages: { bg, en } },
   collections: [Users, Customers, SavedVehicles, Media, Cars, Pages, Inquiries, AuctionQuotes, Redirects, RateLimits],
   globals: [SiteSettings, CalculatorSettings],

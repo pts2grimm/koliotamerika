@@ -28,9 +28,17 @@ export const Cars: CollectionConfig = { slug: 'cars', labels: { singular: 'Ав�
   { name: 'description', label: 'Описание и какво включва цената', type: 'textarea', required: true },
   { name: 'features', label: 'Оборудване', type: 'array', fields: [{ name: 'label', label: 'Екстра', type: 'text', required: true }] }, ...seoFields
 ] }
-export const Pages: CollectionConfig = { slug: 'pages', labels: { singular: 'Страница', plural: 'Страници и статии' }, admin: { useAsTitle: 'title', defaultColumns: ['title', 'kind', 'status', 'publishedAt'] }, access: { read: publishedPages, create: staff, update: staff, delete: staff }, fields: [
+export const Pages: CollectionConfig = { slug: 'pages', labels: { singular: 'Материал', plural: 'Съдържание' }, admin: {
+    useAsTitle: 'title',
+    group: false,
+    defaultColumns: ['title', 'kind', 'status', 'publishedAt'],
+    components: {
+      views: { list: { Component: '/src/components/admin/ContentList#ContentIndex' } },
+      edit: { beforeDocumentControls: ['/src/components/admin/ContentBackLink#ContentBackLink'] },
+    },
+  }, access: { read: publishedPages, create: staff, update: staff, delete: staff }, fields: [
   { name: 'title', label: 'Заглавие', type: 'text', required: true }, { ...slug, validate: (value: unknown) => typeof value === 'string' && /^[a-z0-9]+(?:[-/][a-z0-9]+)*$/.test(value) && !['admin', 'api', 'blog', 'kalkulator', 'targove', 'avtomobili', 'kontakti', 'sitemap', 'robots', 'profil', 'vhod', 'registracia', 'zabravena-parola', 'nova-parola'].includes(value) ? true : 'Невалиден или запазен URL адрес.' }, status,
-  { name: 'kind', label: 'Тип', type: 'select', defaultValue: 'page', options: [{ label: 'Страница', value: 'page' }, { label: 'Статия', value: 'article' }] },
+  { name: 'kind', label: 'Тип', type: 'select', defaultValue: ({ req }) => req?.query?.kind === 'article' ? 'article' : 'page', options: [{ label: 'Страница', value: 'page' }, { label: 'Статия', value: 'article' }] },
   { name: 'eyebrow', label: 'Кратък надпис', type: 'text' },
   { name: 'intro', label: 'Въведение', type: 'textarea', required: true },
   { name: 'image', label: 'Основна снимка', type: 'upload', relationTo: 'media' },
