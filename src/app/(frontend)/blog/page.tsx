@@ -7,7 +7,7 @@ import { SiteLink as Link } from '@/components/SiteLink'
 import { ArrowUpRight } from 'lucide-react'
 import { cms, mediaUrl } from '@/lib/data'
 const getArticles = cache(async (page: number) => {
- const articles = await (await cms()).find({ collection: 'pages', overrideAccess: false, where: { kind: { equals: 'article' } }, sort: '-publishedAt', limit: 12, page })
+ const articles = await (await cms()).find({ collection: 'pages', overrideAccess: false, where: { kind: { equals: 'article' } }, sort: '-publishedAt', limit: 6, page })
  if (page > 1 && page > articles.totalPages) notFound()
  return articles
 })
