@@ -51,5 +51,14 @@ export async function initializeContent(payload: Payload, options: { preview: bo
       payload.logger.warn({ err: error }, '[bootstrap] Pricing details deferred; existing content preserved.')
     }
   }
+  if (options.importLegacy) {
+    try {
+      const { upgradePlainLanguage } = await import('./plain-language-upgrade')
+      const updated = await upgradePlainLanguage(payload)
+      if (updated) payload.logger.info(`[bootstrap] Simplified language on ${updated} pages.`)
+    } catch (error) {
+      payload.logger.warn({ err: error }, '[bootstrap] Plain language update deferred; existing content preserved.')
+    }
+  }
   payload.logger.info('[bootstrap] Ready.')
 }

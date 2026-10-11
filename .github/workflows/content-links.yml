@@ -1,7 +1,7 @@
 name: Content and link verification
 on:
   push:
-    branches: ['codex/content-links', 'codex/pricing-details']
+    branches: ['codex/content-links', 'codex/pricing-details', 'codex/plain-language']
 permissions:
   contents: read
 jobs:
