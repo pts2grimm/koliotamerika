@@ -34,7 +34,7 @@ export function contentReviewUpdate(page: Page, baseline: { title: string; intro
 export async function upgradeContentReview(payload: Payload) {
  let updated = 0
  const keys = revisions.map(item => contentReviewKey(item.slug))
- const applied = new Set((await payload.find({ collection:'payload-kv', limit:keys.length, depth:0, where:{key:{in:keys}} })).docs.map(item => item.key))
+ const applied = new Set((await payload.find({ collection:'payload-kv', limit:keys.length, depth:0, select:{key:true}, where:{key:{in:keys}} })).docs.map(item => item.key))
  let editorConfig: Awaited<ReturnType<typeof editorConfigFactory.default>> | undefined
  for (const revision of revisions as ContentRevision[]) {
   const key = contentReviewKey(revision.slug)

@@ -16,7 +16,7 @@ test('all public content has working contextual links, metadata and one H1',asyn
   const dom=new JSDOM(html), doc=dom.window.document
   try{
    expect(doc.querySelectorAll('h1').length,route).toBe(1)
-   expect(doc.querySelector('link[rel=canonical]')?.getAttribute('href'),route).toBe(base+route)
+   expect(doc.querySelector('link[rel=canonical]')?.getAttribute('href'),route).toBe(base+(route === '/' ? '' : route))
    expect(doc.querySelector('meta[name=description]')?.getAttribute('content')?.length,route).toBeGreaterThan(30)
    const revision=revisions.find(r=>'/'+r.slug===route)
    if(revision && 'title' in revision && revision.title) expect(doc.querySelector('h1')?.textContent).toBe(revision.title)
