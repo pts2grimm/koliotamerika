@@ -54,3 +54,12 @@ test('undefined Lexical list fields are equivalent to the persisted JSON baselin
  const reviewed = {...baseline.body,root:{...root,children:[]}} as Page['body']
  assert.deepEqual(contentReviewUpdate(page,baseline,{slug:'test'},reviewed).body,reviewed)
 })
+
+test('generated link IDs do not hide genuine URL or relationship edits', () => {
+ const makeBody=(id:string,url:string)=>({root:{type:'root',version:1,direction:null,format:'',indent:0,children:[{type:'link',version:1,id,fields:{url},children:[]}]}}) as Page['body']
+ const baseline={title:'Original',intro:'Original',seoTitle:'',seoDescription:'',body:makeBody('import-id','/kontakti')}
+ const page={...baseline,body:makeBody('stored-id','/kontakti'),seo:{}} as unknown as Page
+ const replacement=makeBody('new-id','/kalkulator')
+ assert.deepEqual(contentReviewUpdate(page,baseline,{slug:'test'},replacement).body,replacement)
+ assert.equal(contentReviewUpdate({...page,body:makeBody('stored-id','/uslugi')},baseline,{slug:'test'},replacement).body,undefined)
+})
