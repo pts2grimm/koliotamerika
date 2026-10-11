@@ -237,3 +237,8 @@ test('calculator migration resumes with existing new columns and preserves legac
   db.close()
  }finally{rmSync(dir,{recursive:true,force:true})}
 })
+
+test('confirmed terms update rolls back with its journal and respects later edits', {timeout:300_000},()=>{
+ const {dir,run}=sandbox()
+ try{run();run('tests/fixtures/clarity.ts')}finally{rmSync(dir,{recursive:true,force:true})}
+})
