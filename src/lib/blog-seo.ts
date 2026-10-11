@@ -13,11 +13,11 @@ export function isoDate(value?: string | null) {
 export function articleStructuredData(article: {
   title: string; slug: string; intro: string; publishedAt?: string | null;
   updatedAt?: string | null; sourceURL?: string | null
-}, base: string, brand: string, image?: string) {
+}, base: string, brand: string, image?: string, reviewedAt?: string) {
   const url = new URL('/' + article.slug, base).href
   const published = isoDate(article.publishedAt)
   // Database import time is not an editorial update to a legacy article.
-  const modified = article.sourceURL ? undefined : isoDate(article.updatedAt)
+  const modified = isoDate(reviewedAt) || (article.sourceURL ? undefined : isoDate(article.updatedAt))
   return {
     '@context': 'https://schema.org',
     '@graph': [{
