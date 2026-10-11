@@ -29,10 +29,12 @@ export function contentReviewUpdate(page: Page, baseline: { title: string; intro
 }
 export async function upgradeContentReview(payload: Payload) {
  let updated = 0
+ const keys = revisions.map(item => contentReviewKey(item.slug))
+ const applied = new Set((await payload.find({ collection:'payload-kv', limit:keys.length, depth:0, where:{key:{in:keys}} })).docs.map(item => item.key))
  let editorConfig: Awaited<ReturnType<typeof editorConfigFactory.default>> | undefined
  for (const revision of revisions as ContentRevision[]) {
   const key = contentReviewKey(revision.slug)
-  if ((await payload.count({ collection: 'payload-kv', where: { key: { equals: key } } })).totalDocs) continue
+  if (applied.has(key)) continue
   const original = snapshot.items.find(item => item.slug === revision.slug)
   if (!original) throw new Error('Missing content baseline: ' + revision.slug)
   editorConfig ??= await editorConfigFactory.default({ config: payload.config })

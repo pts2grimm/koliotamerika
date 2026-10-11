@@ -37,7 +37,7 @@ function sandbox() {
     })
     assert.ifError(result.error)
     assert.equal(result.status, 0, result.stdout + result.stderr)
-    assert.doesNotMatch(result.stdout + result.stderr, /Page SEO upgrade deferred/, result.stdout + result.stderr)
+    assert.doesNotMatch(result.stdout + result.stderr, /(?:Page SEO upgrade|Content review) deferred/, result.stdout + result.stderr)
   }
   return { dir, filename, run }
 }
@@ -172,4 +172,9 @@ test('SEO upgrade journals once, preserves edited fields and never republishes p
   db.close()
   run('tests/fixtures/page-seo-rollback.ts')
  } finally { rmSync(dir, { recursive: true, force: true }) }
+})
+
+test('content review is atomic, idempotent and preserves edited CMS content', { timeout: 300_000 }, () => {
+ const { dir, run } = sandbox()
+ try { run(); run('tests/fixtures/content-review.ts') } finally { rmSync(dir, { recursive:true, force:true }) }
 })
