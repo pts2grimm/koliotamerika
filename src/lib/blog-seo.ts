@@ -36,6 +36,6 @@ export function articleStructuredData(article: {
         { '@type': 'ListItem', position: 2, name: 'Блог', item: new URL('/blog', base).href },
         { '@type': 'ListItem', position: 3, name: article.title, item: url },
       ],
-    }],
+    }] as const,
   }
 }
