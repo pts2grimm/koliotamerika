@@ -8,7 +8,7 @@ const cars = Array.from({ length: 30 }, (_, i) => ({
  vin: 'WBA' + String(i).padStart(14, '0'), fuel: 'GAS', currency: 'USD',
  item_type: 'VEHTYPE_V', title_type: 'Certificate of Title', title_state: 'GA',
  seller: 'Test Seller', state: 'GA', city: 'Macon', engine: '3.0L', transmission: 'Automatic', drive: 'AWD',
- status: 'active', highlights: ['Run & Drive'], primary_damage: { id: 1, name: 'Front End' },
+ status: 'active', highlights: ['RUNS AND DRIVES'], primary_damage: { id: 1, name: 'Front End' },
  current_bid: 5500 + i * 100, odometer: 45000, sale_date: '2030-10-12T14:00:00.000Z', images, thumb_url: images[0],
 }))
 cars.push({ ...cars[0], id: 2000, lot_number: '80000000', make: { id: 2, name: 'Ford' }, model: { id: 20, name: 'Mustang', make_id: 2 }, name: '2022 Ford Mustang', vin: '1FA00000000000001' })
@@ -19,7 +19,7 @@ createServer((req, res) => {
  if (url.pathname === '/test-requests') return send({ requests })
  if (req.headers.authorization !== 'Bearer eridan-local-fixture') return send({ error: 'unauthorized' }, 401)
  requests.push({ path: url.pathname, params: Object.fromEntries(p) })
- if (url.pathname === '/item_types') return send([{ value: 'VEHTYPE_V', label: 'Automobile' }])
+ if (url.pathname === '/item_types') return send([{ value: 'VEHTYPE_V', label: 'Vehicle' }])
  if (url.pathname === '/fuel_types') return send(['GAS', 'DIESEL', 'ELECTRIC', 'HYBRID ENGINE'])
  if (url.pathname === '/makes') return send({ items: [{ id: 1, name: 'BMW' }, { id: 2, name: 'Ford' }], count: 2 })
  if (url.pathname === '/models') return send({ items: [{ id: 10, name: 'X5', make_id: 1 }, { id: 11, name: 'X3', make_id: 1 }, { id: 20, name: 'Mustang', make_id: 2 }], count: 3 })

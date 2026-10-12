@@ -16,7 +16,7 @@ function mechanicalStatus(raw: Record<string, unknown>) {
  const highlights = Array.isArray(raw.highlights) ? raw.highlights : []
  for (const value of highlights) {
   if (typeof value !== 'string') continue
-  if (/^run\s*(?:&|and)\s*drive$/i.test(value.trim())) return 'Run & Drive'
+  if (/^runs?\s*(?:&|and)\s*drives?$/i.test(value.trim())) return 'Run & Drive'
   if (/^(?:engine\s*start(?:s|\s*program)?|starts)$/i.test(value.trim())) return 'Starts'
   if (/^stationary$/i.test(value.trim())) return 'Stationary'
  }
@@ -83,7 +83,7 @@ export function createEridanProvider(request: AuctionTransport): AuctionProvider
  const automobileCode = () => automobile ||= (async () => {
   const raw = await request('/item_types', new URLSearchParams())
   if (!Array.isArray(raw)) throw new Error('Invalid Eridan vehicle types')
-  const match = raw.map(record).find(row => /^(?:automobiles?|passenger vehicles?)$/i.test(text(row.label) || ''))
+  const match = raw.map(record).find(row => /^(?:vehicle|automobiles?|passenger vehicles?)$/i.test(text(row.label) || ''))
   if (!match || !/^VEHTYPE_[A-Z]$/.test(text(match.value) || '')) throw new Error('Eridan automobile category is not confirmed')
   return String(match.value)
  })().catch(error => { automobile = undefined; throw error })

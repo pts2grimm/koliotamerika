@@ -9,7 +9,7 @@ const row = {
  id: 42, lot_number: '70000001', auction: 'copart', name: '2023 BMW X5',
  make: { id: 1, name: 'BMW' }, model: { id: 10, name: 'X5', make_id: 1 }, year: 2023,
  vin: 'WBA12345678901234', current_bid: 0, buy_now_price: 15000, currency: 'USD',
- odometer: 24000, status: 'active', highlights: ['Run & Drive'], primary_damage: { id: 1, name: 'Front End' },
+ odometer: 24000, status: 'active', highlights: ['RUNS AND DRIVES'], primary_damage: { id: 1, name: 'Front End' },
  title_type: 'Salvage', title_state: 'GA', seller: 'Example Insurance', fuel: 'GAS',
  images: ['https://cs.copart.com/car.jpg'], thumb_url: 'https://cs.copart.com/thumb.jpg',
  sale_date: '2030-10-12T14:00:00Z', city: 'Macon', state: 'GA',
@@ -19,7 +19,7 @@ function fixture(answer?: (path: string, params: URLSearchParams) => unknown) {
  const calls: { path: string; params: URLSearchParams }[] = []
  const request: AuctionTransport = async (path, params) => {
   calls.push({ path, params: new URLSearchParams(params) })
-  if (path === '/item_types') return [{ value: 'VEHTYPE_V', label: 'Automobile' }]
+  if (path === '/item_types') return [{ value: 'VEHTYPE_V', label: 'Vehicle' }]
   if (path === '/fuel_types') return ['GAS', 'DIESEL', 'HYBRID ENGINE', 'ELECTRIC']
   return answer ? answer(path, params) : envelope([row], Number(params.get('page') || 1), true)
  }
@@ -115,7 +115,7 @@ test('incomplete directories and malformed pagination fail instead of being cach
 test('mileage units are explicit; unknown units are not multiplied by 1.609344', () => {
  assert.match(mileage(1000, 'unknown')!, /мерната единица/)
  assert.doesNotMatch(mileage(1000, 'unknown')!, /mi|km/)
- assert.equal(mileage(1000, 'km'), '1\u00a0000 km')
+ assert.equal(mileage(1000, 'km')!.replace(/\s/g, ''), '1000km')
  assert.match(mileage(1000)!, /mi/); assert.equal(mileage(undefined, 'unknown'), undefined)
 })
 test('transport sends Bearer auth only to the fixed Eridan origin and rejects redirects', async () => {

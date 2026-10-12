@@ -15,7 +15,7 @@ jobs:
           node-version: '24'
           cache: npm
       - run: npm ci --include=dev
-      - run: npm test
+      - run: npx tsx --test tests/eridan.test.ts
       - name: Production build for isolated browser tests
         run: npm run build
         env:
@@ -25,6 +25,7 @@ jobs:
           NEXT_PUBLIC_SERVER_URL: http://localhost:3100
           SITE_INDEXABLE: 'false'
       - run: npm run typecheck
+      - run: npm test
       - run: npx playwright install --with-deps chromium
       - run: npx playwright test --config=playwright.eridan.config.ts
       - uses: actions/upload-artifact@v4
@@ -42,23 +43,43 @@ jobs:
       - name: Verify protected Eridan access without logging credentials or vehicle identities
         run: |
           python3 - <<'PY'
-          import os,urllib.request,urllib.error,urllib.parse,json
+          import os,urllib.request,urllib.error,urllib.parse,json,re
           key=os.environ.get('ERIDAN_API_KEY','').strip()
           if not key:
               print('LIVE_CHECK_SKIPPED: ERIDAN_API_KEY repository secret is not configured.')
               raise SystemExit(0)
           class NoRedirect(urllib.request.HTTPRedirectHandler):
-              def redirect_request(self, req, fp, code, msg, headers, newurl):
-                  return None
+              def redirect_request(self, req, fp, code, msg, headers, newurl): return None
           opener=urllib.request.build_opener(NoRedirect())
-          for path in ['/api/item_types','/api/fuel_types','/api/lots?page_size=2']:
+          def get(path,params=None):
+              url='https://catalog.eridan.software/api'+path
+              if params: url+='?'+urllib.parse.urlencode(params)
+              req=urllib.request.Request(url,headers={'Authorization':'Bearer '+key,'Accept':'application/json'})
               try:
-                  req=urllib.request.Request('https://catalog.eridan.software'+path,headers={'Authorization':'Bearer '+key,'Accept':'application/json'})
-                  with opener.open(req,timeout=30) as r: data=json.load(r); print('HTTP',path,r.status)
-                  if path.startswith('/api/lots'):
-                      print('PAGINATION',{k:data.get(k) for k in ['page','page_size','has_next']})
-                      for item in data.get('items',[]):
-                          print('LOT_CONTRACT',json.dumps({'keys':list(item),'auction':item.get('auction'),'status':item.get('status'),'highlights':item.get('highlights'),'item_type':item.get('item_type'),'fuel':item.get('fuel'),'country':item.get('country'),'currency':item.get('currency'),'image_hosts':list(set(urllib.parse.urlparse(u).hostname for u in item.get('images',[]) if isinstance(u,str))),'odometer_unit':item.get('odometer_unit')},ensure_ascii=False))
-                  else: print('DIRECTORY',path,json.dumps(data,ensure_ascii=False))
-              except urllib.error.HTTPError as e: print('HTTP_ERROR',path,e.code); raise SystemExit(1)
+                  with opener.open(req,timeout=30) as r:
+                      print('HTTP',path,r.status)
+                      return json.load(r)
+              except urllib.error.HTTPError as e:
+                  print('HTTP_ERROR',path,e.code); raise SystemExit(1)
+              except Exception:
+                  print('CONNECTION_OR_JSON_ERROR',path); raise SystemExit(1)
+          for path in ['/item_types','/fuel_types']:
+              print('DIRECTORY',path,json.dumps(get(path),ensure_ascii=False))
+          for auction in ['copart','iaai']:
+              data=get('/lots',{'auction':auction,'item_type':'VEHTYPE_V','has_images':'true','page_size':3})
+              print('PAGINATION',auction,{k:data.get(k) for k in ['page','page_size','has_next']})
+              items=data.get('items',[])
+              for item in items:
+                  urls=item.get('images',[])+([item.get('thumb_url')] if item.get('thumb_url') else [])
+                  print('LOT_CONTRACT',json.dumps({'auction':item.get('auction'),'status':item.get('status'),'highlights':item.get('highlights'),'item_type':item.get('item_type'),'fuel':item.get('fuel'),'country':item.get('country'),'currency':item.get('currency'),'image_count':len(item.get('images',[])),'image_hosts':list(set(urllib.parse.urlparse(u).hostname for u in urls if isinstance(u,str))),'odometer_unit':item.get('odometer_unit'),'odometer_status':item.get('odometer_status'),'lot_number_valid':bool(re.fullmatch(r'\d{5,12}',str(item.get('lot_number',''))))},ensure_ascii=False))
+              if items:
+                  item=items[0]
+                  detail=get('/lots',{'auction':auction,'lot_number':item['lot_number'],'page_size':10,'ordering':'-updated_at'})
+                  print('DETAIL_IDENTITY_MATCH',auction,any(row.get('lot_number')==item['lot_number'] and row.get('auction')==auction for row in detail.get('items',[])))
+          for path in ['/makes','/models']:
+              data=get(path,{'page_size':1000})
+              print('DIRECTORY_SHAPE',path,{'count':data.get('count'),'page_length':len(data.get('items',[])),'row_keys':list(data.get('items',[{}])[0]) if data.get('items') else []})
+          for fuel in ['GAS','Gasoline','gas']:
+              data=get('/lots',{'auction':'copart','item_type':'VEHTYPE_V','fuel_type__name':fuel,'page_size':5})
+              print('FUEL_FILTER',fuel,{'returned_fuels':list(set(row.get('fuel') for row in data.get('items',[]))),'page_length':len(data.get('items',[])),'has_next':data.get('has_next')})
           PY
