@@ -43,6 +43,12 @@ for(const kind of ['desktop','mobile']){
   await page.locator('.detail-summary h1').waitFor({state:'visible'})
   console.log('DIRECT',JSON.stringify({kind,href,headingMs:Date.now()-start,network}))
  }catch(error){console.log('PROBE_ERROR',JSON.stringify({kind,name:error.name,message:String(error.message).slice(0,600),url:summarizeURL(page.url()),text:(await page.locator('main').innerText().catch(()=>'' )).slice(0,500),network}))}
+ if(kind==='desktop'){
+  const begin=Date.now()
+  await page.goto(base+'/targove?site=2',{waitUntil:'domcontentloaded'})
+  await page.locator('.auction-card,.empty-state').first().waitFor({state:'visible'})
+  console.log('IAAI_BROWSER',JSON.stringify({ms:Date.now()-begin,cards:await page.locator('.auction-card').count(),badges:await page.locator('.auction-card .car-badge').allTextContents(),text:(await page.locator('.auction-results').innerText()).slice(0,1500)}))
+ }
  await context.close()
 }
 await browser.close()

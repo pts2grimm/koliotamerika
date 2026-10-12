@@ -5,6 +5,19 @@ on:
 permissions:
   contents: read
 jobs:
+  iaai-api:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci --include=dev
+      - run: node --import tsx scripts/profile-eridan-auctions.ts
+        env:
+          ERIDAN_API_KEY: ${{ secrets.ERIDAN_API_KEY }}
   profile:
     runs-on: ubuntu-latest
     timeout-minutes: 7
@@ -17,3 +30,13 @@ jobs:
       - run: npm ci --include=dev
       - run: npx playwright install --with-deps chromium
       - run: node scripts/profile-eridan-navigation.mjs
+      - name: Read installed Link and prefetch guides
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          root=Path('node_modules/next/dist/docs/01-app')
+          for pattern in ['link.md','use-link-status.md','use-router.md']:
+              for p in root.rglob(pattern):
+                  print('GUIDE',p)
+                  print(p.read_text()[:30000])
+          PY
