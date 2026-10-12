@@ -6,7 +6,7 @@ import { ChevronDown, RotateCcw, Search, SlidersHorizontal } from 'lucide-react'
 import { FilterPanel } from './FilterPanel'
 import { MakeModelFields } from './MakeModelFields'
 
-export function AuctionFilters({ makes, initial, modelsOnDemand = false }: { makes: Record<string, string[]>; initial: Record<string, string>; modelsOnDemand?: boolean }) {
+export function AuctionFilters({ makes, initial, modelsOnDemand = false, unavailableFilters = [] }: { makes: Record<string, string[]>; initial: Record<string, string>; modelsOnDemand?: boolean; unavailableFilters?: readonly string[] }) {
   const [resetCount, setResetCount] = useState(0)
   const [yearFrom, setYearFrom] = useState(initial.year_from || '')
   const [yearTo, setYearTo] = useState(initial.year_to || '')
@@ -25,10 +25,11 @@ export function AuctionFilters({ makes, initial, modelsOnDemand = false }: { mak
       <div className="filter-secondary">
         {modelsOnDemand && <label>Вид превозно средство<select name="vehicle_type" defaultValue={initial.vehicle_type || ''}><option value="">Автомобили и мотоциклети</option><option value="Automobile">Автомобили</option><option value="Motorcycle">Мотоциклети</option></select></label>}
         <label>Аукцион<select aria-label="Аукцион" name="site" defaultValue={initial.site || '1,2'}><option value="1,2">Copart и IAAI</option><option value="1">Copart</option><option value="2">IAAI</option></select></label>
-        <label>Състояние<select name="status" defaultValue={initial.status || ''}><option value="">Всички</option><option value="Run & Drive">Движи се (Run & Drive)</option><option value="Starts">Запалва (Starts)</option><option value="Stationary">Не се движи (Stationary)</option><option value="Can't test">Не е тестван</option></select></label>
+        <label>Състояние<select disabled={unavailableFilters.includes('status')} aria-describedby={unavailableFilters.includes('status') ? 'auction-filter-availability' : undefined} name="status" defaultValue={initial.status || ''}><option value="">Всички</option><option value="Run & Drive">Движи се (Run & Drive)</option><option value="Starts">Запалва (Starts)</option><option value="Stationary">Не се движи (Stationary)</option><option value="Can't test">Не е тестван</option></select></label>
         <label>Гориво<select name="fuel" defaultValue={initial.fuel || ''}><option value="">Всички</option><option value="Gasoline">Бензин</option><option value="Diesel">Дизел</option><option value="Hybrid">Хибрид</option><option value="Electric">Електрически</option></select></label>
-        <label>Продавач<select name="seller_type" defaultValue={initial.seller_type || ''}><option value="">Всички</option><option value="insurance">Застраховател</option><option value="dealer">Частно лице</option></select></label>
+        <label>Продавач<select disabled={unavailableFilters.includes('seller_type')} aria-describedby={unavailableFilters.includes('seller_type') ? 'auction-filter-availability' : undefined} name="seller_type" defaultValue={initial.seller_type || ''}><option value="">Всички</option><option value="insurance">Застраховател</option><option value="dealer">Частно лице</option></select></label>
       </div>
+      {unavailableFilters.length > 0 && <p id="auction-filter-availability" className="bid-note">Търсенето по състояние и тип продавач временно не е налично. Можеш да използваш останалите филтри.</p>}
     </details>
     </div>
     <div className="filter-actions"><span>Промените се прилагат с бутона.</span><button className="button button-dark" type="submit"><Search size={18} />Намери автомобил</button></div>
