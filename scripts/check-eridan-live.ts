@@ -7,10 +7,12 @@ if (!process.env.ERIDAN_API_KEY) {
  process.exit(0)
 }
 try {
- let requests = 0
+ let requests = 0, activeLots = 0, peakLots = 0, lotRequestMs = 0
  const request = createEridanTransport({ apiKey: process.env.ERIDAN_API_KEY, fetch: async (url, init) => {
   requests++
-  return fetch(url, init)
+  const isLotSearch = url.pathname.endsWith('/lots'), started = performance.now()
+  if (isLotSearch) { activeLots++; peakLots = Math.max(peakLots, activeLots) }
+  try { return await fetch(url, init) } finally { if (isLotSearch) { activeLots--; lotRequestMs += performance.now() - started } }
  } })
  const provider = createEridanProvider(request)
  const makes = await provider.makes()
@@ -34,8 +36,14 @@ try {
  assert.ok(bikes.items.length > 0)
  assert.ok(bikes.items.every(car => car.vehicle_type === 'Motorcycle' && (car.link_img_hd?.length || 0) > 0))
  console.log('LIVE_MOTORCYCLES_OK', { items: bikes.items.length, makes: [...new Set(bikes.items.map(car => car.make))] })
- const reported = await provider.detail('65806586', '1')
- console.log('REPORTED_LOT_GALLERY', { found: Boolean(reported), galleryImages: reported?.link_img_hd?.length || 0, thumbnailImages: reported?.link_img_small?.length || 0 })
+ const reported = await provider.detail('66579406', '1')
+ console.log('REPORTED_LOT_BID', { found: Boolean(reported), currentBid: reported?.current_bid ?? null, currency: reported?.currency })
+ peakLots = 0; lotRequestMs = 0
+ const started = performance.now()
+ const mixed = await provider.search(new URLSearchParams({site:'1,2',size:'6',make:'BMW'}))
+ assert.ok(mixed.items.length > 0)
+ assert.equal(peakLots, 2)
+ console.log('LIVE_PARALLEL_SEARCH_OK', {elapsedMs:Math.round(performance.now()-started),sumOfUpstreamMs:Math.round(lotRequestMs),peakConcurrentRequests:peakLots,items:mixed.items.length})
  console.log('LIVE_ADAPTER_OK', { requests })
 } catch {
  // Never print the error object, request headers, body, lot numbers, VINs or credentials.

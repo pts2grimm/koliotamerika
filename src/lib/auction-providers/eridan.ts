@@ -152,10 +152,9 @@ export function createEridanProvider(request: AuctionTransport): AuctionProvider
    if (needed > 10000) throw new Error('Eridan search window exceeded; narrow the filters')
    const merged = new Map<string, { car: AuctionCar; order: number }>()
    let calls = 0
-   for (const type of types) {
-    const make = valid.get('make')
-    if (make && !isEridanRoadMake(make, type)) continue
-    for (const fuel of fuels) {
+   const make = valid.get('make')
+   const streams = types.filter(type => !make || isEridanRoadMake(make, type)).flatMap(type => fuels.map(fuel => ({ type, fuel })))
+   const loadStream = async ({ type, fuel }: { type: EridanRoadType; fuel: string | undefined }) => {
      const stream = new Map<string, { car: AuctionCar; order: number }>()
      const seen = new Set<number>()
      let streamPage = 1
@@ -185,8 +184,17 @@ export function createEridanProvider(request: AuctionTransport): AuctionProvider
       streamPage++
      }
      for (const [id, item] of stream) if (!merged.has(id) || merged.get(id)!.order < item.order) merged.set(id, item)
-    }
    }
+   // Cars/motorcycles and fuel aliases are independent. Bound concurrency to two,
+   // preserve each stream's pagination order, and fail the whole search on an error.
+   let nextStream = 0, failed = false
+   const workers = await Promise.allSettled(Array.from({ length: Math.min(2, streams.length) }, async () => {
+    while (!failed && nextStream < streams.length) {
+     const stream = streams[nextStream++]
+     try { await loadStream(stream) } catch (error) { failed = true; throw error }
+    }
+   }))
+   for (const worker of workers) if (worker.status === 'rejected') throw worker.reason
    // Merge category/fuel streams before slicing; never post-filter a visible page.
    const all = [...merged.values()].sort((a, b) => b.order - a.order).map(item => item.car)
    return { success: true, items: all.slice((page - 1) * size, page * size), page, size, total: null, totalPages: null, hasNext: all.length > page * size }

@@ -270,3 +270,42 @@ test('utility model exclusions are make-specific and do not hide legitimate cars
  assert.equal(isEridanRoadModel('YZF R1','YAMAHA'),true)
  assert.equal(isEridanRoadModel('YFM700','YAMAHA'),false)
 })
+
+
+test('independent catalogue streams overlap with bounded concurrency and preserve merged ordering', {timeout:2000}, async () => {
+ let active=0,peak=0,calls=0,release!:()=>void
+ const gate=new Promise<void>(resolve=>{release=resolve})
+ const provider=createEridanProvider(async(path,params)=>{
+  if(path==='/item_types')return [{value:'VEHTYPE_V',label:'Vehicle'},{value:'VEHTYPE_M',label:'Motorcycle'}]
+  if(path==='/fuel_types')return ['GAS','Gasoline']
+  calls++;active++;peak=Math.max(peak,active)
+  if(active===2)release()
+  await gate
+  await new Promise(resolve=>setTimeout(resolve,5))
+  active--
+  const motorcycle=params.get('item_type')==='VEHTYPE_M'
+  const id=motorcycle?50:40
+  return envelope([{...row,id,lot_number:String(73000000+id),item_type:motorcycle?'VEHTYPE_M':'VEHTYPE_V',model:{id:1,name:motorcycle?'S 1000':'X5'}}])
+ })
+ const result=await provider.search(new URLSearchParams('site=1,2&fuel=Gasoline'))
+ assert.equal(peak,2);assert.equal(calls,4);assert.equal(active,0)
+ assert.deepEqual(result.items.map(car=>car.lot_id),[73000050,73000040])
+})
+test('failed parallel stream rejects the search and stops scheduling remaining streams', async () => {
+ let calls=0
+ const provider=createEridanProvider(async(path)=>{
+  if(path==='/item_types')return [{value:'VEHTYPE_V',label:'Vehicle'},{value:'VEHTYPE_M',label:'Motorcycle'}]
+  if(path==='/fuel_types')return ['GAS','Gasoline','Gas ']
+  calls++
+  if(calls===1)throw new Error('Auction provider HTTP 429')
+  await new Promise(resolve=>setTimeout(resolve,10))
+  return envelope([])
+ })
+ await assert.rejects(()=>provider.search(new URLSearchParams('site=1,2&fuel=Gasoline')),/429/)
+ assert.equal(calls,2)
+})
+test('missing current bids never borrow buy-now or final prices, while real zero and positive bids survive', () => {
+ assert.equal(normalizeEridanCar({...row,current_bid:null,buy_now_price:9000,final_bid:7000})?.current_bid,undefined)
+ assert.equal(normalizeEridanCar({...row,current_bid:0})?.current_bid,0)
+ assert.equal(normalizeEridanCar({...row,current_bid:550})?.current_bid,550)
+})

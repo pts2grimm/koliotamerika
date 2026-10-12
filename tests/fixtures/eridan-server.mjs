@@ -9,7 +9,7 @@ const cars = Array.from({ length: 30 }, (_, i) => ({
  item_type: 'VEHTYPE_V', title_type: 'Certificate of Title', title_state: 'GA',
  seller: 'Test Seller', state: 'GA', city: 'Macon', engine: '3.0L', transmission: 'Automatic', drive: 'AWD',
  status: 'active', highlights: ['RUNS AND DRIVES'], primary_damage: { id: 1, name: 'Front End' },
- current_bid: 5500 + i * 100, odometer: 45000, sale_date: '2030-10-12T14:00:00.000Z', images, thumb_url: images[0],
+ current_bid: i === 0 ? 0 : i === 1 ? null : 5500 + i * 100, buy_now_price: i === 1 ? 9999 : null, final_bid: i === 1 ? 8888 : null, odometer: 45000, sale_date: '2030-10-12T14:00:00.000Z', images, thumb_url: 'https://cs.copart.com/test-gallery-thumb.jpg',
 }))
 cars.push({ ...cars[0], id: 2000, lot_number: '80000000', make: { id: 2, name: 'Ford' }, model: { id: 20, name: 'Mustang', make_id: 2 }, name: '2022 Ford Mustang', vin: '1FA00000000000001' })
 cars.push({ ...cars[0], id: 3000, vin: 'JH200000000000001', lot_number: '81000000', item_type: 'VEHTYPE_M', make: { id: 3, name: 'Honda' }, model: { id: 30, name: 'CBR600RR', make_id: 3 }, name: '2022 Honda CBR600RR' })
