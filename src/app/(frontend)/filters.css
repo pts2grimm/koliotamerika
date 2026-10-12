@@ -322,4 +322,3 @@
  box-shadow: 0 6px 28px #0003; font-size: 14px; font-weight: 700;
  white-space: nowrap; pointer-events: none;
 }
-:root body .auction-filters .auction-source { grid-column: 1 / -1; }

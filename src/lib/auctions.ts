@@ -41,7 +41,21 @@ const eridanTransport=createEridanTransport({
  fetch:(url,init)=>proxyFetch(url,{dispatcher,method:init.method,redirect:init.redirect,signal:init.signal,headers:init.headers as Record<string,string>}),
 })
 const eridanReferences=unstable_cache(async(path:string)=>coalesce(JSON.stringify(['eridan-reference',path]),()=>eridanTransport(path,new URLSearchParams())),['eridan-references-v1'],{revalidate:3600})
-const eridanRequest:AuctionTransport=(path,params)=>path==='/item_types'||path==='/fuel_types'?eridanReferences(path):eridanTransport(path,params)
+const eridanRequest:AuctionTransport=async(path,params)=>{
+ const start=Date.now()
+ try{
+  return await (path==='/item_types'||path==='/fuel_types'?eridanReferences(path):coalesce(JSON.stringify(['eridan-request',path,[...params].sort()]),()=>eridanTransport(path,params)))
+ }catch(error){
+  // Log only known operational categories, never response bodies, keys, VINs or query values.
+  const message=error instanceof Error?error.message:''
+  const reason=message==='Eridan local request budget reached'?'local_budget':
+   message==='Eridan connection failed'?'connection':
+   message==='Eridan is temporarily paused after an access or rate limit error'?'paused':
+   /^Auction provider HTTP \d{3}$/.test(message)?message.replace('Auction provider HTTP ','http_'):'invalid_response'
+  console.warn(JSON.stringify({service:'auctions',provider:'eridan',operation:path,reason,durationMs:Date.now()-start}))
+  throw error
+ }
+}
 export function auctionProviderName(){return process.env.AUCTION_PROVIDER|| (process.env.APICAR_API_KEY?'apicar':'legacy')}
 function provider(){const name=auctionProviderName();if(name==='eridan')return createEridanProvider(eridanRequest);if(name==='apicar')return createApiCarProvider(transport('apicar'),process.env.APICAR_VIN_ENABLED==='true');if(name==='legacy')return createLegacyProvider(transport('legacy'));throw new Error(`Unsupported auction provider: ${name}`)}
 const cachedSearch=unstable_cache(async(_provider:string,params:string)=>{

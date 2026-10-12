@@ -335,3 +335,23 @@ test('a newer Copart import cannot hide IAAI, and unequal auction pools paginate
  assert.ok(iaai.items.every(car=>car.site===2))
  assert.equal(iaai.items.length,6)
 })
+
+test('dense non-road motorcycle rows use one bounded larger page per auction',async()=>{
+ let calls=0
+ const provider=createEridanProvider(async(path,params)=>{
+  if(path==='/item_types')return [{value:'VEHTYPE_V',label:'Vehicle'},{value:'VEHTYPE_M',label:'Motorcycle'}]
+  calls++
+  const bike=params.get('item_type')==='VEHTYPE_M',site=params.get('auction')!
+  const junk=Array.from({length:55},(_,i)=>({...row,id:9000-i,lot_number:String(90000000+i),auction:site,item_type:'VEHTYPE_M',make:{name:'YAMAHA'},model:{name:'WAVERUNNER'}}))
+  const valid=Array.from({length:30},(_,i)=>({...row,id:8000-i,lot_number:String((site==='copart'?71000000:81000000)+(bike?100:0)+i),auction:site,item_type:bike?'VEHTYPE_M':'VEHTYPE_V',model:{name:bike?'S 1000':'X5'}}))
+  const all=bike?[...junk,...valid]:valid
+  const page=Number(params.get('page')),size=Number(params.get('page_size'))
+  if(bike)assert.equal(size,100)
+  return envelope(all.slice((page-1)*size,page*size),page,page*size<all.length,size)
+ })
+ const data=await provider.search(new URLSearchParams('site=1,2&size=12'))
+ assert.equal(calls,4)
+ assert.equal(data.items.length,24)
+ assert.deepEqual(data.items.map(c=>c.site),Array.from({length:24},(_,i)=>i%2+1))
+ assert.ok(data.items.every(c=>c.model!=='WAVERUNNER'))
+})

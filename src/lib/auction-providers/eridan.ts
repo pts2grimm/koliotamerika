@@ -166,7 +166,9 @@ export function createEridanProvider(request: AuctionTransport): AuctionProvider
       if (!make) query.set('makes', eridanRoadBrands[type].join(','))
       if (fuel) query.set('fuel_type__name', fuel)
       query.set('page', String(streamPage))
-      query.set('page_size', String(needed))
+      // Motorcycle feeds include misclassified marine/utility rows. Read a bounded
+      // larger page to avoid spending multiple requests to fill a small UI page.
+      query.set('page_size', String(type === 'Motorcycle' && !make ? Math.max(100, needed) : needed))
       const response = record(await request('/lots', query))
       const data = lots(response, streamPage)
       const rawItems = response.items as unknown[]
