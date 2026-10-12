@@ -1,0 +1,56 @@
+name: Inspect Eridan gallery and vehicle scope
+on:
+  push:
+    branches: ['eridan-staging']
+    paths: ['.github/workflows/eridan-inspect.yml']
+permissions:
+  contents: read
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Read provider contract and public staging gallery
+        env:
+          ERIDAN_API_KEY: ${{ secrets.ERIDAN_API_KEY }}
+        run: |
+          python3 - <<'PY'
+          import json, os, urllib.request, urllib.parse, re, html
+          base='https://catalog.eridan.software/api'
+          token=os.environ.get('ERIDAN_API_KEY')
+          def get(path,params=None,auth=True):
+              url=base+path+('?' + urllib.parse.urlencode(params or {},doseq=True) if params else '')
+              req=urllib.request.Request(url,headers={'Accept':'application/json',**({'Authorization':'Bearer '+token} if auth else {})})
+              with urllib.request.urlopen(req,timeout=25) as r: return json.load(r)
+          def photos(row):
+              imgs=row.get('images') or []
+              return {'count':len(imgs),'schemes':sorted(set(urllib.parse.urlparse(x).scheme for x in imgs if isinstance(x,str))),'hosts':sorted(set(urllib.parse.urlparse(x).hostname or '' for x in imgs if isinstance(x,str))),'sample':imgs[:2],'thumb':row.get('thumb_url')}
+          doc=get('/openapi.json',auth=False)
+          for p in ['/api/lots','/api/makes','/api/models']:
+              print('PARAMS',p,[x['name'] for x in doc['paths'][p]['get'].get('parameters',[])])
+          if not token: raise SystemExit('Missing key')
+          print('TYPES',get('/item_types'))
+          for auction in ['copart','iaai']:
+              data=get('/lots',{'auction':auction,'item_type':'VEHTYPE_V','page_size':3})
+              for row in data['items']:
+                  print('LIST_PHOTOS',auction,photos(row))
+              if data['items']:
+                  row=data['items'][0]
+                  detail=get('/lots/'+str(row['id']))
+                  print('DETAIL_PHOTOS',auction,photos(detail))
+          print('MOTORCYCLES',[(r.get('make'),r.get('model'),r.get('item_type')) for r in get('/lots',{'item_type':'VEHTYPE_M','page_size':3})['items']])
+          for params in [{},{'item_type':'VEHTYPE_V'},{'item_type':'VEHTYPE_M'}]:
+              d=get('/makes',{**params,'page_size':10,'ordering':'name'})
+              print('MAKES_SCOPE_PROBE',params,{'count':d.get('count'),'sample':d.get('items')})
+          stage='https://darkturquoise-duck-750266.hostingersite.com'
+          try:
+              with urllib.request.urlopen(stage+'/targove',timeout=40) as r: page=r.read().decode()
+              links=list(dict.fromkeys(html.unescape(x) for x in re.findall(r'href="([^"]*targove/kola[^"]*)"',page)))
+              print('STAGE_LINKS',links[:3])
+              if links:
+                  with urllib.request.urlopen(urllib.parse.urljoin(stage,links[0]),timeout=40) as r: page=r.read().decode()
+                  print('STAGE_GALLERY_COUNTER',re.findall(r'<output[^>]*gallery-counter[^>]*>(.*?)</output>',page))
+                  print('STAGE_IMAGE_SOURCES',list(dict.fromkeys(html.unescape(x) for x in re.findall(r'<img[^>]+src="([^"]+)"',page)))[:6])
+          except Exception as e: print('STAGE_CHECK_FAILED',type(e).__name__)
+          
+          PY
