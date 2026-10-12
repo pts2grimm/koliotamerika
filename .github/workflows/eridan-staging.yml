@@ -77,9 +77,9 @@ jobs:
                   detail=get('/lots',{'auction':auction,'lot_number':item['lot_number'],'page_size':10,'ordering':'-updated_at'})
                   print('DETAIL_IDENTITY_MATCH',auction,any(row.get('lot_number')==item['lot_number'] and row.get('auction')==auction for row in detail.get('items',[])))
           for path in ['/makes','/models']:
-              data=get(path,{'page_size':1000})
+              data=get(path,{'page_size':100000})
               print('DIRECTORY_SHAPE',path,{'count':data.get('count'),'page_length':len(data.get('items',[])),'row_keys':list(data.get('items',[{}])[0]) if data.get('items') else []})
-          for fuel in ['GAS','Gasoline','gas']:
+          for fuel in ['GAS','Gasoline','HYBRID ENGINE','ELECTRIC AND GAS HYBRID']:
               data=get('/lots',{'auction':'copart','item_type':'VEHTYPE_V','fuel_type__name':fuel,'page_size':5})
               print('FUEL_FILTER',fuel,{'returned_fuels':list(set(row.get('fuel') for row in data.get('items',[]))),'page_length':len(data.get('items',[])),'has_next':data.get('has_next')})
           PY

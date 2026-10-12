@@ -2,6 +2,11 @@ import type { AuctionCar, AuctionProvider, AuctionTransport } from './types'
 import { record, validSearchParams } from './normalize'
 
 // Eridan OpenAPI 2.0.0: /api/openapi.json. Its record id is NOT an auction lot number.
+const fuelGroups: Record<string, string[]> = {
+ Gasoline: ['gasoline', 'gas'], Diesel: ['diesel'],
+ Hybrid: ['hybrid', 'hybrid engine', 'electric and gas hybrid', 'electric and diesel hybrid'],
+ Electric: ['electric', 'electric vehicle'],
+}
 const auctions: Record<string, string> = { '1': 'copart', '2': 'iaai' }
 const text = (value: unknown) => typeof value === 'string' && value.trim() ? value.trim() : undefined
 const number = (value: unknown) => (typeof value === 'number' || typeof value === 'string' && value.trim() !== '') && Number.isFinite(Number(value)) && Number(value) >= 0 ? Number(value) : undefined
@@ -42,7 +47,7 @@ export function normalizeEridanCar(value: unknown): AuctionCar | undefined {
   state: text(raw.state), auction_date: text(raw.sale_date), status: mechanicalStatus(raw),
   damage_pr: name(raw.primary_damage), damage_sec: name(raw.secondary_damage),
   document_old: [text(raw.title_type), text(raw.title_state)].filter(Boolean).join(' ') || undefined,
-  fuel: text(raw.fuel), transmission: text(raw.transmission), engine: text(raw.engine), drive: text(raw.drive),
+  fuel: Object.entries(fuelGroups).find(([, names]) => names.includes(text(raw.fuel)?.toLowerCase() || ''))?.[0] || text(raw.fuel), transmission: text(raw.transmission), engine: text(raw.engine), drive: text(raw.drive),
   seller: text(raw.seller), link_img_hd: imageURLs(raw.images), link_img_small: imageURLs([raw.thumb_url]),
  }
 }
@@ -66,7 +71,7 @@ export function createEridanProvider(request: AuctionTransport): AuctionProvider
  const directory = async (path: string) => {
   const found = new Map<number, Record<string, unknown>>()
   for (let page = 1; page <= 100; page++) {
-   const raw = record(await request(path, new URLSearchParams({ page: String(page), page_size: '1000' })))
+   const raw = record(await request(path, new URLSearchParams({ page: String(page), page_size: '100000' })))
    if (!Array.isArray(raw.items) || !Number.isInteger(raw.count) || Number(raw.count) < 0) throw new Error('Invalid Eridan directory')
    const before = found.size
    for (const item of raw.items) {
@@ -107,18 +112,50 @@ export function createEridanProvider(request: AuctionTransport): AuctionProvider
    for (const [from, to] of [['make', 'make__name'], ['model', 'model__name'], ['year_from', 'year_from'], ['year_to', 'year_to']]) {
     const value = valid.get(from); if (value) params.set(to, value)
    }
-   if (valid.get('fuel')) {
-    const raw = await request('/fuel_types', new URLSearchParams())
-    if (!Array.isArray(raw) || raw.some(value => typeof value !== 'string')) throw new Error('Invalid Eridan fuel types')
-    const aliases: Record<string, string[]> = { Gasoline: ['gasoline', 'gas'], Diesel: ['diesel'], Hybrid: ['hybrid', 'hybrid engine'], Electric: ['electric', 'electric engine'] }
-    const wanted = aliases[valid.get('fuel')!] || [valid.get('fuel')!.toLowerCase()]
-    const fuel = raw.find(value => wanted.includes(value.trim().toLowerCase()))
-    if (!fuel) throw new UnsupportedEridanFilterError(['fuel'])
-    params.set('fuel_type__name', fuel)
-   }
    if (valid.get('vehicle_type')) {
     if (valid.get('vehicle_type') !== 'Automobile') throw new UnsupportedEridanFilterError(['vehicle_type'])
     params.set('item_type', await automobileCode())
+   }
+   if (valid.get('fuel')) {
+    const raw = await request('/fuel_types', new URLSearchParams())
+    if (!Array.isArray(raw) || raw.some(value => typeof value !== 'string')) throw new Error('Invalid Eridan fuel types')
+    const wanted = fuelGroups[valid.get('fuel')!] || [valid.get('fuel')!.toLowerCase()]
+    // Live API matching is case-insensitive, but GAS and Gasoline are distinct values.
+    // Keep whitespace variants until the provider confirms they are equivalent too.
+    const fuels = [...new Map(raw.filter(value => wanted.includes(value.trim().toLowerCase())).map(value => [value.toLowerCase(), value])).values()]
+    if (!fuels.length) throw new UnsupportedEridanFilterError(['fuel'])
+    const needed = page * size + 1
+    if (needed > 10000) throw new Error('Eridan fuel search window exceeded; narrow the filters')
+    const merged = new Map<string, { car: AuctionCar; order: number }>()
+    let calls = 0
+    for (const fuel of fuels) {
+     const stream = new Map<string, { car: AuctionCar; order: number }>()
+     let streamPage = 1
+     while (stream.size < needed) {
+      if (++calls > 16) throw new Error('Eridan fuel search request budget reached; narrow the filters')
+      const query = new URLSearchParams(params)
+      query.set('fuel_type__name', fuel)
+      query.set('page', String(streamPage))
+      query.set('page_size', String(needed))
+      const response = record(await request('/lots', query))
+      const data = lots(response, streamPage)
+      const rawItems = response.items as unknown[]
+      const before = stream.size
+      for (let index = 0; index < data.items.length; index++) {
+       const car = data.items[index], order = number(record(rawItems[index]).id)
+       if (order === undefined) throw new Error('Invalid Eridan sort identity')
+       if (!stream.has(car.id) || stream.get(car.id)!.order < order) stream.set(car.id, { car, order })
+      }
+      if (!data.hasNext) break
+      if (stream.size === before) throw new Error('Eridan fuel pagination made no progress')
+      streamPage++
+     }
+     for (const [id, item] of stream) if (!merged.has(id) || merged.get(id)!.order < item.order) merged.set(id, item)
+    }
+    // Each stream supplies the first N unique lots. Merge before slicing, so no matching
+    // car is lost between pages. A page-local post-filter would produce incorrect results.
+    const all = [...merged.values()].sort((a, b) => b.order - a.order).map(item => item.car)
+    return { success: true, items: all.slice((page - 1) * size, page * size), page, size, total: null, totalPages: null, hasNext: all.length > page * size }
    }
    const data = lots(await request('/lots', params), page)
    const unique = new Map(data.items.map(car => [car.id, car]))

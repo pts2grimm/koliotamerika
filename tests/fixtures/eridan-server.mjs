@@ -34,6 +34,7 @@ createServer((req, res) => {
   (!p.get('year_from') || car.year >= Number(p.get('year_from'))) &&
   (!p.get('year_to') || car.year <= Number(p.get('year_to')))
  )
+ items.sort((a, b) => b.id - a.id)
  const page = Number(p.get('page') || 1), size = Number(p.get('page_size') || 24)
  send({ items: items.slice((page - 1) * size, page * size), page, page_size: size, has_next: page * size < items.length })
 }).listen(3199, '127.0.0.1')

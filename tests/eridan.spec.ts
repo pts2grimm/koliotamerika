@@ -30,6 +30,11 @@ test('Eridan renders next/previous without a fictional total and keeps unknown m
  await pagination.getByRole('link', { name: 'Предишна' }).click()
  await page.goto('/targove/kola?lot=70000000&site=1')
  await expect(page.locator('.technical-facts')).toContainText('мерната единица не е посочена')
+ await expect(page.locator('.vehicle-seo')).toContainText('мерната единица не е посочена')
+ const schemas = await page.locator('script[type="application/ld+json"]').allTextContents()
+ const vehicle = schemas.flatMap(value => JSON.parse(value)['@graph'] || []).find(value => value['@type'] === 'Vehicle')
+ expect(vehicle).toBeTruthy()
+ expect(vehicle.mileageFromOdometer).toBeUndefined()
 })
 test('an unsupported filter stays selected and produces a clear message instead of unrelated results', async ({ page }) => {
  await page.goto('/targove?make=BMW&seller_type=insurance')

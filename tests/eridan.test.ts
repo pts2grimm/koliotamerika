@@ -50,11 +50,11 @@ test('Eridan only passes HTTPS images without embedded credentials, preserves or
 })
 test('Eridan translates filters, keeps 24 results for both auctions, and never invents totals', async () => {
  const { provider, calls } = fixture()
- const data = await provider.search(new URLSearchParams({ make: 'BMW', model: 'X5', year_from: '2020', year_to: '2024', site: '1,2', fuel: 'Gasoline', vehicle_type: 'Automobile', size: '12', page: '2' }))
+ const data = await provider.search(new URLSearchParams({ make: 'BMW', model: 'X5', year_from: '2020', year_to: '2024', site: '1,2', vehicle_type: 'Automobile', size: '12', page: '2' }))
  const query = calls.find(call => call.path === '/lots')!.params
  assert.equal(query.get('make__name'), 'BMW'); assert.equal(query.get('model__name'), 'X5')
  assert.equal(query.get('year_from'), '2020'); assert.equal(query.get('year_to'), '2024')
- assert.equal(query.get('fuel_type__name'), 'GAS'); assert.equal(query.get('item_type'), 'VEHTYPE_V')
+ assert.equal(query.get('item_type'), 'VEHTYPE_V')
  assert.equal(query.get('page_size'), '24'); assert.equal(query.get('page'), '2'); assert.equal(query.get('auction'), null)
  assert.equal(data.total, null); assert.equal(data.totalPages, null); assert.equal(data.hasNext, true)
 })
@@ -160,4 +160,38 @@ test('transport enforces a per-process budget without automatic retries or secre
  time += 60001; await request('/lots', new URLSearchParams()); assert.equal(calls, 21)
  const fail = createEridanTransport({ apiKey: 'test-key', fetch: async () => { throw new Error('private header content') } })
  await assert.rejects(() => fail('/lots', new URLSearchParams()), error => error instanceof Error && error.message === 'Eridan connection failed')
+})
+
+test('fuel aliases from both auctions merge before pagination, without duplicates, skips or invented totals', async () => {
+ const data = Array.from({ length: 55 }, (_, i) => ({ ...row, id: 100 + i, lot_number: String(71000000 + i), auction: i % 2 ? 'iaai' : 'copart', fuel: i % 2 ? 'Gasoline' : 'GAS' }))
+ const provider = createEridanProvider(async (path, params) => {
+  if (path === '/fuel_types') return ['GAS', 'Gas', 'Gasoline']
+  const fuel = params.get('fuel_type__name')!.toLowerCase()
+  const matches = data.filter(item => item.fuel.toLowerCase() === fuel).sort((a, b) => b.id - a.id)
+  const page = Number(params.get('page'))
+  // Upstream clamps requested windows: the adapter must follow every stream correctly.
+  const size = Math.min(10, Number(params.get('page_size')))
+  return envelope(matches.slice((page - 1) * size, page * size), page, page * size < matches.length, size)
+ })
+ const pages = []
+ for (const page of [1, 2, 3]) pages.push(await provider.search(new URLSearchParams({ site: '1,2', fuel: 'Gasoline', page: String(page), size: '12' })))
+ assert.deepEqual(pages.map(page => page.items.length), [24, 24, 7])
+ assert.deepEqual(pages.map(page => page.hasNext), [true, true, false])
+ assert.deepEqual(pages.flatMap(page => page.items.map(car => car.lot_id)), data.toSorted((a, b) => b.id - a.id).map(item => Number(item.lot_number)))
+ assert.equal(new Set(pages.flatMap(page => page.items.map(car => car.id))).size, 55)
+ assert.ok(pages.every(page => page.total === null && page.totalPages === null))
+ assert.ok(pages.flatMap(page => page.items).every(car => car.fuel === 'Gasoline'))
+})
+test('hybrid search includes both hybrid labels; electric search does not include gasoline hybrids', async () => {
+ const calls: string[] = []
+ const provider = createEridanProvider(async (path, params) => {
+  if (path === '/fuel_types') return ['HYBRID ENGINE', 'ELECTRIC AND GAS HYBRID', 'Hybrid', 'Electric', 'ELECTRIC VEHICLE']
+  calls.push(params.get('fuel_type__name')!)
+  return envelope([], Number(params.get('page')), false, Number(params.get('page_size')))
+ })
+ await provider.search(new URLSearchParams('fuel=Hybrid'))
+ assert.deepEqual(calls, ['HYBRID ENGINE', 'ELECTRIC AND GAS HYBRID', 'Hybrid'])
+ calls.length = 0
+ await provider.search(new URLSearchParams('fuel=Electric'))
+ assert.deepEqual(calls, ['Electric', 'ELECTRIC VEHICLE'])
 })
