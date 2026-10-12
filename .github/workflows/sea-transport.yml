@@ -17,8 +17,31 @@ jobs:
       - run: npm ci --include=dev
       - name: Read installed Next documentation
         run: |
-          cat node_modules/next/dist/docs/01-app/03-api-reference/02-components/image.mdx
-          cat node_modules/next/dist/docs/01-app/02-guides/json-ld.mdx
+          rg --files node_modules/next/dist/docs | rg '(components/.*image|json-ld)\\.(md|mdx)
+      - run: npx playwright install --with-deps chromium
+      - name: Inspect live transport page
+        run: |
+          node --input-type=module <<'JS'
+          import { chromium } from '@playwright/test';
+          const browser=await chromium.launch();
+          const page=await browser.newPage();
+          await page.route(/https:\/\/(?:www\.googletagmanager\.com|connect\.facebook\.net|www\.clarity\.ms)\//,route=>route.fulfill({contentType:'application/javascript',body:''}));
+          try {
+            const response=await page.goto('https://papayawhip-ram-220810.hostingersite.com/morski-transport-na-avtomobili-ot-sasht',{waitUntil:'domcontentloaded',timeout:45000});
+            console.log('LIVE_STATUS',response?.status());
+            const cookie=page.getByRole('button',{name:'Само необходимите',exact:true});
+            if(await cookie.isVisible())await cookie.click();
+            console.log('LIVE_CONTENT',await page.locator('main').innerText());
+            console.log('LIVE_META',await page.evaluate(()=>({title:document.title,description:document.querySelector('meta[name=description]')?.content,canonical:document.querySelector('link[rel=canonical]')?.href})));
+            for(const width of [390,1440]){
+              await page.setViewportSize({width,height:950});await page.waitForTimeout(500);
+              console.log('SEA_BEFORE_'+width+' '+(await page.screenshot({type:'jpeg',quality:45})).toString('base64'));
+              console.log('LIVE_WIDTH',await page.evaluate(()=>({viewport:innerWidth,width:document.documentElement.scrollWidth})));
+            }
+          }catch(error){console.log('LIVE_UNAVAILABLE',error.message)}
+          finally{await browser.close()}
+          JS
+ | xargs -r -I{} sh -c 'printf "DOC %s\\n" "$1"; head -n 220 "$1"' _ {}
       - run: npx playwright install --with-deps chromium
       - name: Inspect live transport page
         run: |
