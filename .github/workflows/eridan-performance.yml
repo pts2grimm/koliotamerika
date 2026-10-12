@@ -1,4 +1,4 @@
-name: Eridan performance and bid diagnosis
+name: Eridan detail and image diagnosis
 on:
   push:
     branches: ['codex/eridan-performance-check']
@@ -9,41 +9,59 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 6
     steps:
-      - name: Measure public staging and read bid fields
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci --include=dev
+      - name: Read installed Next guides
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          root=Path('node_modules/next/dist/docs')
+          for name in ['loading','image']:
+              paths=list(root.rglob(name+'.mdx'))
+              for p in paths:
+                  if 'app/' in str(p):
+                      print('GUIDE',p)
+                      print(p.read_text()[:22000])
+                      break
+          PY
+      - run: python3 -m pip install Pillow
+      - name: Measure detail requests and image dimensions
         env:
           ERIDAN_API_KEY: ${{ secrets.ERIDAN_API_KEY }}
         run: |
           python3 -u - <<'PY'
-          import json, os, time, urllib.request, urllib.parse, re, html
+          import json, os, time, urllib.request, urllib.parse, re
           token=os.environ['ERIDAN_API_KEY']
           base='https://catalog.eridan.software/api'
-          def get(path,params={}):
+          row=None
+          for ordering in ['-updated_at','-id']:
               start=time.monotonic()
-              req=urllib.request.Request(base+path+('?' + urllib.parse.urlencode(params,doseq=True) if params else ''),headers={'Accept':'application/json','Authorization':'Bearer '+token})
-              with urllib.request.urlopen(req,timeout=30) as r:
-                  body=r.read(); data=json.loads(body)
-              print('TIMING',path,{**params},'ms',round((time.monotonic()-start)*1000),'bytes',len(body))
-              return data
-          def sample(rows):
-              return [{'lot':r.get('lot_number'),'auction':r.get('auction'),'status':r.get('status'),'currency':r.get('currency'),'current_bid':r.get('current_bid'),'buy_now_price':r.get('buy_now_price'),'final_bid':r.get('final_bid'),'sale_date':r.get('sale_date'),'price_keys':[k for k in r if any(x in k.lower() for x in ['bid','price','amount'])]} for r in rows[:6]]
-          for auction in ['copart','iaai']:
-              for ordering in ['-id','-updated_at']:
-                  data=get('/lots',{'auction':auction,'item_type':'VEHTYPE_V','has_images':'true','page_size':12,'ordering':ordering})
-                  print('BIDS',auction,ordering,sample(data.get('items',[])))
-                  if ordering=='-id' and data.get('items'):
-                      detail=get('/lots/'+str(data['items'][0]['id']))
-                      print('DETAIL_BID',sample([detail]))
-          get('/lots',{'item_type':'VEHTYPE_M','has_images':'true','makes':'BMW,HONDA,YAMAHA,SUZUKI,KAWASAKI,HARLEY-DAVIDSON','page_size':25,'ordering':'-id'})
+              params={'lot_number':'67798546','auction':'copart','ordering':ordering,'page':'1','page_size':'10'}
+              req=urllib.request.Request(base+'/lots?'+urllib.parse.urlencode(params),headers={'Accept':'application/json','Authorization':'Bearer '+token})
+              with urllib.request.urlopen(req,timeout=30) as r: data=json.load(r)
+              print('EXACT_LOT',ordering,'ms',round((time.monotonic()-start)*1000),'items',len(data['items']))
+              if data['items']: row=data['items'][0]
+          if row:
+              for label,url in [('thumb',row.get('thumb_url')),('full',(row.get('images') or [None])[0])]:
+                  if not url: continue
+                  start=time.monotonic()
+                  try:
+                      with urllib.request.urlopen(url,timeout=20) as r: body=r.read()
+                      from PIL import Image
+                      from io import BytesIO
+                      print('IMAGE',label,'pixels',Image.open(BytesIO(body)).size,'bytes',len(body),'ms',round((time.monotonic()-start)*1000))
+                  except Exception as e: print('IMAGE_ERROR',label,type(e).__name__)
           stage='https://darkturquoise-duck-750266.hostingersite.com'
-          for path in ['/targove','/targove','/targove?make=BMW&model=X5']:
+          for path in ['/','/targove/kola?lot=67798546&site=1','/targove/kola?lot=67798546&site=1']:
               start=time.monotonic()
               try:
                   with urllib.request.urlopen(stage+path,timeout=60) as r:
-                      ttfb=round((time.monotonic()-start)*1000); body=r.read().decode()
-                  print('STAGE',path,'ttfb_ms',ttfb,'total_ms',round((time.monotonic()-start)*1000),'bytes',len(body.encode()),'cards',body.count('class="car-card auction-card"'))
-                  if path=='/targove':
-                      links=list(dict.fromkeys(html.unescape(x) for x in re.findall(r'href="([^"]*targove/kola[^"]*)"',body)))
-                      print('STAGE_FIRST_LINKS',links[:2])
+                      ttfb=round((time.monotonic()-start)*1000);body=r.read().decode()
+                  print('STAGE',path,'ttfb_ms',ttfb,'total_ms',round((time.monotonic()-start)*1000),'bytes',len(body.encode()))
               except Exception as e: print('STAGE_ERROR',path,type(e).__name__)
           
           PY
