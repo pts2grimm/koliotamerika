@@ -33,6 +33,6 @@ export function isEridanRoadMake(make: string, type?: EridanRoadType) {
 }
 export function isEridanRoadModel(model: string) {
  const value = model.trim()
- return Boolean(value) && !/^(?:unknown|unk|other|n\/a|none|not specified|[?*.-]+)$/i.test(value) &&
+ return Boolean(value) && !/^(?:SXS\d|TRX\d|FOURTRAX|PIONEER|TALON|MULE|TERYX|BRUTE FORCE|YXZ\d|YFM\d|YXR\d|YXE\d|KFX\d|KRF\d|KRT\d|KVF\d|LT-?[AZF]?\d)/i.test(value) && !/^(?:unknown|unk|other|n\/a|none|not specified|[?*.-]+)$/i.test(value) &&
   !/\b(?:boat|marine|outboard|waverunner|wave runner|jet ski|jetski|seadoo|sea doo|atv|utv|snowmobile|mower|tractor|trailer|forklift|excavator)\b/i.test(value)
 }

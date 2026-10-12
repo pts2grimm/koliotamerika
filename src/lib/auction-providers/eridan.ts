@@ -163,7 +163,8 @@ export function createEridanProvider(request: AuctionTransport): AuctionProvider
       if (++calls > 16) throw new Error('Eridan search request budget reached; narrow the filters')
       const query = new URLSearchParams(params)
       query.set('item_type', codes[type])
-      if (!make) for (const brand of eridanRoadBrands[type]) query.append('makes', brand)
+      // Live Eridan accepts CSV here; repeated makes= entries silently use only the last value.
+      if (!make) query.set('makes', eridanRoadBrands[type].join(','))
       if (fuel) query.set('fuel_type__name', fuel)
       query.set('page', String(streamPage))
       query.set('page_size', String(needed))

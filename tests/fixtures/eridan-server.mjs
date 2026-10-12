@@ -35,7 +35,7 @@ createServer((req, res) => {
  if ([...p.keys()].some(key => !allowed.includes(key))) return send({ error: 'unknown filter' }, 422)
  const items = cars.filter(car =>
   (!p.get('has_images') || car.images.length > 0) &&
-  (!p.has('makes') || p.getAll('makes').some(make => make.toLowerCase() === car.make.name.toLowerCase())) &&
+  (!p.has('makes') || p.getAll('makes').at(-1).split(',').some(make => make.toLowerCase() === car.make.name.toLowerCase())) &&
   ['auction', 'lot_number', 'vin', 'item_type'].every(key => !p.get(key) || car[key] === p.get(key)) &&
   (!p.get('make__name') || car.make.name === p.get('make__name')) &&
   (!p.get('model__name') || car.model.name === p.get('model__name')) &&

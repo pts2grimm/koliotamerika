@@ -219,8 +219,10 @@ test('road catalogue merges cars and motorcycles with full galleries before pagi
   if (path === '/item_types') return [{ value: 'VEHTYPE_V', label: 'Vehicle' }, { value: 'VEHTYPE_M', label: 'Motorcycle' }]
   queries.push(new URLSearchParams(params))
   assert.equal(params.get('has_images'), 'true')
-  assert.ok(params.getAll('makes').includes('BMW'))
-  assert.ok(!params.getAll('makes').includes('CATERPILLAR'))
+  assert.equal(params.getAll('makes').length, 1)
+  assert.ok(params.get('makes')!.split(',').includes('BMW'))
+  assert.ok(params.get('makes')!.split(',').includes('HONDA'))
+  assert.ok(!params.get('makes')!.split(',').includes('CATERPILLAR'))
   // Include known upstream bad rows deliberately, even though a correctly scoped API would exclude them.
   const all = [...rows.filter(row => row.item_type === params.get('item_type')), ...excluded].sort((a,b) => b.id-a.id)
   const page = Number(params.get('page')), size = Math.min(8, Number(params.get('page_size')))
