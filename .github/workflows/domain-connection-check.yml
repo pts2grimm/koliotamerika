@@ -1,4 +1,4 @@
-name: Read-only domain connection diagnostics
+name: Domain connection check
 on:
   push:
     branches: ['codex/domain-connection-check']
@@ -7,21 +7,39 @@ permissions:
 jobs:
   inspect:
     runs-on: ubuntu-latest
-    timeout-minutes: 3
+    timeout-minutes: 5
     steps:
-      - name: Verify the new public upload
+      - name: Verify canonical host on the deployed site
         run: |
           python3 - <<'PY'
-          import urllib.request,urllib.error,datetime,json,hashlib,time
-          url='https://koliotamerika.bg/api/media/file/Remove%20background%20project%20%282%29.png'
-          for target in [url,url+'?verify='+str(int(time.time()))]:
-           try:
-            req=urllib.request.Request(target,headers={'User-Agent':'Koliotamerika media verification','Cache-Control':'no-cache'})
-            try: response=urllib.request.urlopen(req,timeout=25)
-            except urllib.error.HTTPError as e: response=e
-            with response as r:
-             data=r.read(16777217)
-             print('MEDIA_CHECK '+json.dumps({'checkedAt':datetime.datetime.now(datetime.timezone.utc).isoformat(),'url':target,'status':r.status,'finalURL':r.url,'contentType':r.headers.get('content-type'),'bytesRead':len(data),'truncated':len(data)>16777216,'pngSignature':data.startswith(bytes([137,80,78,71,13,10,26,10])),'sha256':hashlib.sha256(data).hexdigest(),'errorText':data[:400].decode('utf-8','replace') if r.status>=400 else None}),flush=True)
-           except Exception as e: print('MEDIA_ERROR '+str(e),flush=True)
-          
+          import urllib.request, urllib.error, time, json, datetime
+          class NoRedirect(urllib.request.HTTPRedirectHandler):
+              def redirect_request(self, req, fp, code, msg, headers, newurl):
+                  return None
+          opener = urllib.request.build_opener(NoRedirect())
+          def check(url):
+              try:
+                  r = opener.open(urllib.request.Request(url, headers={'Cache-Control':'no-cache'}), timeout=20)
+              except urllib.error.HTTPError as e:
+                  r = e
+              result = {'url':url, 'status':r.status, 'location':r.headers.get('Location'), 'robots':r.headers.get('X-Robots-Tag')}
+              r.close()
+              print(json.dumps(result), flush=True)
+              return result
+          print(datetime.datetime.now(datetime.timezone.utc).isoformat(), flush=True)
+          ready = False
+          for attempt in range(7):
+              result = check('https://www.koliotamerika.bg/?canonical_check=1')
+              if result['status'] == 308 and result['location'] == 'https://koliotamerika.bg/?canonical_check=1':
+                  ready = True
+                  break
+              if attempt < 6:
+                  time.sleep(20)
+          if ready:
+              for path in ['/morski-transport-na-avtomobili-ot-sasht?utm_source=canonical-check', '/sitemap.xml', '/api/media/file/Remove%20background%20project%20%282%29.png']:
+                  check('https://www.koliotamerika.bg'+path)
+          check('https://koliotamerika.bg/')
+          check('https://koliotamerika.bg/robots.txt')
+          check('https://koliotamerika.bg/sitemap.xml')
+          print('CANONICAL_REDIRECT_DEPLOYED', ready, flush=True)
           PY
