@@ -25,3 +25,10 @@ test('domain indexing follows the actual host without disabling public productio
  expect((await request.get('/')).headers()['x-robots-tag']).toBeUndefined()
  expect(await (await request.get('/sitemap.xml')).text()).toContain('<loc>')
 })
+
+test('legacy price URL found in Search Console redirects to the preserved price page', async ({ request }) => {
+ const response = await request.get('/vnos-na-koli-usa/vnos-na-koli-ot-amerika-cena', { maxRedirects: 0 })
+ expect(response.status()).toBe(308)
+ expect(response.headers().location).toBe('/vnos-na-koli-ot-usa/vnos-na-koli-ot-amerika-cena')
+ expect((await request.get('/vnos-na-koli-usa/vnos-na-koli-ot-amerika-cena/')).status()).toBe(200)
+})

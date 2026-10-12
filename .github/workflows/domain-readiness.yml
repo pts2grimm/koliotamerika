@@ -27,7 +27,7 @@ jobs:
           node --input-type=module <<'JS'
           import { chromium } from '@playwright/test';
           import { spawnSync } from 'node:child_process';
-          const result=spawnSync('npx',['playwright','test','--config=playwright.domain-readiness.config.ts','--grep','all public content|domain indexing','--reporter=line'],{stdio:'inherit',env:{...process.env,CHROMIUM_PATH:chromium.executablePath()}});
+          const result=spawnSync('npx',['playwright','test','--config=playwright.domain-readiness.config.ts','--grep','all public content|domain indexing|legacy price URL','--reporter=line'],{stdio:'inherit',env:{...process.env,CHROMIUM_PATH:chromium.executablePath()}});
           process.exit(result.status??1);
           JS
       - uses: actions/upload-artifact@v4
