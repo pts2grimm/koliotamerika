@@ -7,55 +7,35 @@ permissions:
 jobs:
   inspect:
     runs-on: ubuntu-latest
-    timeout-minutes: 6
+    timeout-minutes: 3
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '24'
-          cache: npm
-      - run: npm ci --include=dev
-      - run: npx playwright install --with-deps chromium
-      - name: Check live analytics before and after consent
+      - name: Read Eridan public API documentation without credentials
         run: |
-          node --input-type=module <<'JS'
-          import { chromium } from '@playwright/test';
-          const browser = await chromium.launch({ headless: true });
-          const context = await browser.newContext();
-          const page = await context.newPage();
-          const provider = u => /(^|\.)(googletagmanager\.com|google-analytics\.com|analytics\.google\.com|clarity\.ms|facebook\.com|facebook\.net)$/.test(new URL(u).hostname);
-          const concise = u => { const url = new URL(u); return { endpoint: url.origin + url.pathname, id: url.searchParams.get('id') || url.searchParams.get('tid'), event: url.searchParams.get('en') || url.searchParams.get('ev') }; };
-          const requests=[], responses=[], failures=[], errors=[];
-          page.on('request', r => { if(provider(r.url())) requests.push(concise(r.url())); });
-          page.on('response', r => { if(provider(r.url())) responses.push({...concise(r.url()),status:r.status()}); });
-          page.on('requestfailed', r => { if(provider(r.url())) failures.push({...concise(r.url()),error:r.failure()?.errorText}); });
-          page.on('pageerror', e=>errors.push(e.message.slice(0,300)));
-          console.log('CHECK_TIME',new Date().toISOString());
-          const response=await page.goto('https://koliotamerika.bg/',{waitUntil:'domcontentloaded',timeout:60000});
-          await page.waitForTimeout(5000);
-          const html=await page.content();
-          const decoded=html.replaceAll('\\"','"');
-          const publicConfig=decoded.match(/"config":(\{[^{}]*"installation"[^{}]*\})/);
-          console.log('HTTP_STATUS',response?.status());
-          console.log('PUBLIC_CONFIG',publicConfig?.[1] || 'not found');
-          console.log('BEFORE_CONSENT',JSON.stringify(requests));
-          const consent=page.getByRole('button',{name:'Приеми всички',exact:true});
-          console.log('CONSENT_BUTTON',await consent.count());
-          if(await consent.count()) {
-           await consent.click();
-           await page.waitForTimeout(15000);
-          }
-          console.log('SCRIPTS',JSON.stringify(await page.locator('script[src]').evaluateAll(nodes=>nodes.filter(n=>/googletagmanager|google-analytics|clarity\.ms|facebook\.net/.test(n.src)).map(n=>({id:n.id,src:n.src})))));
-          console.log('REQUESTS',JSON.stringify(requests));
-          console.log('RESPONSES',JSON.stringify(responses));
-          console.log('FAILURES',JSON.stringify(failures));
-          console.log('PAGE_ERRORS',JSON.stringify(errors));
-          console.log('CONSENT_STATE',JSON.stringify(await page.evaluate(()=>({
-           cookieSaved:document.cookie.split(';').some(x=>x.trim().startsWith('koa_consent=')),
-           google:typeof window.gtag,
-           clarity:typeof window.clarity,
-           pixel:typeof window.fbq,
-           dataLayer:(window.dataLayer||[]).map(v=>v&&typeof v==='object'?Array.from(v.length!==undefined?v:[]):[]).filter(v=>v[0]==='consent'||v[0]==='config').map(v=>[v[0],v[1],v[2]])
-          }))));
-          await browser.close();
-          JS
+          python3 - <<'PY'
+          import urllib.request, urllib.error, urllib.parse, re, json
+          url='https://catalog.eridan.software/api/docs'
+          try:
+              with urllib.request.urlopen(urllib.request.Request(url,headers={'User-Agent':'Mozilla/5.0'}),timeout=30) as r:
+                  body=r.read().decode()
+                  print('DOCS',json.dumps({'status':r.status,'url':r.url,'contentType':r.headers.get('Content-Type'),'title':re.findall('<title>(.*?)</title>',body,re.S),'bytes':len(body)}))
+                  scripts=re.findall('<script[^>]+src=["\\\']([^"\\\']+)',body)
+                  print('SCRIPTS',json.dumps(scripts))
+                  print('INLINE',body[-5000:])
+              for src in scripts:
+                  if 'init' not in src: continue
+                  target=urllib.parse.urljoin(url+'/',src)
+                  if urllib.parse.urlparse(target).netloc!='catalog.eridan.software': continue
+                  with urllib.request.urlopen(target,timeout=30) as r:
+                      code=r.read().decode()
+                      print('INIT_URL',target,'STATUS',r.status)
+                      start=re.search(r'(?:let|var|const) options\\s*=\\s*',code)
+                      if start:
+                          try:
+                              options,_=json.JSONDecoder().raw_decode(code[start.end():])
+                              doc=options.get('swaggerDoc',{})
+                              print('OPENAPI',json.dumps({'version':doc.get('openapi'),'info':doc.get('info'),'servers':doc.get('servers'),'security':doc.get('security'),'securitySchemes':doc.get('components',{}).get('securitySchemes'),'paths':{p:{m:{k:v.get(k) for k in ['summary','description','security','parameters','requestBody','responses']} for m,v in methods.items() if isinstance(v,dict)} for p,methods in doc.get('paths',{}).items()}},ensure_ascii=False))
+                          except Exception as e: print('PARSE_ERROR',str(e)); print(code[:18000])
+                      else: print(code[:18000])
+          except urllib.error.HTTPError as e: print('HTTP_ERROR',e.code,e.reason)
+          except Exception as e: print('ERROR',type(e).__name__,str(e))
+          PY
