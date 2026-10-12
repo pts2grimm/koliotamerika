@@ -1,0 +1,36 @@
+name: Canonical host verification
+on:
+  push:
+    branches: ['codex/www-canonical-redirect']
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci --include=dev
+      - run: npm run build
+        env:
+          PREVIEW_MODE: 'true'
+          PAYLOAD_SECRET: ci-domain-readiness-only-not-live-secret
+      - run: npm run typecheck
+      - run: npx playwright install --with-deps chromium
+      - name: Verify public URLs and per-host indexing in a production build
+        run: |
+          node --input-type=module <<'JS'
+          import { chromium } from '@playwright/test';
+          import { spawnSync } from 'node:child_process';
+          const result=spawnSync('npx',['playwright','test','--config=playwright.domain-readiness.config.ts','--grep','domain indexing|legacy price URL|canonical www','--reporter=line'],{stdio:'inherit',env:{...process.env,CHROMIUM_PATH:chromium.executablePath()}});
+          process.exit(result.status??1);
+          JS
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: canonical-host-results
+          path: test-results
