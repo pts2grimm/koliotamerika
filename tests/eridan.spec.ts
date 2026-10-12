@@ -153,11 +153,13 @@ test('a direct uncached lot streams a loading state before the delayed provider 
  expect(requests.filter((r:{params:{lot_number?:string}})=>r.params.lot_number==='79999001')).toHaveLength(1)
 })
 
-test('both auctions appear immediately and the primary auction selector can show only IAAI',async({page})=>{
+test('both auctions appear immediately and the advanced auction selector can show only IAAI',async({page})=>{
  await page.goto('/targove?make=BMW&model=X5')
  const badges=await page.locator('.auction-card .car-badge').allTextContents()
  expect(badges.slice(0,4)).toEqual(['COPART','IAAI','COPART','IAAI'])
  const filters=page.getByRole('form',{name:'Филтри за автомобили'})
+ await expect(filters.getByLabel('Аукцион',{exact:true})).toBeHidden()
+ await filters.locator('.filter-advanced summary').click()
  await expect(filters.getByLabel('Аукцион',{exact:true})).toBeVisible()
  await filters.getByLabel('Аукцион',{exact:true}).selectOption('2')
  await filters.getByRole('button',{name:'Намери автомобил'}).click()
