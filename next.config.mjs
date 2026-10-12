@@ -5,8 +5,16 @@ export default withPayload({
   distDir: process.env.NEXT_DIST_DIR || '.next',
   experimental: { cpus: 2 },
   async redirects() {
-    return ['/sitemap_index.xml', '/wp-sitemap.xml', '/post-sitemap.xml', '/page-sitemap.xml', '/category-sitemap.xml', '/post_tag-sitemap.xml', '/author-sitemap.xml']
-      .map(source => ({ source, destination: '/sitemap.xml', permanent: true }))
+    return [
+      {
+        source: '/:path*',
+        has: [{ type: 'host', value: 'www\\.koliotamerika\\.bg' }],
+        destination: 'https://koliotamerika.bg/:path*',
+        permanent: true,
+      },
+      ...['/sitemap_index.xml', '/wp-sitemap.xml', '/post-sitemap.xml', '/page-sitemap.xml', '/category-sitemap.xml', '/post_tag-sitemap.xml', '/author-sitemap.xml']
+      .map(source => ({ source, destination: '/sitemap.xml', permanent: true })),
+    ]
   },
   async headers() {
     return [{ source: '/:path*', headers: [

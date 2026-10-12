@@ -15,27 +15,22 @@ jobs:
           node-version: '24'
           cache: npm
       - run: npm ci --include=dev
-      - name: Read installed Next.js redirect documentation
+      - run: npm run build
+        env:
+          PREVIEW_MODE: 'true'
+          PAYLOAD_SECRET: ci-domain-readiness-only-not-live-secret
+      - run: npm run typecheck
+      - run: npx playwright install --with-deps chromium
+      - name: Verify public URLs and per-host indexing in a production build
         run: |
-          python3 - <<'PY'
-          from pathlib import Path
-          for p in Path('node_modules/next/dist/docs').rglob('redirects.*'):
-              print(str(p))
-              print(p.read_text())
-          PY
-      - name: Inspect public sitemap and tracking configuration
-        run: |
-          python3 - <<'PY'
-          import urllib.request, re, json, xml.etree.ElementTree as ET
-          for url in ['https://koliotamerika.bg/sitemap.xml', 'https://koliotamerika.bg/']:
-              with urllib.request.urlopen(url, timeout=30) as r:
-                  body = r.read().decode()
-                  print('PUBLIC', url, r.status)
-                  if url.endswith('.xml'):
-                      locs = [x.text for x in ET.fromstring(body).iter() if x.tag.endswith('}loc')]
-                      print('SITEMAP', len(locs), 'all_canonical', all(x.startswith('https://koliotamerika.bg/') for x in locs))
-                  else:
-                      body = body.replace(chr(92)+chr(34), chr(34))
-                      for key in ['enabled','hostname','installation','gaId','pixelId','clarityId','gtmId']:
-                          print('TRACKING', key, re.findall('"'+key+'":("[^"]*"|true|false)', body)[:10])
-          PY
+          node --input-type=module <<'JS'
+          import { chromium } from '@playwright/test';
+          import { spawnSync } from 'node:child_process';
+          const result=spawnSync('npx',['playwright','test','--config=playwright.domain-readiness.config.ts','--grep','domain indexing|legacy price URL|canonical www','--reporter=line'],{stdio:'inherit',env:{...process.env,CHROMIUM_PATH:chromium.executablePath()}});
+          process.exit(result.status??1);
+          JS
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: canonical-host-results
+          path: test-results
