@@ -20,6 +20,9 @@ export function sellerHint(value: string): DetailHint {
  if (/dealer|private|individual|person|owner/i.test(value)) return { label: 'Частно лице', text: 'В каталога тази категория включва частни продавачи и дилъри. Провери историята и състоянието, включително за предишни ремонти и неописани дефекти.', tone: 'warn' }
  return { label: value, text: 'Категория на продавача, предоставена от аукциона. Историята и състоянието се проверяват отделно.', tone: 'neutral' }
 }
-export function mileage(value?: number) {
+export function mileage(value?: number, unit: 'mi' | 'km' | 'unknown' = 'mi') {
+ if (value == null) return undefined
+ if (unit === 'unknown') return `${value.toLocaleString('bg-BG')} (мерната единица не е посочена)`
+ if (unit === 'km') return `${value.toLocaleString('bg-BG')} km`
  return value == null ? undefined : `${value.toLocaleString('bg-BG')} mi (${Math.round(value * 1.609344).toLocaleString('bg-BG')} km)`
 }

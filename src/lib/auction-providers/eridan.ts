@@ -1,0 +1,157 @@
+import type { AuctionCar, AuctionProvider, AuctionTransport } from './types'
+import { record, validSearchParams } from './normalize'
+
+// Eridan OpenAPI 2.0.0: /api/openapi.json. Its record id is NOT an auction lot number.
+const auctions: Record<string, string> = { '1': 'copart', '2': 'iaai' }
+const text = (value: unknown) => typeof value === 'string' && value.trim() ? value.trim() : undefined
+const number = (value: unknown) => (typeof value === 'number' || typeof value === 'string' && value.trim() !== '') && Number.isFinite(Number(value)) && Number(value) >= 0 ? Number(value) : undefined
+const name = (value: unknown) => text(record(value).name)
+const imageURLs = (value: unknown) => Array.isArray(value) ? value.filter((v): v is string => {
+ if (typeof v !== 'string') return false
+ try { const url = new URL(v); return url.protocol === 'https:' && !url.username && !url.password } catch { return false }
+}).slice(0, 40) : []
+
+function mechanicalStatus(raw: Record<string, unknown>) {
+ // "status" describes the auction lifecycle. Never label "sold"/"active" as mechanical condition.
+ const highlights = Array.isArray(raw.highlights) ? raw.highlights : []
+ for (const value of highlights) {
+  if (typeof value !== 'string') continue
+  if (/^run\s*(?:&|and)\s*drive$/i.test(value.trim())) return 'Run & Drive'
+  if (/^(?:engine\s*start(?:s|\s*program)?|starts)$/i.test(value.trim())) return 'Starts'
+  if (/^stationary$/i.test(value.trim())) return 'Stationary'
+ }
+ return undefined
+}
+
+export function normalizeEridanCar(value: unknown): AuctionCar | undefined {
+ const raw = record(value)
+ const lotText = text(raw.lot_number), lot = number(lotText)
+ const site = raw.auction === 'copart' ? 1 : raw.auction === 'iaai' ? 2 : 0
+ if (!lotText || !/^\d{5,12}$/.test(lotText) || !Number.isSafeInteger(lot) || !lot || !site) return undefined
+ const make = name(raw.make) || '', model = name(raw.model) || name(raw.series) || '', year = number(raw.year) || 0
+ const currency = text(raw.currency)?.toUpperCase()
+ const knownCurrency = currency && ['USD', 'CAD', 'EUR', 'BGN'].includes(currency)
+ // The current documented response does not specify odometer units. Do not assume US == miles.
+ const unit = raw.odometer_unit === 'mi' || raw.odometer_unit === 'km' ? raw.odometer_unit : 'unknown'
+ return {
+  id: site + ':' + lot, lot_id: lot, site, title: text(raw.name) || [year || '', make, model].filter(Boolean).join(' '),
+  make, model, year, vin: text(raw.vin), odometer: number(raw.odometer), odometer_unit: unit,
+  currency, current_bid: knownCurrency ? number(raw.current_bid) : undefined,
+  buy_now: knownCurrency ? number(raw.buy_now_price) : undefined, price_new: knownCurrency ? number(raw.retail_value) : undefined,
+  location: [text(raw.city), text(raw.state)].filter(Boolean).join(', ') || text(raw.yard),
+  state: text(raw.state), auction_date: text(raw.sale_date), status: mechanicalStatus(raw),
+  damage_pr: name(raw.primary_damage), damage_sec: name(raw.secondary_damage),
+  document_old: [text(raw.title_type), text(raw.title_state)].filter(Boolean).join(' ') || undefined,
+  fuel: text(raw.fuel), transmission: text(raw.transmission), engine: text(raw.engine), drive: text(raw.drive),
+  seller: text(raw.seller), link_img_hd: imageURLs(raw.images), link_img_small: imageURLs([raw.thumb_url]),
+ }
+}
+
+export class UnsupportedEridanFilterError extends Error {
+ constructor(readonly filters: string[]) { super('Eridan does not document these filters: ' + filters.join(', ')) }
+}
+export function unsupportedEridanFilters(input: URLSearchParams) {
+ // These cannot be reproduced by filtering just one result page: that loses matching cars and breaks pagination.
+ return ['status', 'seller_type', 'cylinders'].filter(key => Boolean(input.get(key)?.trim()))
+}
+function lots(raw: unknown, expectedPage: number) {
+ const data = record(raw)
+ if (!Array.isArray(data.items) || typeof data.has_next !== 'boolean' || data.page !== expectedPage || !Number.isInteger(data.page_size) || Number(data.page_size) < 1) throw new Error('Invalid Eridan catalogue response')
+ const items = data.items.map(normalizeEridanCar)
+ if (items.some(item => !item)) throw new Error('Invalid Eridan auction identity')
+ return { items: items as AuctionCar[], hasNext: data.has_next, size: Number(data.page_size) }
+}
+
+export function createEridanProvider(request: AuctionTransport): AuctionProvider {
+ const directory = async (path: string) => {
+  const found = new Map<number, Record<string, unknown>>()
+  for (let page = 1; page <= 100; page++) {
+   const raw = record(await request(path, new URLSearchParams({ page: String(page), page_size: '1000' })))
+   if (!Array.isArray(raw.items) || !Number.isInteger(raw.count) || Number(raw.count) < 0) throw new Error('Invalid Eridan directory')
+   const before = found.size
+   for (const item of raw.items) {
+    const row = record(item)
+    if (!Number.isSafeInteger(row.id) || !name(row)) throw new Error('Invalid Eridan directory item')
+    found.set(Number(row.id), row)
+   }
+   if (found.size >= Number(raw.count)) return [...found.values()]
+   if (found.size === before) throw new Error('Incomplete Eridan directory')
+  }
+  throw new Error('Eridan directory page limit reached')
+ }
+ let automobile: Promise<string> | undefined
+ const automobileCode = () => automobile ||= (async () => {
+  const raw = await request('/item_types', new URLSearchParams())
+  if (!Array.isArray(raw)) throw new Error('Invalid Eridan vehicle types')
+  const match = raw.map(record).find(row => /^(?:automobiles?|passenger vehicles?)$/i.test(text(row.label) || ''))
+  if (!match || !/^VEHTYPE_[A-Z]$/.test(text(match.value) || '')) throw new Error('Eridan automobile category is not confirmed')
+  return String(match.value)
+ })().catch(error => { automobile = undefined; throw error })
+ const detail = async (lot: string, site: string) => {
+  if (!/^\d{5,12}$/.test(lot) || !auctions[site]) throw new Error('Invalid lot')
+  const params = new URLSearchParams({ lot_number: lot, auction: auctions[site], ordering: '-updated_at', page: '1', page_size: '10' })
+  const data = lots(await request('/lots', params), 1)
+  return data.items.find(car => car.lot_id === Number(lot) && String(car.site) === site)
+ }
+ return {
+  name: 'eridan', detail,
+  async search(input) {
+   const unsupported = unsupportedEridanFilters(input)
+   if (unsupported.length) throw new UnsupportedEridanFilterError(unsupported)
+   const valid = validSearchParams(input)
+   const sites = [...new Set((input.get('site') || '1').split(','))]
+   if (!sites.length || sites.some(site => !auctions[site])) throw new Error('Invalid auction')
+   const page = Number(valid.get('page')), size = Number(valid.get('size')) * sites.length
+   const params = new URLSearchParams({ page: String(page), page_size: String(size), ordering: '-id' })
+   if (sites.length === 1) params.set('auction', auctions[sites[0]])
+   for (const [from, to] of [['make', 'make__name'], ['model', 'model__name'], ['year_from', 'year_from'], ['year_to', 'year_to']]) {
+    const value = valid.get(from); if (value) params.set(to, value)
+   }
+   if (valid.get('fuel')) {
+    const raw = await request('/fuel_types', new URLSearchParams())
+    if (!Array.isArray(raw) || raw.some(value => typeof value !== 'string')) throw new Error('Invalid Eridan fuel types')
+    const aliases: Record<string, string[]> = { Gasoline: ['gasoline', 'gas'], Diesel: ['diesel'], Hybrid: ['hybrid', 'hybrid engine'], Electric: ['electric', 'electric engine'] }
+    const wanted = aliases[valid.get('fuel')!] || [valid.get('fuel')!.toLowerCase()]
+    const fuel = raw.find(value => wanted.includes(value.trim().toLowerCase()))
+    if (!fuel) throw new UnsupportedEridanFilterError(['fuel'])
+    params.set('fuel_type__name', fuel)
+   }
+   if (valid.get('vehicle_type')) {
+    if (valid.get('vehicle_type') !== 'Automobile') throw new UnsupportedEridanFilterError(['vehicle_type'])
+    params.set('item_type', await automobileCode())
+   }
+   const data = lots(await request('/lots', params), page)
+   const unique = new Map(data.items.map(car => [car.id, car]))
+   // Eridan supplies has_next, not a total. null means unknown, never zero or a made-up last page.
+   return { success: true, items: [...unique.values()], page, size: data.size, total: null, totalPages: null, hasNext: data.hasNext }
+  },
+  async makes() {
+   const makes = await directory('/makes'), models = await directory('/models')
+   const byId = new Map(makes.map(make => [Number(make.id), String(make.name)]))
+   const result: Record<string, string[]> = Object.create(null)
+   for (const make of makes) result[String(make.name)] ||= []
+   for (const model of models) {
+    const make = byId.get(Number(model.make_id))
+    if (!make) throw new Error('Eridan model has no matching make')
+    result[make].push(String(model.name))
+   }
+   for (const make of Object.keys(result)) result[make] = [...new Set(result[make])].sort((a, b) => a.localeCompare(b))
+   return result
+  },
+  async lookup(query) {
+   const q = query.trim().toUpperCase()
+   if (/^[A-HJ-NPR-Z0-9]{17}$/.test(q)) {
+    const data = lots(await request('/lots', new URLSearchParams({ vin: q, ordering: '-updated_at', page: '1', page_size: '10' })), 1)
+    const car = data.items.find(item => item.vin?.toUpperCase() === q)
+    if (car) return { lot: String(car.lot_id), site: String(car.site) }
+    throw new Error('VIN not found')
+   }
+   if (!/^\d{5,12}$/.test(q)) throw new Error('Invalid lot')
+   for (const site of ['1', '2']) {
+    const car = await detail(q, site)
+    if (car) return { lot: String(car.lot_id), site }
+   }
+   throw new Error('Lot not found')
+  },
+ }
+}

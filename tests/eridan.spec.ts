@@ -1,0 +1,48 @@
+import { test, expect } from '@playwright/test'
+
+test.beforeEach(async ({ page }) => {
+ await page.route('https://cs.copart.com/test-gallery-*.jpg', route => route.fulfill({ path: 'public/images/hero.png', contentType: 'image/png' }))
+})
+test('Eridan staging remains outside search indexes and keeps secrets out of HTML and browser traffic', async ({ page, request }) => {
+ const apiRequests: string[] = []
+ page.on('request', req => { if (req.url().includes('catalog.eridan.software')) apiRequests.push(req.url()) })
+ const response = await request.get('/targove')
+ const html = await response.text()
+ expect(html).not.toContain('eridan-local-fixture')
+ expect(html).toContain('Търгове за коли от Америка')
+ const robots = await request.get('/robots.txt')
+ expect(await robots.text()).toContain('Disallow: /')
+ await page.goto('/targove?make=BMW&model=X5')
+ await expect(page.locator('meta[name="robots"]')).toHaveAttribute('content', 'noindex, nofollow')
+ await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href', 'http://localhost:3100/targove?make=BMW&model=X5')
+ expect(apiRequests).toEqual([])
+})
+test('Eridan renders next/previous without a fictional total and keeps unknown mileage units honest', async ({ page }) => {
+ await page.goto('/targove?make=BMW&model=X5')
+ await expect(page.locator('.auction-card')).toHaveCount(24)
+ await expect(page.locator('.results-count')).toContainText('Намерени автомобили')
+ const pagination = page.getByRole('navigation', { name: 'Страници с търгове' })
+ await expect(pagination).toContainText('Страница 1')
+ await pagination.getByRole('link', { name: 'Следваща' }).click()
+ await expect(page.locator('.auction-card')).toHaveCount(6)
+ await expect(pagination).toContainText('Страница 2')
+ await expect(pagination.getByRole('link', { name: 'Следваща' })).toHaveCount(0)
+ await pagination.getByRole('link', { name: 'Предишна' }).click()
+ await page.goto('/targove/kola?lot=70000000&site=1')
+ await expect(page.locator('.technical-facts')).toContainText('мерната единица не е посочена')
+})
+test('an unsupported filter stays selected and produces a clear message instead of unrelated results', async ({ page }) => {
+ await page.goto('/targove?make=BMW&seller_type=insurance')
+ await expect(page.locator('.auction-card')).toHaveCount(0)
+ await expect(page.locator('.empty-state')).toContainText('тип продавач временно не е достъпно')
+ await expect(page.getByRole('link', { name: /Премахни филтър:.*Застраховател/ })).toBeVisible()
+ await page.getByRole('link', { name: /Премахни филтър:.*Застраховател/ }).click()
+ await expect(page.locator('.auction-card')).toHaveCount(24)
+})
+test('old saved-lot identifiers and VIN lookup resolve Eridan records with the same URLs', async ({ page }) => {
+ await page.goto('/targove?q=WBA00000000000000')
+ await expect(page).toHaveURL(/targove\/kola\?lot=70000000&site=1/)
+ await expect(page.getByRole('heading', { level: 1 })).toContainText('BMW X5')
+ await page.goto('/targove/kola?lot=70000015&site=2')
+ await expect(page.getByRole('heading', { level: 1 })).toContainText('BMW X5')
+})

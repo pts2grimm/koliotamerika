@@ -10,7 +10,7 @@ function Facts({ title, rows, className = '' }: { title: string; rows: [string, 
 }
 export function TechnicalFacts({ car }: { car: AuctionCar }) {
  return <Facts title="Технически характеристики" className="technical-facts" rows={[
-  ['Година', car.year || undefined], ['Пробег', mileage(car.odometer)], ['Двигател', car.engine], ['Гориво', car.fuel], ['Скоростна кутия', car.transmission], ['Задвижване', car.drive],
+  ['Година', car.year || undefined], ['Пробег', mileage(car.odometer, car.odometer_unit)], ['Двигател', car.engine], ['Гориво', car.fuel], ['Скоростна кутия', car.transmission], ['Задвижване', car.drive],
  ]} />
 }
 export function AuctionFacts({ car }: { car: AuctionCar }) {
