@@ -23,7 +23,6 @@ export function Tracking({ config }: { config: PublicIntegrations }) {
   useEffect(() => {
     const saved = browserConsent()
     setConsent(saved); setAnalytics(saved?.analytics || false); setMarketing(saved?.marketing || false); setReady(true)
-    if (!saved && permitted(config, location.pathname)) setOpen(true)
     const show = () => {
       previousFocus.current = document.activeElement as HTMLElement
       const current = browserConsent()
@@ -43,6 +42,12 @@ export function Tracking({ config }: { config: PublicIntegrations }) {
     const timer = window.setInterval(expired, 60000)
     return () => { window.removeEventListener('koa:cookie-settings', show); window.removeEventListener('storage', storage); window.removeEventListener('focus', expired); clearInterval(timer) }
   }, [config])
+  useEffect(() => {
+    if (!ready) return
+    // Choosing cookies is available even when tracking is disabled or this is a preview host.
+    // Provider scripts retain their separate enabled, hostname and category checks below.
+    setOpen(!privateTrackingPath(pathname) && !browserConsent())
+  }, [pathname, ready])
   useEffect(() => {
     if (!ready) return
     // Account screens never retain an analytics library from an earlier SPA page.
