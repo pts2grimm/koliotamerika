@@ -1,5 +1,6 @@
 import type { AuctionCar, AuctionProvider, AuctionTransport } from './types'
 import { record, validSearchParams } from './normalize'
+import { eridanRoadBrands, eridanRoadTypes, isEridanRoadMake, isEridanRoadModel, type EridanRoadType } from './eridan-scope'
 
 // Eridan OpenAPI 2.0.0: /api/openapi.json. Its record id is NOT an auction lot number.
 const fuelGroups: Record<string, string[]> = {
@@ -40,7 +41,7 @@ export function normalizeEridanCar(value: unknown): AuctionCar | undefined {
  const unit = raw.odometer_unit === 'mi' || raw.odometer_unit === 'km' ? raw.odometer_unit : 'unknown'
  return {
   id: site + ':' + lot, lot_id: lot, site, title: text(raw.name) || [year || '', make, model].filter(Boolean).join(' '),
-  make, model, year, vin: text(raw.vin), odometer: number(raw.odometer), odometer_unit: unit,
+  make, model, year, vehicle_type: raw.item_type === 'VEHTYPE_V' ? 'Automobile' : raw.item_type === 'VEHTYPE_M' ? 'Motorcycle' : undefined, vin: text(raw.vin), odometer: number(raw.odometer), odometer_unit: unit,
   currency, current_bid: knownCurrency ? number(raw.current_bid) : undefined,
   buy_now: knownCurrency ? number(raw.buy_now_price) : undefined, price_new: knownCurrency ? number(raw.retail_value) : undefined,
   location: [text(raw.city), text(raw.state)].filter(Boolean).join(', ') || text(raw.yard),
@@ -101,14 +102,17 @@ export function createEridanProvider(request: AuctionTransport): AuctionProvider
   if (found.size < first.count) throw new Error('Incomplete Eridan directory')
   return [...found.values()]
  }
- let automobile: Promise<string> | undefined
- const automobileCode = () => automobile ||= (async () => {
+ let categories: Promise<Record<EridanRoadType, string>> | undefined
+ const categoryCodes = () => categories ||= (async () => {
   const raw = await request('/item_types', new URLSearchParams())
   if (!Array.isArray(raw)) throw new Error('Invalid Eridan vehicle types')
-  const match = raw.map(record).find(row => /^(?:vehicle|automobiles?|passenger vehicles?)$/i.test(text(row.label) || ''))
-  if (!match || !/^VEHTYPE_[A-Z]$/.test(text(match.value) || '')) throw new Error('Eridan automobile category is not confirmed')
-  return String(match.value)
- })().catch(error => { automobile = undefined; throw error })
+  const patterns = { Automobile: /^(?:vehicle|automobiles?|passenger vehicles?)$/i, Motorcycle: /^motorcycles?$/i }
+  return Object.fromEntries(eridanRoadTypes.map(type => {
+   const match = raw.map(record).find(row => patterns[type].test(text(row.label) || ''))
+   if (!match || match.value !== (type === 'Automobile' ? 'VEHTYPE_V' : 'VEHTYPE_M')) throw new Error('Eridan road category is not confirmed')
+   return [type, String(match.value)]
+  })) as Record<EridanRoadType, string>
+ })().catch(error => { categories = undefined; throw error })
  const detail = async (lot: string, site: string) => {
   if (!/^\d{5,12}$/.test(lot) || !auctions[site]) throw new Error('Invalid lot')
   const params = new URLSearchParams({ lot_number: lot, auction: auctions[site], ordering: '-updated_at', page: '1', page_size: '10' })
@@ -129,65 +133,73 @@ export function createEridanProvider(request: AuctionTransport): AuctionProvider
    for (const [from, to] of [['make', 'make__name'], ['model', 'model__name'], ['year_from', 'year_from'], ['year_to', 'year_to']]) {
     const value = valid.get(from); if (value) params.set(to, value)
    }
-   if (valid.get('vehicle_type')) {
-    if (valid.get('vehicle_type') !== 'Automobile') throw new UnsupportedEridanFilterError(['vehicle_type'])
-    params.set('item_type', await automobileCode())
-   }
+   const selectedType = valid.get('vehicle_type')
+   if (selectedType && !eridanRoadTypes.includes(selectedType as EridanRoadType)) throw new UnsupportedEridanFilterError(['vehicle_type'])
+   const types = selectedType ? [selectedType as EridanRoadType] : eridanRoadTypes
+   const codes = await categoryCodes()
+   // Recently imported Eridan records can have only a thumbnail. Wait for real images
+   // in catalogue results; direct/saved lot URLs still resolve while ingestion finishes.
+   params.set('has_images', 'true')
+   let fuels: (string | undefined)[] = [undefined]
    if (valid.get('fuel')) {
     const raw = await request('/fuel_types', new URLSearchParams())
     if (!Array.isArray(raw) || raw.some(value => typeof value !== 'string')) throw new Error('Invalid Eridan fuel types')
     const wanted = fuelGroups[valid.get('fuel')!] || [valid.get('fuel')!.toLowerCase()]
-    // Live API matching is case-insensitive, but GAS and Gasoline are distinct values.
-    // Keep whitespace variants until the provider confirms they are equivalent too.
-    const fuels = [...new Map(raw.filter(value => wanted.includes(value.trim().toLowerCase())).map(value => [value.toLowerCase(), value])).values()]
+    fuels = [...new Map(raw.filter(value => wanted.includes(value.trim().toLowerCase())).map(value => [value.toLowerCase(), value])).values()]
     if (!fuels.length) throw new UnsupportedEridanFilterError(['fuel'])
-    const needed = page * size + 1
-    if (needed > 10000) throw new Error('Eridan fuel search window exceeded; narrow the filters')
-    const merged = new Map<string, { car: AuctionCar; order: number }>()
-    let calls = 0
+   }
+   const needed = page * size + 1
+   if (needed > 10000) throw new Error('Eridan search window exceeded; narrow the filters')
+   const merged = new Map<string, { car: AuctionCar; order: number }>()
+   let calls = 0
+   for (const type of types) {
+    const make = valid.get('make')
+    if (make && !isEridanRoadMake(make, type)) continue
     for (const fuel of fuels) {
      const stream = new Map<string, { car: AuctionCar; order: number }>()
+     const seen = new Set<number>()
      let streamPage = 1
      while (stream.size < needed) {
-      if (++calls > 16) throw new Error('Eridan fuel search request budget reached; narrow the filters')
+      if (++calls > 16) throw new Error('Eridan search request budget reached; narrow the filters')
       const query = new URLSearchParams(params)
-      query.set('fuel_type__name', fuel)
+      query.set('item_type', codes[type])
+      if (!make) for (const brand of eridanRoadBrands[type]) query.append('makes', brand)
+      if (fuel) query.set('fuel_type__name', fuel)
       query.set('page', String(streamPage))
       query.set('page_size', String(needed))
       const response = record(await request('/lots', query))
       const data = lots(response, streamPage)
       const rawItems = response.items as unknown[]
-      const before = stream.size
+      const before = seen.size
       for (let index = 0; index < data.items.length; index++) {
-       const car = data.items[index], order = number(record(rawItems[index]).id)
+       const car = data.items[index], raw = record(rawItems[index]), order = number(raw.id)
        if (order === undefined) throw new Error('Invalid Eridan sort identity')
+       seen.add(order)
+       // Defend against misclassified upstream rows; fill the stream before slicing.
+       if (raw.item_type !== codes[type] || !isEridanRoadMake(car.make, type) || !isEridanRoadModel(car.model) || !car.link_img_hd?.length) continue
        if (!stream.has(car.id) || stream.get(car.id)!.order < order) stream.set(car.id, { car, order })
       }
       if (!data.hasNext) break
-      if (stream.size === before) throw new Error('Eridan fuel pagination made no progress')
+      if (seen.size === before) throw new Error('Eridan pagination made no progress')
       streamPage++
      }
      for (const [id, item] of stream) if (!merged.has(id) || merged.get(id)!.order < item.order) merged.set(id, item)
     }
-    // Each stream supplies the first N unique lots. Merge before slicing, so no matching
-    // car is lost between pages. A page-local post-filter would produce incorrect results.
-    const all = [...merged.values()].sort((a, b) => b.order - a.order).map(item => item.car)
-    return { success: true, items: all.slice((page - 1) * size, page * size), page, size, total: null, totalPages: null, hasNext: all.length > page * size }
    }
-   const data = lots(await request('/lots', params), page)
-   const unique = new Map(data.items.map(car => [car.id, car]))
-   // Eridan supplies has_next, not a total. null means unknown, never zero or a made-up last page.
-   return { success: true, items: [...unique.values()], page, size: data.size, total: null, totalPages: null, hasNext: data.hasNext }
+   // Merge category/fuel streams before slicing; never post-filter a visible page.
+   const all = [...merged.values()].sort((a, b) => b.order - a.order).map(item => item.car)
+   return { success: true, items: all.slice((page - 1) * size, page * size), page, size, total: null, totalPages: null, hasNext: all.length > page * size }
   },
   async makes() {
    const makes = await directory('/makes')
    // Models are loaded only for the selected make. Eridan has >50k model rows.
-   return Object.fromEntries(makes.filter(make => Boolean(name(make))).map(make => [String(make.name), []]))
+   return Object.fromEntries(makes.filter(make => Boolean(name(make)) && isEridanRoadMake(String(make.name))).map(make => [String(make.name), []]))
   },
   async models(make: string) {
    if (!make.trim() || make.length > 100) throw new Error('Invalid make')
+   if (!isEridanRoadMake(make)) return []
    const models = await directory('/models', { make__name: make })
-   return [...new Set(models.filter(model => Boolean(name(model))).map(model => String(model.name)))].sort((a, b) => a.localeCompare(b, undefined, { numeric: true }))
+   return [...new Set(models.filter(model => Boolean(name(model)) && isEridanRoadModel(String(model.name))).map(model => String(model.name)))].sort((a, b) => a.localeCompare(b, undefined, { numeric: true }))
   },
   async lookup(query) {
    const q = query.trim().toUpperCase()

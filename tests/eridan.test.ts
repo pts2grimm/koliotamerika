@@ -7,7 +7,7 @@ import type { AuctionTransport } from '../src/lib/auction-providers/types'
 
 const row = {
  id: 42, lot_number: '70000001', auction: 'copart', name: '2023 BMW X5',
- make: { id: 1, name: 'BMW' }, model: { id: 10, name: 'X5', make_id: 1 }, year: 2023,
+ make: { id: 1, name: 'BMW' }, model: { id: 10, name: 'X5', make_id: 1 }, year: 2023, item_type: 'VEHTYPE_V',
  vin: 'WBA12345678901234', current_bid: 0, buy_now_price: 15000, currency: 'USD',
  odometer: 24000, status: 'active', highlights: ['RUNS AND DRIVES'], primary_damage: { id: 1, name: 'Front End' },
  title_type: 'Salvage', title_state: 'GA', seller: 'Example Insurance', fuel: 'GAS',
@@ -19,9 +19,9 @@ function fixture(answer?: (path: string, params: URLSearchParams) => unknown) {
  const calls: { path: string; params: URLSearchParams }[] = []
  const request: AuctionTransport = async (path, params) => {
   calls.push({ path, params: new URLSearchParams(params) })
-  if (path === '/item_types') return [{ value: 'VEHTYPE_V', label: 'Vehicle' }]
+  if (path === '/item_types') return [{ value: 'VEHTYPE_V', label: 'Vehicle' }, { value: 'VEHTYPE_M', label: 'Motorcycle' }]
   if (path === '/fuel_types') return ['GAS', 'DIESEL', 'HYBRID ENGINE', 'ELECTRIC']
-  return answer ? answer(path, params) : envelope([row], Number(params.get('page') || 1), true)
+  return answer ? answer(path, params) : envelope([row], Number(params.get('page') || 1), false)
  }
  return { calls, provider: createEridanProvider(request) }
 }
@@ -55,14 +55,14 @@ test('Eridan translates filters, keeps 24 results for both auctions, and never i
  assert.equal(query.get('make__name'), 'BMW'); assert.equal(query.get('model__name'), 'X5')
  assert.equal(query.get('year_from'), '2020'); assert.equal(query.get('year_to'), '2024')
  assert.equal(query.get('item_type'), 'VEHTYPE_V')
- assert.equal(query.get('page_size'), '24'); assert.equal(query.get('page'), '2'); assert.equal(query.get('auction'), null)
- assert.equal(data.total, null); assert.equal(data.totalPages, null); assert.equal(data.hasNext, true)
+ assert.equal(query.get('page_size'), '49'); assert.equal(query.get('page'), '1'); assert.equal(query.get('auction'), null)
+ assert.equal(data.total, null); assert.equal(data.totalPages, null); assert.equal(data.hasNext, false)
 })
 test('single auction query is scoped, with no unsupported parameters leaked to Eridan', async () => {
  const { provider, calls } = fixture()
  await provider.search(new URLSearchParams({ site: '2', size: '12', made_up: 'ignored' }))
- const params = calls[0].params
- assert.equal(params.get('auction'), 'iaai'); assert.equal(params.get('page_size'), '12'); assert.equal(params.get('made_up'), null)
+ const params = calls.find(call => call.path === '/lots')!.params
+ assert.equal(params.get('auction'), 'iaai'); assert.equal(params.get('page_size'), '13'); assert.equal(params.get('made_up'), null)
  await assert.rejects(() => provider.search(new URLSearchParams('site=3')), /Invalid auction/)
 })
 test('unsupported mechanical/seller/cylinder filters fail explicitly before any paid request', async () => {
@@ -167,6 +167,7 @@ test('transport enforces a per-process budget without automatic retries or secre
 test('fuel aliases from both auctions merge before pagination, without duplicates, skips or invented totals', async () => {
  const data = Array.from({ length: 55 }, (_, i) => ({ ...row, id: 100 + i, lot_number: String(71000000 + i), auction: i % 2 ? 'iaai' : 'copart', fuel: i % 2 ? 'Gasoline' : 'GAS' }))
  const provider = createEridanProvider(async (path, params) => {
+  if (path === '/item_types') return [{ value: 'VEHTYPE_V', label: 'Vehicle' }, { value: 'VEHTYPE_M', label: 'Motorcycle' }]
   if (path === '/fuel_types') return ['GAS', 'Gas', 'Gasoline']
   const fuel = params.get('fuel_type__name')!.toLowerCase()
   const matches = data.filter(item => item.fuel.toLowerCase() === fuel).sort((a, b) => b.id - a.id)
@@ -176,7 +177,7 @@ test('fuel aliases from both auctions merge before pagination, without duplicate
   return envelope(matches.slice((page - 1) * size, page * size), page, page * size < matches.length, size)
  })
  const pages = []
- for (const page of [1, 2, 3]) pages.push(await provider.search(new URLSearchParams({ site: '1,2', fuel: 'Gasoline', page: String(page), size: '12' })))
+ for (const page of [1, 2, 3]) pages.push(await provider.search(new URLSearchParams({ site: '1,2', vehicle_type: 'Automobile', fuel: 'Gasoline', page: String(page), size: '12' })))
  assert.deepEqual(pages.map(page => page.items.length), [24, 24, 7])
  assert.deepEqual(pages.map(page => page.hasNext), [true, true, false])
  assert.deepEqual(pages.flatMap(page => page.items.map(car => car.lot_id)), data.toSorted((a, b) => b.id - a.id).map(item => Number(item.lot_number)))
@@ -187,13 +188,73 @@ test('fuel aliases from both auctions merge before pagination, without duplicate
 test('hybrid search includes both hybrid labels; electric search does not include gasoline hybrids', async () => {
  const calls: string[] = []
  const provider = createEridanProvider(async (path, params) => {
+  if (path === '/item_types') return [{ value: 'VEHTYPE_V', label: 'Vehicle' }, { value: 'VEHTYPE_M', label: 'Motorcycle' }]
   if (path === '/fuel_types') return ['HYBRID ENGINE', 'ELECTRIC AND GAS HYBRID', 'Hybrid', 'Electric', 'ELECTRIC VEHICLE']
   calls.push(params.get('fuel_type__name')!)
   return envelope([], Number(params.get('page')), false, Number(params.get('page_size')))
  })
- await provider.search(new URLSearchParams('fuel=Hybrid'))
+ await provider.search(new URLSearchParams('fuel=Hybrid&vehicle_type=Automobile'))
  assert.deepEqual(calls, ['HYBRID ENGINE', 'ELECTRIC AND GAS HYBRID', 'Hybrid'])
  calls.length = 0
- await provider.search(new URLSearchParams('fuel=Electric'))
+ await provider.search(new URLSearchParams('fuel=Electric&vehicle_type=Automobile'))
  assert.deepEqual(calls, ['Electric', 'ELECTRIC VEHICLE'])
+})
+
+
+test('road catalogue merges cars and motorcycles with full galleries before pagination, excludes marine/equipment rows and fills pages', async () => {
+ const rows = Array.from({ length: 19 }, (_, i) => ({
+  ...row, id: 100 + i, lot_number: String(72000000 + i),
+  item_type: i % 2 ? 'VEHTYPE_M' : 'VEHTYPE_V',
+  model: { id: 10 + i, name: i % 2 ? 'S 1000' : 'X5' },
+ }))
+ const excluded = [
+  { ...row, id: 200, lot_number: '72900000', images: [] },
+  { ...row, id: 201, lot_number: '72900001', item_type: 'VEHTYPE_L' },
+  { ...row, id: 202, lot_number: '72900002', item_type: 'VEHTYPE_E', make: { id: 3, name: 'CATERPILLAR' } },
+  { ...row, id: 203, lot_number: '72900003', item_type: 'VEHTYPE_M', make: { id: 4, name: 'SEA RAY' }, model: { id: 1, name: '190 SIGNATURE' } },
+  { ...row, id: 204, lot_number: '72900004', item_type: 'VEHTYPE_M', make: { id: 5, name: 'YAMAHA' }, model: { id: 2, name: 'WAVERUNNER' } },
+ ]
+ const queries: URLSearchParams[] = []
+ const provider = createEridanProvider(async (path, params) => {
+  if (path === '/item_types') return [{ value: 'VEHTYPE_V', label: 'Vehicle' }, { value: 'VEHTYPE_M', label: 'Motorcycle' }]
+  queries.push(new URLSearchParams(params))
+  assert.equal(params.get('has_images'), 'true')
+  assert.ok(params.getAll('makes').includes('BMW'))
+  assert.ok(!params.getAll('makes').includes('CATERPILLAR'))
+  // Include known upstream bad rows deliberately, even though a correctly scoped API would exclude them.
+  const all = [...rows.filter(row => row.item_type === params.get('item_type')), ...excluded].sort((a,b) => b.id-a.id)
+  const page = Number(params.get('page')), size = Math.min(8, Number(params.get('page_size')))
+  return envelope(all.slice((page-1)*size,page*size),page,page*size<all.length,size)
+ })
+ const first = await provider.search(new URLSearchParams('size=6&site=1,2'))
+ const second = await provider.search(new URLSearchParams('size=6&site=1,2&page=2'))
+ assert.deepEqual([first.items.length,second.items.length], [12,7])
+ assert.deepEqual([first.hasNext,second.hasNext], [true,false])
+ assert.deepEqual([...first.items,...second.items].map(car=>car.lot_id),rows.toSorted((a,b)=>b.id-a.id).map(row=>Number(row.lot_number)))
+ assert.deepEqual([...new Set(queries.map(query=>query.get('item_type')))].sort(),['VEHTYPE_M','VEHTYPE_V'])
+ const bikes = await provider.search(new URLSearchParams('size=6&vehicle_type=Motorcycle'))
+ assert.ok(bikes.items.every(car=>car.vehicle_type==='Motorcycle'))
+ await assert.rejects(()=>provider.search(new URLSearchParams('vehicle_type=Boat')),UnsupportedEridanFilterError)
+})
+test('road directories retain car and motorcycle makes while removing equipment, marine and placeholder entries', async () => {
+ const makes = ['BMW','HONDA','YAMAHA','VESPA','MERCEDES-BENZ','CATERPILLAR','SEA RAY','UNKNOWN','*','0084']
+ const models = ['X5','S 1000','BOAT W/TRL','WAVERUNNER','UNKNOWN','*']
+ const provider = createEridanProvider(async path=>{
+  const names = path === '/makes' ? makes : models
+  return {items:names.map((name,id)=>({id,name})),count:names.length}
+ })
+ assert.deepEqual(Object.keys(await provider.makes()), makes.slice(0,5))
+ assert.deepEqual(await provider.models!('BMW'), ['S 1000','X5'])
+ assert.deepEqual(await provider.models!('CATERPILLAR'), [])
+})
+test('full gallery wins over the thumbnail without synthesizing image URLs; old incomplete lot remains addressable', async () => {
+ const images = Array.from({length:17},(_,i)=>'https://vis.iaai.com/resizer?imageKeys=example~I'+(i+1))
+ const car = normalizeEridanCar({...row,images})!
+ assert.deepEqual(car.link_img_hd,images)
+ assert.deepEqual(car.link_img_small,[row.thumb_url])
+ const {provider}=fixture(()=>envelope([{...row,images:[]}]))
+ const incomplete = await provider.detail(row.lot_number,'1')
+ assert.equal(incomplete?.id,'1:'+row.lot_number)
+ assert.deepEqual(incomplete?.link_img_hd,[])
+ assert.deepEqual(incomplete?.link_img_small,[row.thumb_url])
 })

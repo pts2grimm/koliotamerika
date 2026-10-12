@@ -27,8 +27,15 @@ try {
   const first = data.items[0]
   const car = await provider.detail(String(first.lot_id), site)
   assert.equal(car?.id, first.id)
-  console.log('LIVE_CATALOGUE_AND_DETAIL_OK', { site, items: data.items.length, hasNext: data.hasNext, totalKnown: data.total !== null })
+  assert.ok((car?.link_img_hd?.length || 0) > 1)
+  console.log('LIVE_CATALOGUE_AND_DETAIL_OK', { site, items: data.items.length, hasNext: data.hasNext, totalKnown: data.total !== null, galleryImages: car?.link_img_hd?.length })
  }
+ const bikes = await provider.search(new URLSearchParams({ site: '1,2', size: '6', vehicle_type: 'Motorcycle' }))
+ assert.ok(bikes.items.length > 0)
+ assert.ok(bikes.items.every(car => car.vehicle_type === 'Motorcycle' && (car.link_img_hd?.length || 0) > 0))
+ console.log('LIVE_MOTORCYCLES_OK', { items: bikes.items.length, makes: [...new Set(bikes.items.map(car => car.make))] })
+ const reported = await provider.detail('65806586', '1')
+ console.log('REPORTED_LOT_GALLERY', { found: Boolean(reported), galleryImages: reported?.link_img_hd?.length || 0, thumbnailImages: reported?.link_img_small?.length || 0 })
  console.log('LIVE_ADAPTER_OK', { requests })
 } catch {
  // Never print the error object, request headers, body, lot numbers, VINs or credentials.

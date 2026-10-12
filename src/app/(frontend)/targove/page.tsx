@@ -42,7 +42,7 @@ export default async function Auctions({ searchParams }: Props) {
   }
   const initial = readAuctionFilters(input)
   const page = getPage(input)
-  const params = new URLSearchParams({ size: '12', page: String(page), vehicle_type: 'Automobile', site: '1,2', ...initial })
+  const params = new URLSearchParams({ size: '12', page: String(page), ...(auctionProviderName() === 'eridan' ? {} : { vehicle_type: 'Automobile' }), site: '1,2', ...initial })
   const [carsResult, makesResult] = await Promise.allSettled([searchAuctions(params.toString()), auctionMakes()])
   const data = carsResult.status === 'fulfilled' ? carsResult.value : null
   const makes = makesResult.status === 'fulfilled' ? makesResult.value : {}

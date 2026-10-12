@@ -12,6 +12,10 @@ const cars = Array.from({ length: 30 }, (_, i) => ({
  current_bid: 5500 + i * 100, odometer: 45000, sale_date: '2030-10-12T14:00:00.000Z', images, thumb_url: images[0],
 }))
 cars.push({ ...cars[0], id: 2000, lot_number: '80000000', make: { id: 2, name: 'Ford' }, model: { id: 20, name: 'Mustang', make_id: 2 }, name: '2022 Ford Mustang', vin: '1FA00000000000001' })
+cars.push({ ...cars[0], id: 3000, lot_number: '81000000', item_type: 'VEHTYPE_M', make: { id: 3, name: 'Honda' }, model: { id: 30, name: 'CBR600RR', make_id: 3 }, name: '2022 Honda CBR600RR' })
+cars.push({ ...cars[0], id: 4000, lot_number: '82000000', item_type: 'VEHTYPE_E', make: { id: 4, name: 'CATERPILLAR' }, model: { id: 40, name: 'D6', make_id: 4 }, name: 'Caterpillar excavator' })
+cars.push({ ...cars[0], id: 5000, lot_number: '83000000', item_type: 'VEHTYPE_M', make: { id: 5, name: 'SEA RAY' }, model: { id: 50, name: 'BOAT', make_id: 5 }, name: 'Sea Ray boat' })
+cars.push({ ...cars[0], id: 6000, lot_number: '84000000', images: [], name: '2022 BMW X5 incomplete gallery' })
 createServer((req, res) => {
  const url = new URL(req.url, 'http://127.0.0.1'), p = url.searchParams
  const send = (data, status = 200) => { res.writeHead(status, { 'Content-Type': 'application/json' }); res.end(JSON.stringify(data)) }
@@ -19,17 +23,19 @@ createServer((req, res) => {
  if (url.pathname === '/test-requests') return send({ requests })
  if (req.headers.authorization !== 'Bearer eridan-local-fixture') return send({ error: 'unauthorized' }, 401)
  requests.push({ path: url.pathname, params: Object.fromEntries(p) })
- if (url.pathname === '/item_types') return send([{ value: 'VEHTYPE_V', label: 'Vehicle' }])
+ if (url.pathname === '/item_types') return send([{ value: 'VEHTYPE_V', label: 'Vehicle' }, { value: 'VEHTYPE_M', label: 'Motorcycle' }])
  if (url.pathname === '/fuel_types') return send(['GAS', 'DIESEL', 'ELECTRIC', 'HYBRID ENGINE'])
- if (url.pathname === '/makes') return send({ items: [{ id: 1, name: 'BMW' }, { id: 2, name: 'Ford' }], count: 2 })
+ if (url.pathname === '/makes') return send({ items: [{ id: 1, name: 'BMW' }, { id: 2, name: 'Ford' }, { id: 3, name: 'Honda' }, { id: 4, name: 'CATERPILLAR' }, { id: 5, name: 'SEA RAY' }, { id: 6, name: '*' }], count: 6 })
  if (url.pathname === '/models') {
-  const models = p.get('make__name') === 'BMW' ? [{ id: 10, name: 'X5', make_id: 1 }, { id: 11, name: 'X3', make_id: 1 }] : p.get('make__name') === 'Ford' ? [{ id: 20, name: 'Mustang', make_id: 2 }] : []
+  const models = p.get('make__name') === 'BMW' ? [{ id: 10, name: 'X5', make_id: 1 }, { id: 11, name: 'X3', make_id: 1 }] : p.get('make__name') === 'Ford' ? [{ id: 20, name: 'Mustang', make_id: 2 }] : p.get('make__name') === 'Honda' ? [{ id: 30, name: 'CBR600RR', make_id: 3 }] : []
   return send({ items: models, count: models.length })
  }
  if (url.pathname !== '/lots') return send({ error: 'unknown endpoint' }, 404)
- const allowed = ['page', 'page_size', 'ordering', 'auction', 'lot_number', 'vin', 'make__name', 'model__name', 'year_from', 'year_to', 'fuel_type__name', 'item_type']
+ const allowed = ['page', 'page_size', 'ordering', 'auction', 'lot_number', 'vin', 'make__name', 'model__name', 'year_from', 'year_to', 'fuel_type__name', 'item_type', 'has_images', 'makes']
  if ([...p.keys()].some(key => !allowed.includes(key))) return send({ error: 'unknown filter' }, 422)
  const items = cars.filter(car =>
+  (!p.get('has_images') || car.images.length > 0) &&
+  (!p.has('makes') || p.getAll('makes').some(make => make.toLowerCase() === car.make.name.toLowerCase())) &&
   ['auction', 'lot_number', 'vin', 'item_type'].every(key => !p.get(key) || car[key] === p.get(key)) &&
   (!p.get('make__name') || car.make.name === p.get('make__name')) &&
   (!p.get('model__name') || car.model.name === p.get('model__name')) &&

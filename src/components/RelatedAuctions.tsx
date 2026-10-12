@@ -9,7 +9,7 @@ export async function RelatedAuctions({ car }: { car: AuctionCar }) {
   let items: AuctionCar[] = []
   let unavailable = false
   try {
-    const result = await searchAuctions(new URLSearchParams({ ...Object.fromEntries(filters), site: '1,2', vehicle_type: 'Automobile', size: '12', page: '1' }).toString())
+    const result = await searchAuctions(new URLSearchParams({ ...Object.fromEntries(filters), site: '1,2', vehicle_type: car.vehicle_type || 'Automobile', size: '12', page: '1' }).toString())
     items = result.items.filter(item => item.id !== car.id && (!car.vin || item.vin !== car.vin))
       .sort((a, b) => Math.abs(a.year - car.year) - Math.abs(b.year - car.year)).slice(0, 3)
   } catch { unavailable = true }
