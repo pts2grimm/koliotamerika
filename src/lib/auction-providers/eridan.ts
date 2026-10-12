@@ -68,21 +68,38 @@ function lots(raw: unknown, expectedPage: number) {
 }
 
 export function createEridanProvider(request: AuctionTransport): AuctionProvider {
- const directory = async (path: string) => {
-  const found = new Map<number, Record<string, unknown>>()
-  for (let page = 1; page <= 100; page++) {
-   const raw = record(await request(path, new URLSearchParams({ page: String(page), page_size: '100000' })))
+ const directory = async (path: string, filters: Record<string, string> = {}) => {
+  const fetchPage = async (page: number) => {
+   const raw = record(await request(path, new URLSearchParams({ ...filters, page: String(page), page_size: '1000', ordering: 'id' })))
    if (!Array.isArray(raw.items) || !Number.isInteger(raw.count) || Number(raw.count) < 0) throw new Error('Invalid Eridan directory')
-   const before = found.size
-   for (const item of raw.items) {
+   return { items: raw.items, count: Number(raw.count) }
+  }
+  const first = await fetchPage(1)
+  if (!first.items.length) {
+   if (first.count) throw new Error('Incomplete Eridan directory')
+   return []
+  }
+  const pages = Math.ceil(first.count / first.items.length)
+  if (pages > 100) throw new Error('Eridan directory page limit reached')
+  const found = new Map<number, Record<string, unknown>>()
+  const add = (items: unknown[]) => {
+   for (const item of items) {
     const row = record(item)
-    if (!Number.isSafeInteger(row.id) || !name(row)) throw new Error('Invalid Eridan directory item')
+    if (!Number.isSafeInteger(row.id) || typeof row.name !== 'string') throw new Error('Invalid Eridan directory item')
     found.set(Number(row.id), row)
    }
-   if (found.size >= Number(raw.count)) return [...found.values()]
-   if (found.size === before) throw new Error('Incomplete Eridan directory')
   }
-  throw new Error('Eridan directory page limit reached')
+  add(first.items)
+  // Bounded concurrency avoids dozens of sequential round trips on a cold directory cache.
+  for (let page = 2; page <= pages; page += 3) {
+   const batch = await Promise.all(Array.from({ length: Math.min(3, pages - page + 1) }, (_, i) => fetchPage(page + i)))
+   for (const part of batch) {
+    if (part.count !== first.count) throw new Error('Eridan directory changed during pagination')
+    add(part.items)
+   }
+  }
+  if (found.size < first.count) throw new Error('Incomplete Eridan directory')
+  return [...found.values()]
  }
  let automobile: Promise<string> | undefined
  const automobileCode = () => automobile ||= (async () => {
@@ -163,18 +180,14 @@ export function createEridanProvider(request: AuctionTransport): AuctionProvider
    return { success: true, items: [...unique.values()], page, size: data.size, total: null, totalPages: null, hasNext: data.hasNext }
   },
   async makes() {
-   const makes = await directory('/makes'), models = await directory('/models')
-   const byId = new Map(makes.map(make => [Number(make.id), String(make.name)]))
-   const result: Record<string, string[]> = Object.create(null)
-   for (const make of makes) result[String(make.name)] ||= []
-   for (const model of models) {
-    const make = byId.get(Number(model.make_id))
-    if (!make) throw new Error('Eridan model has no matching make')
-    result[make].push(String(model.name))
-   }
-   for (const make of Object.keys(result)) result[make] = [...new Set(result[make])].sort((a, b) => a.localeCompare(b))
-   // React Server Components require a plain object, including on a cold cache.
-   return { ...result }
+   const makes = await directory('/makes')
+   // Models are loaded only for the selected make. Eridan has >50k model rows.
+   return Object.fromEntries(makes.filter(make => Boolean(name(make))).map(make => [String(make.name), []]))
+  },
+  async models(make: string) {
+   if (!make.trim() || make.length > 100) throw new Error('Invalid make')
+   const models = await directory('/models', { make__name: make })
+   return [...new Set(models.filter(model => Boolean(name(model))).map(model => String(model.name)))].sort((a, b) => a.localeCompare(b, undefined, { numeric: true }))
   },
   async lookup(query) {
    const q = query.trim().toUpperCase()

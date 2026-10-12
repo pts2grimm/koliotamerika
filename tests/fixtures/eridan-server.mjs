@@ -22,7 +22,10 @@ createServer((req, res) => {
  if (url.pathname === '/item_types') return send([{ value: 'VEHTYPE_V', label: 'Vehicle' }])
  if (url.pathname === '/fuel_types') return send(['GAS', 'DIESEL', 'ELECTRIC', 'HYBRID ENGINE'])
  if (url.pathname === '/makes') return send({ items: [{ id: 1, name: 'BMW' }, { id: 2, name: 'Ford' }], count: 2 })
- if (url.pathname === '/models') return send({ items: [{ id: 10, name: 'X5', make_id: 1 }, { id: 11, name: 'X3', make_id: 1 }, { id: 20, name: 'Mustang', make_id: 2 }], count: 3 })
+ if (url.pathname === '/models') {
+  const models = p.get('make__name') === 'BMW' ? [{ id: 10, name: 'X5', make_id: 1 }, { id: 11, name: 'X3', make_id: 1 }] : p.get('make__name') === 'Ford' ? [{ id: 20, name: 'Mustang', make_id: 2 }] : []
+  return send({ items: models, count: models.length })
+ }
  if (url.pathname !== '/lots') return send({ error: 'unknown endpoint' }, 404)
  const allowed = ['page', 'page_size', 'ordering', 'auction', 'lot_number', 'vin', 'make__name', 'model__name', 'year_from', 'year_to', 'fuel_type__name', 'item_type']
  if ([...p.keys()].some(key => !allowed.includes(key))) return send({ error: 'unknown filter' }, 422)

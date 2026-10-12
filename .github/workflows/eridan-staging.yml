@@ -5,25 +5,6 @@ on:
 permissions:
   contents: read
 jobs:
-  next-route-guide:
-    runs-on: ubuntu-latest
-    timeout-minutes: 3
-    steps:
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '24'
-      - run: |
-          mkdir -p work
-          cd work
-          npm pack next@16.4.0 --silent
-          python3 - <<'PY'
-          import tarfile,glob
-          with tarfile.open(glob.glob('next-*.tgz')[0]) as tar:
-              matches=[m for m in tar.getmembers() if '/dist/docs/' in m.name and ('route-handlers' in m.name or m.name.endswith('/route.md'))]
-              for m in matches:
-                  print('GUIDE',m.name)
-                  print(tar.extractfile(m).read().decode())
-          PY
   contracts-and-browser:
     runs-on: ubuntu-latest
     timeout-minutes: 18
@@ -55,11 +36,21 @@ jobs:
           retention-days: 5
   protected-live-contract:
     runs-on: ubuntu-latest
-    timeout-minutes: 3
-    env:
-      ERIDAN_API_KEY: ${{ secrets.ERIDAN_API_KEY }}
+    timeout-minutes: 5
     steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci --include=dev
+      - name: Verify real adapter with protected credentials
+        run: node --import tsx scripts/check-eridan-live.ts
+        env:
+          ERIDAN_API_KEY: ${{ secrets.ERIDAN_API_KEY }}
       - name: Verify protected Eridan access without logging credentials or vehicle identities
+        env:
+          ERIDAN_API_KEY: ${{ secrets.ERIDAN_API_KEY }}
         run: |
           python3 - <<'PY'
           import os,urllib.request,urllib.error,urllib.parse,json,re
@@ -96,7 +87,7 @@ jobs:
                   detail=get('/lots',{'auction':auction,'lot_number':item['lot_number'],'page_size':10,'ordering':'-updated_at'})
                   print('DETAIL_IDENTITY_MATCH',auction,any(row.get('lot_number')==item['lot_number'] and row.get('auction')==auction for row in detail.get('items',[])))
           for path in ['/makes','/models']:
-              data=get(path,{'page_size':100000})
+              data=get(path,{'page_size':1000,**({'make__name':'BMW'} if path=='/models' else {})})
               print('DIRECTORY_SHAPE',path,{'count':data.get('count'),'page_length':len(data.get('items',[])),'row_keys':list(data.get('items',[{}])[0]) if data.get('items') else []})
           for fuel in ['GAS','Gasoline','HYBRID ENGINE','ELECTRIC AND GAS HYBRID']:
               data=get('/lots',{'auction':'copart','item_type':'VEHTYPE_V','fuel_type__name':fuel,'page_size':5})

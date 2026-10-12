@@ -1,20 +1,38 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
 type Props = {
   makes: Record<string, string[]>
   initialMake?: string
   initialModel?: string
+  modelsOnDemand?: boolean
 }
 
-export function MakeModelFields({ makes, initialMake = '', initialModel = '' }: Props) {
+export function MakeModelFields({ makes, initialMake = '', initialModel = '', modelsOnDemand = false }: Props) {
   const names = Object.keys(makes)
   const matchingMake = names.find(name => name.toLowerCase() === initialMake.toLowerCase()) || initialMake
   const [make, setMake] = useState(matchingMake)
   const [model, setModel] = useState(initialModel)
+  const [remote, setRemote] = useState<{ make: string; models: string[]; failed: boolean } | null>(null)
+  useEffect(() => {
+    if (!modelsOnDemand || !make) return
+    const controller = new AbortController()
+    fetch('/api/auction-models?make=' + encodeURIComponent(make), { signal: controller.signal })
+      .then(async response => {
+        if (!response.ok) throw new Error('Models unavailable')
+        const data = await response.json()
+        if (!Array.isArray(data.models) || data.models.some((item: unknown) => typeof item !== 'string')) throw new Error('Invalid models')
+        if (!controller.signal.aborted) setRemote({ make, models: data.models, failed: false })
+      })
+      .catch(() => { if (!controller.signal.aborted) setRemote({ make, models: [], failed: true }) })
+    return () => controller.abort()
+  }, [make, modelsOnDemand])
+  const loading = Boolean(modelsOnDemand && make && remote?.make !== make)
+  const modelError = Boolean(modelsOnDemand && remote?.make === make && remote.failed)
+  const availableModels = modelsOnDemand ? remote?.make === make ? remote.models : [] : makes[make] || []
   const makeOptions = [...new Set([...names, ...(make ? [make] : [])])].sort((a, b) => a.localeCompare(b))
-  const modelOptions = [...new Set([...(makes[make] || []), ...(model ? [model] : [])])].sort((a, b) => a.localeCompare(b, undefined, { numeric: true }))
+  const modelOptions = [...new Set([...availableModels, ...(model ? [model] : [])])].sort((a, b) => a.localeCompare(b, undefined, { numeric: true }))
 
   function changeMake(value: string) {
     setMake(value)
@@ -32,9 +50,9 @@ export function MakeModelFields({ makes, initialMake = '', initialModel = '' }: 
       <option value="">Всички марки</option>
       {makeOptions.map(name => <option key={name} value={name}>{name}</option>)}
     </select></label>
-    <label><span>Модел</span><select name="model" value={model} onChange={event => setModel(event.target.value)} disabled={!make}>
-      <option value="">{make ? 'Всички модели' : 'Първо избери марка'}</option>
+    <label><span>Модел</span>{modelError ? <><input name="model" value={model} onChange={event => setModel(event.target.value)} maxLength={100} placeholder="Въведи модел" /><small role="status">Списъкът не се зареди. Можеш да въведеш модела.</small></> : <select name="model" value={model} onChange={event => setModel(event.target.value)} disabled={!make || loading} aria-busy={loading}>
+      <option value="">{loading ? 'Зареждане…' : make ? 'Всички модели' : 'Първо избери марка'}</option>
       {modelOptions.map(name => <option key={name} value={name}>{name}</option>)}
-    </select></label>
+    </select>}{loading && model && <input type="hidden" name="model" value={model} />}</label>
   </>
 }
