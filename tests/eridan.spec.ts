@@ -179,12 +179,15 @@ test('auction routes are not prefetched from the viewport but the intended car i
  const response=page.waitForResponse(res=>new URL(res.url()).pathname==='/targove/kola'&&res.request().resourceType()==='fetch')
  await card.hover()
  await (await response).finished()
- await page.waitForTimeout(100)
- expect(detailRequests).toHaveLength(1)
+ await page.waitForTimeout(700)
+ // Next 16 can prefetch separate route-tree and page segments for one URL.
+ const preparedRequests=detailRequests.length
+ expect(preparedRequests).toBeGreaterThan(0)
+ expect(detailRequests.every(url=>!new URL(url).searchParams.has('lot')||new URL(url).searchParams.get('lot')==='70000014')).toBe(true)
  const started=Date.now()
  await card.click()
  await expect(page.locator('.detail-summary h1')).toContainText('BMW X5')
- expect(detailRequests).toHaveLength(1)
+ expect(detailRequests).toHaveLength(preparedRequests)
  console.log('PREPARED_NAVIGATION',JSON.stringify({clickToHeadingMs:Date.now()-started,detailRequests:detailRequests.length}))
 })
 

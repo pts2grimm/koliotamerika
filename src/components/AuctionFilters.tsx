@@ -16,7 +16,7 @@ export function AuctionFilters({ makes, initial, modelsOnDemand = false }: { mak
     <div className="filter-scroll">
     <div className="filter-panel-heading"><span className="filter-group-name">Автомобил</span><h2><SlidersHorizontal size={19} />Намери точния автомобил</h2><Link href="/targove" className="filter-reset" onClick={event => { if (!Object.keys(initial).length) { event.preventDefault(); setYearFrom(''); setYearTo(''); setResetCount(value => value + 1) } }}><RotateCcw size={14} />Изчисти</Link></div>
     <div className="filter-primary">
-      <label className="auction-source">Аукцион<select name="site" defaultValue={initial.site || '1,2'}><option value="1,2">Copart и IAAI</option><option value="1">Copart</option><option value="2">IAAI</option></select></label>
+      <label className="auction-source">Аукцион<select aria-label="Аукцион" name="site" defaultValue={initial.site || '1,2'}><option value="1,2">Copart и IAAI</option><option value="1">Copart</option><option value="2">IAAI</option></select></label>
       <MakeModelFields makes={makes} initialMake={initial.make} initialModel={initial.model} modelsOnDemand={modelsOnDemand} />
       <label><span>Година от</span><input type="number" name="year_from" min="1900" max={yearTo || 2100} value={yearFrom} onChange={event => setYearFrom(event.target.value)} placeholder="Всички" /></label>
       <label><span>Година до</span><input type="number" name="year_to" min={yearFrom || 1900} max="2100" value={yearTo} onChange={event => setYearTo(event.target.value)} placeholder="Всички" /></label>
