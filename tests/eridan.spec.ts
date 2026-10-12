@@ -81,7 +81,7 @@ test('model choices load per make, ignore late responses and allow typing when t
 })
 
 
-test('catalogue offers only road brands, keeps cars and motorcycles selectable, and does not list thumbnail-only imports', async ({ page }) => {
+test('catalogue offers only road brands without a vehicle-type selector and preserves saved motorcycle links', async ({ page }) => {
  await page.goto('/targove')
  const filters = page.getByRole('form', {name:'Филтри за автомобили'})
  const options = await filters.locator('select[name="make"] option').allTextContents()
@@ -91,14 +91,13 @@ test('catalogue offers only road brands, keeps cars and motorcycles selectable, 
  expect(options).not.toContain('*')
  await expect(page.locator('.auction-card').filter({hasText:'incomplete gallery'})).toHaveCount(0)
  await filters.locator('summary').click()
- await filters.getByLabel('Вид превозно средство').selectOption('Motorcycle')
- await filters.getByRole('button',{name:'Намери автомобил'}).click()
+ await expect(filters.locator('[name=vehicle_type]')).toHaveCount(0)
+ await page.goto('/targove?vehicle_type=Motorcycle')
  await expect(page).toHaveURL(/vehicle_type=Motorcycle/)
  await expect(page.locator('.auction-card')).toHaveCount(1)
  await expect(page.locator('.auction-card')).toContainText('Honda CBR600RR')
  await expect(page.getByRole('link',{name:'Премахни филтър: Мотоциклети'})).toBeVisible()
- await filters.getByLabel('Вид превозно средство').selectOption('Automobile')
- await filters.getByRole('button',{name:'Намери автомобил'}).click()
+ await page.goto('/targove?vehicle_type=Automobile')
  await expect(page.locator('.auction-card').filter({hasText:'CBR600RR'})).toHaveCount(0)
  await page.goto('/targove/kola?lot=70000000&site=1')
  await expect(page.locator('.gallery-counter').first()).toHaveText('1 / 3')

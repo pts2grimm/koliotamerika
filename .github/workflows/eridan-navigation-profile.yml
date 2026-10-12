@@ -1,11 +1,11 @@
-name: Diagnose exact Copart BMW petrol filter
+name: Verify exact Copart filter and auction switching
 on:
   push:
     branches: ['codex/eridan-navigation-profile']
 permissions:
   contents: read
 jobs:
-  exact-filter:
+  verify:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
