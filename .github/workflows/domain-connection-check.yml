@@ -7,26 +7,55 @@ permissions:
 jobs:
   inspect:
     runs-on: ubuntu-latest
-    timeout-minutes: 4
+    timeout-minutes: 6
     steps:
-      - name: Read public tracking configuration and latest blog posts
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci --include=dev
+      - run: npx playwright install --with-deps chromium
+      - name: Check live analytics before and after consent
         run: |
-          python3 - <<'PY'
-          import urllib.request, urllib.error, re, json, datetime
-          print('CHECK_TIME',datetime.datetime.now(datetime.timezone.utc).isoformat())
-          for path in ['/', '/?integration_check=20261012', '/blog', '/api/pages?where%5Bkind%5D%5Bequals%5D=article&sort=-publishedAt&limit=8&depth=0', '/clean-title-kola-ot-amerika', '/proverka-servizni-akcii-vin-sasht']:
-              try:
-                  with urllib.request.urlopen(urllib.request.Request('https://koliotamerika.bg'+path,headers={'Cache-Control':'no-cache'}),timeout=25) as r:
-                      raw=r.read().decode()
-                      print('PUBLIC',path,r.status,'cache',{k:v for k,v in r.headers.items() if k.lower() in ['age','cache-control','x-cache','x-hcdn-cache-status']})
-                      if path.startswith('/api/pages'):
-                          data=json.loads(raw)
-                          print('ARTICLES',json.dumps({'total':data.get('totalDocs'),'docs':[{k:d.get(k) for k in ['title','slug','status','publishedAt']} for d in data.get('docs',[])]},ensure_ascii=False))
-                      else:
-                          body=raw.replace(chr(92)+chr(34),chr(34))
-                          config=re.findall('"config":(\\{[^{}]*"installation"[^{}]*\\})',body)
-                          print('TRACKING', config[:1])
-                          if path=='/blog': print('BLOG_HEADINGS', re.findall('<h[123][^>]*>(.*?)</h[123]>',raw)[:12])
-              except urllib.error.HTTPError as e: print('PUBLIC',path,'HTTP_ERROR',e.code)
-              except Exception as e: print('PUBLIC',path,'ERROR',str(e))
-          PY
+          node --input-type=module <<'JS'
+          import { chromium } from '@playwright/test';
+          const browser = await chromium.launch({ headless: true });
+          const context = await browser.newContext();
+          const page = await context.newPage();
+          const provider = u => /(^|\.)(googletagmanager\.com|google-analytics\.com|analytics\.google\.com|clarity\.ms|facebook\.com|facebook\.net)$/.test(new URL(u).hostname);
+          const concise = u => { const url = new URL(u); return { endpoint: url.origin + url.pathname, id: url.searchParams.get('id') || url.searchParams.get('tid'), event: url.searchParams.get('en') || url.searchParams.get('ev') }; };
+          const requests=[], responses=[], failures=[], errors=[];
+          page.on('request', r => { if(provider(r.url())) requests.push(concise(r.url())); });
+          page.on('response', r => { if(provider(r.url())) responses.push({...concise(r.url()),status:r.status()}); });
+          page.on('requestfailed', r => { if(provider(r.url())) failures.push({...concise(r.url()),error:r.failure()?.errorText}); });
+          page.on('pageerror', e=>errors.push(e.message.slice(0,300)));
+          console.log('CHECK_TIME',new Date().toISOString());
+          const response=await page.goto('https://koliotamerika.bg/',{waitUntil:'domcontentloaded',timeout:60000});
+          await page.waitForTimeout(5000);
+          const html=await page.content();
+          const decoded=html.replaceAll('\\"','"');
+          const publicConfig=decoded.match(/"config":(\{[^{}]*"installation"[^{}]*\})/);
+          console.log('HTTP_STATUS',response?.status());
+          console.log('PUBLIC_CONFIG',publicConfig?.[1] || 'not found');
+          console.log('BEFORE_CONSENT',JSON.stringify(requests));
+          const consent=page.getByRole('button',{name:'Приеми всички',exact:true});
+          console.log('CONSENT_BUTTON',await consent.count());
+          if(await consent.count()) {
+           await consent.click();
+           await page.waitForTimeout(15000);
+          }
+          console.log('SCRIPTS',JSON.stringify(await page.locator('script[src]').evaluateAll(nodes=>nodes.filter(n=>/googletagmanager|google-analytics|clarity\.ms|facebook\.net/.test(n.src)).map(n=>({id:n.id,src:n.src})))));
+          console.log('REQUESTS',JSON.stringify(requests));
+          console.log('RESPONSES',JSON.stringify(responses));
+          console.log('FAILURES',JSON.stringify(failures));
+          console.log('PAGE_ERRORS',JSON.stringify(errors));
+          console.log('CONSENT_STATE',JSON.stringify(await page.evaluate(()=>({
+           cookieSaved:document.cookie.split(';').some(x=>x.trim().startsWith('koa_consent=')),
+           google:typeof window.gtag,
+           clarity:typeof window.clarity,
+           pixel:typeof window.fbq,
+           dataLayer:(window.dataLayer||[]).map(v=>v&&typeof v==='object'?Array.from(v.length!==undefined?v:[]):[]).filter(v=>v[0]==='consent'||v[0]==='config').map(v=>[v[0],v[1],v[2]])
+          }))));
+          await browser.close();
+          JS
