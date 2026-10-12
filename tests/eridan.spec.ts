@@ -205,3 +205,22 @@ test('clicking with data saving enabled shows feedback while an unprepared route
  await expect(page.locator('.detail-summary h1')).toContainText('Ford Mustang')
  await expect(page.getByRole('status').filter({hasText:'Отваряме автомобила…'})).toHaveCount(0)
 })
+
+for(const viewport of [{width:1280,height:900},{width:390,height:844}]){
+ test('unavailable filters cannot break IAAI form submission at width '+viewport.width,async({page})=>{
+  await page.setViewportSize(viewport)
+  await page.goto('/targove?make=BMW&model=X5&site=2&seller_type=insurance')
+  if(viewport.width<900)await page.getByRole('button',{name:/^Филтри/}).click()
+  const form=page.getByRole('form',{name:'Филтри за автомобили'})
+  await expect(form.locator('[name=status]')).toBeDisabled()
+  await expect(form.locator('[name=seller_type]')).toBeDisabled()
+  await expect(form.locator('#auction-filter-availability')).toBeVisible()
+  await expect(form.locator('[name=site]')).toBeEnabled()
+  await expect(form.locator('[name=fuel]')).toBeEnabled()
+  await form.getByRole('button',{name:'Намери автомобил'}).click()
+  await expect(page.locator('.auction-card')).toHaveCount(12)
+  expect(new URL(page.url()).searchParams.has('seller_type')).toBe(false)
+  expect(new URL(page.url()).searchParams.has('status')).toBe(false)
+  expect(await page.locator('.auction-card .car-badge').allTextContents()).toEqual(Array(12).fill('IAAI'))
+ })
+}

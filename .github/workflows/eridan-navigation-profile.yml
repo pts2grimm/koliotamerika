@@ -1,4 +1,4 @@
-name: Check live Eridan documentation and public filters
+name: Check live mobile auction filters
 on:
   push:
     branches: ['codex/eridan-navigation-profile']
@@ -7,7 +7,7 @@ permissions:
 jobs:
   inspect:
     runs-on: ubuntu-latest
-    timeout-minutes: 6
+    timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
