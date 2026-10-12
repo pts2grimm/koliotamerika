@@ -1,13 +1,13 @@
-name: Verify full mixed Eridan catalogue
+name: Check live Eridan documentation and public filters
 on:
   push:
     branches: ['codex/eridan-navigation-profile']
 permissions:
   contents: read
 jobs:
-  full-catalogue:
+  inspect:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 6
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -15,6 +15,5 @@ jobs:
           node-version: '24'
           cache: npm
       - run: npm ci --include=dev
-      - run: node --import tsx scripts/profile-eridan-auctions.ts
-        env:
-          ERIDAN_API_KEY: ${{ secrets.ERIDAN_API_KEY }}
+      - run: npx playwright install --with-deps chromium
+      - run: node scripts/inspect-eridan-filters.mjs
