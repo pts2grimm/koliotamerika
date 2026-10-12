@@ -2,6 +2,7 @@ import 'server-only'
 import { cache } from 'react'
 import { createHash, randomUUID } from 'node:crypto'
 import { createRequestCoalescer } from './coalesce-requests'
+import { createAuctionSnapshots } from './auction-snapshots'
 import { unstable_cache } from 'next/cache'
 import { EnvHttpProxyAgent, fetch as proxyFetch } from 'undici'
 import { createEridanProvider } from './auction-providers/eridan'
@@ -12,6 +13,7 @@ import type { AuctionCar,AuctionTransport } from './auction-providers/types'
 export type { AuctionCar,AuctionSearch } from './auction-providers/types'
 const dispatcher=new EnvHttpProxyAgent()
 const coalesce=createRequestCoalescer()
+const catalogueSnapshots=createAuctionSnapshots()
 const instance=randomUUID().slice(0,8)
 let blockedUntil=0
 let windowStart=0,requests=0
@@ -42,11 +44,20 @@ const eridanReferences=unstable_cache(async(path:string)=>coalesce(JSON.stringif
 const eridanRequest:AuctionTransport=(path,params)=>path==='/item_types'||path==='/fuel_types'?eridanReferences(path):eridanTransport(path,params)
 export function auctionProviderName(){return process.env.AUCTION_PROVIDER|| (process.env.APICAR_API_KEY?'apicar':'legacy')}
 function provider(){const name=auctionProviderName();if(name==='eridan')return createEridanProvider(eridanRequest);if(name==='apicar')return createApiCarProvider(transport('apicar'),process.env.APICAR_VIN_ENABLED==='true');if(name==='legacy')return createLegacyProvider(transport('legacy'));throw new Error(`Unsupported auction provider: ${name}`)}
-const cachedSearch=unstable_cache(async(_provider:string,params:string)=>coalesce(JSON.stringify(['search',_provider,params]),()=>provider().search(new URLSearchParams(params))),['auction-search-v4-road-gallery'],{revalidate:60})
+const cachedSearch=unstable_cache(async(_provider:string,params:string)=>{
+ const data=await coalesce(JSON.stringify(['search',_provider,params]),()=>provider().search(new URLSearchParams(params)))
+ return {data,fetchedAt:Date.now()}
+},['auction-search-v5-timestamped'],{revalidate:60})
 const cachedMakes=unstable_cache(async(_provider:string)=>coalesce(JSON.stringify(['makes',_provider]),()=>provider().makes()),['auction-makes-v5-road'],{revalidate:3600})
 const cachedCar=unstable_cache(async(_provider:string,lot:string,site:string)=>coalesce(JSON.stringify(['car',_provider,lot,site]),()=>provider().detail(lot,site)),['auction-car-v3'],{revalidate:60})
 const cachedLookup=unstable_cache(async(_provider:string,q:string)=>coalesce(JSON.stringify(['lookup',_provider,q]),()=>provider().lookup(q)),['auction-lookup-v3'],{revalidate:60})
-export const searchAuctions=(params:string)=>{const sorted=new URLSearchParams(params);sorted.sort();return cachedSearch(auctionProviderName(),sorted.toString())}
+export async function searchAuctions(params:string){
+ const sorted=new URLSearchParams(params);sorted.sort()
+ const name=auctionProviderName()
+ const result=await cachedSearch(name,sorted.toString())
+ if(name==='eridan')catalogueSnapshots.remember(result.data.items,result.fetchedAt)
+ return result.data
+}
 export const auctionMakes=()=>cachedMakes(auctionProviderName())
 const cachedModels=unstable_cache(async(_provider:string,make:string)=>coalesce(JSON.stringify(['models',_provider,make]),async()=>{const adapter=provider();return adapter.models?adapter.models(make):(await adapter.makes())[make]||[]}),['auction-models-v2-road'],{revalidate:3600})
 export async function auctionModels(make:string) {
@@ -57,13 +68,16 @@ export async function auctionModels(make:string) {
  return auctionProviderName()==='eridan'?cachedModels('eridan',canonical):makes[canonical]||[]
 }
 // Metadata and page content can request the same lot concurrently on a cold cache.
-export const auctionCar=cache((lot:string,site:string)=>cachedCar(auctionProviderName(),lot,site))
+export const auctionCar=cache((lot:string,site:string)=>{
+ const name=auctionProviderName()
+ const snapshot=name==='eridan'?catalogueSnapshots.get(lot,site):undefined
+ return snapshot?Promise.resolve(snapshot):cachedCar(name,lot,site)
+})
 export const lookupAuction=(q:string)=>cachedLookup(auctionProviderName(),q)
 export function auctionImages(car:AuctionCar) {
  const safe=(value:string)=>{try{const url=new URL(value);return url.protocol==='https:'&&!url.username&&!url.password&&['cs.copart.com','vis.iaai.com',...(auctionProviderName()==='eridan'?(process.env.ERIDAN_IMAGE_HOSTS||'').split(',').map(host=>host.trim().toLowerCase()).filter(host=>/^[a-z0-9]+(?:[.-][a-z0-9]+)+$/.test(host)):[])].includes(url.hostname)}catch{return false}}
  const hd=(car.link_img_hd||[]).filter(safe)
  return [...new Set(hd.length?hd:(car.link_img_small||[]).filter(safe))]
 }
-export function auctionThumbnail(car:AuctionCar){return auctionImages({...car,link_img_hd:[]})[0]||auctionImage(car)}
 export function auctionImage(car:AuctionCar){return auctionImages(car)[0]}
 export function auctionCurrency(value:number,currency='USD'){return new Intl.NumberFormat('bg-BG',{style:'currency',currency:['USD','CAD','EUR','BGN'].includes(currency.toUpperCase())?currency.toUpperCase():'USD',maximumFractionDigits:0}).format(value)}

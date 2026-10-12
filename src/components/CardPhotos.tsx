@@ -5,15 +5,14 @@ import Image from 'next/image'
 import { useEffect, useState } from 'react'
 import { ChevronLeft, ChevronRight, Images } from 'lucide-react'
 
-export function CardPhotos({ images, title, href, badge, previewSrc }: { images: string[]; previewSrc?: string; title: string; href: string; badge: string }) {
+export function CardPhotos({ images, title, href, badge }: { images: string[]; title: string; href: string; badge: string }) {
  const [active, setActive] = useState(0)
  const [ready, setReady] = useState(false)
  useEffect(() => setReady(true), [])
- const [failedPreview, setFailedPreview] = useState<string>()
- const selected = active === 0 && previewSrc && failedPreview !== previewSrc ? previewSrc : images[active] || images[0]
+ const selected = images[active] || images[0]
  return <div className="card-photos">
   <Link href={href} className="card-photo-link" aria-label={`Разгледай ${title}`}>
-   {selected?.startsWith('/') ? <Image src={selected} alt={`${title} — снимка ${active + 1}`} fill sizes="(max-width: 760px) 100vw, (max-width: 900px) 50vw, 33vw" /> : selected ? <img ref={node => { if (node?.complete && node.naturalWidth === 0 && selected === previewSrc) setFailedPreview(previewSrc) }} src={selected} alt={`${title} — снимка ${active + 1}`} loading="lazy" decoding="async" referrerPolicy="no-referrer" onError={() => { if (selected === previewSrc) setFailedPreview(previewSrc) }} /> : <span className="image-placeholder">Снимки не са налични</span>}
+   {selected?.startsWith('/') ? <Image src={selected} alt={`${title} — снимка ${active + 1}`} fill sizes="(max-width: 760px) 100vw, (max-width: 900px) 50vw, 33vw" /> : selected ? <img src={selected} alt={`${title} — снимка ${active + 1}`} loading="lazy" decoding="async" referrerPolicy="no-referrer" /> : <span className="image-placeholder">Снимки не са налични</span>}
   </Link>
   <span className="car-badge">{badge}</span>
   {images.length > 1 && <>

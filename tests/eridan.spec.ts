@@ -110,10 +110,15 @@ test('catalogue offers only road brands, keeps cars and motorcycles selectable, 
 })
 
 
-test('cards load lightweight previews, galleries retain full images, and missing bids stay distinct from zero and other prices', async ({page})=>{
+test('cards and galleries use full images, and missing bids stay distinct from zero and other prices', async ({page})=>{
+ const thumbnails: string[] = []
+ page.on('request', req => { if(req.url().includes('test-gallery-thumb')) thumbnails.push(req.url()) })
  await page.goto('/targove?make=BMW&model=X5&site=1&pagenum=2')
  const card=page.locator('.auction-card').filter({has:page.locator('a[href="/targove/kola?lot=70000001&site=1"]')})
- await expect(card.locator('.card-photo-link img')).toHaveAttribute('src',/test-gallery-thumb/)
+ await expect(card.locator('.card-photo-link img')).toHaveAttribute('src',/test-gallery-1/)
+ await card.scrollIntoViewIfNeeded()
+ await expect.poll(()=>card.locator('.card-photo-link img').evaluate((img:HTMLImageElement)=>img.naturalWidth)).toBeGreaterThanOrEqual(1000)
+ expect(thumbnails).toEqual([])
  await expect(card.locator('.auction-price-row')).toContainText('Не е предоставен')
  await expect(card.locator('.auction-price-row')).not.toContainText('9 999')
  await card.getByRole('button',{name:'Следваща снимка в обявата'}).click()
@@ -128,12 +133,22 @@ test('cards load lightweight previews, galleries retain full images, and missing
  await page.goto('/targove/kola?lot=70000002&site=1')
  await expect(page.locator('.detail-price')).toContainText(/5[\s\u00a0]*700/)
 })
-test('a failed card thumbnail falls back to the full image without losing gallery navigation', async({page})=>{
- await page.route('https://cs.copart.com/test-gallery-thumb.jpg',route=>route.abort())
+test('opening a catalogue car reuses its fresh data without another exact-lot API request', async({page,request})=>{
  await page.goto('/targove?make=Ford')
- const card=page.locator('.auction-card').first()
- await card.scrollIntoViewIfNeeded()
- await expect(card.locator('.card-photo-link img')).toHaveAttribute('src',/test-gallery-1/)
- await card.getByRole('button',{name:'Следваща снимка в обявата'}).click()
- await expect(card.locator('.card-photo-link img')).toHaveAttribute('src',/test-gallery-2/)
+ const calls = async()=> (await (await request.get('http://127.0.0.1:3199/test-requests')).json()).requests.filter((r:{params:{lot_number?:string}})=>r.params.lot_number==='80000000').length
+ const before=await calls()
+ expect(before).toBe(0)
+ await page.locator('.auction-card .auction-card-link').first().click()
+ await expect(page.getByRole('heading',{level:1})).toContainText('Ford Mustang')
+ await expect(page.locator('.gallery-open img')).toHaveAttribute('src',/test-gallery-1/)
+ expect(await calls()).toBe(before)
+})
+
+test('a direct uncached lot streams a loading state before the delayed provider responds', async({page,request})=>{
+ await page.goto('/targove/kola?lot=79999001&site=1',{waitUntil:'commit'})
+ await expect(page.getByRole('status').filter({hasText:'Зареждаме автомобила…'})).toBeVisible()
+ await expect(page.getByRole('heading',{level:1})).toHaveText('2023 BMW X5 streaming fixture')
+ await expect(page.getByRole('status').filter({hasText:'Зареждаме автомобила…'})).toHaveCount(0)
+ const {requests}=await (await request.get('http://127.0.0.1:3199/test-requests')).json()
+ expect(requests.filter((r:{params:{lot_number?:string}})=>r.params.lot_number==='79999001')).toHaveLength(1)
 })

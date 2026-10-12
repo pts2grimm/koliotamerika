@@ -30,6 +30,11 @@ createServer((req, res) => {
   const models = p.get('make__name') === 'BMW' ? [{ id: 10, name: 'X5', make_id: 1 }, { id: 11, name: 'X3', make_id: 1 }] : p.get('make__name') === 'Ford' ? [{ id: 20, name: 'Mustang', make_id: 2 }] : p.get('make__name') === 'Honda' ? [{ id: 30, name: 'CBR600RR', make_id: 3 }] : []
   return send({ items: models, count: models.length })
  }
+ // A detail-only fixture proves streaming while the upstream lookup is slow.
+ if (url.pathname === '/lots' && p.get('lot_number') === '79999001') {
+  setTimeout(()=>send({ items: [{ ...cars[0], id: 99999, lot_number: '79999001', name: '2023 BMW X5 streaming fixture' }], page: 1, page_size: 10, has_next: false }), 2000)
+  return
+ }
  if (url.pathname !== '/lots') return send({ error: 'unknown endpoint' }, 404)
  const allowed = ['page', 'page_size', 'ordering', 'auction', 'lot_number', 'vin', 'make__name', 'model__name', 'year_from', 'year_to', 'fuel_type__name', 'item_type', 'has_images', 'makes']
  if ([...p.keys()].some(key => !allowed.includes(key))) return send({ error: 'unknown filter' }, 422)
