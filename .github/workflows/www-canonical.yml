@@ -1,0 +1,41 @@
+name: Canonical host verification
+on:
+  push:
+    branches: ['codex/www-canonical-redirect']
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci --include=dev
+      - name: Read installed Next.js redirect documentation
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          for p in Path('node_modules/next/dist/docs').rglob('redirects.*'):
+              print(str(p))
+              print(p.read_text())
+          PY
+      - name: Inspect public sitemap and tracking configuration
+        run: |
+          python3 - <<'PY'
+          import urllib.request, re, json, xml.etree.ElementTree as ET
+          for url in ['https://koliotamerika.bg/sitemap.xml', 'https://koliotamerika.bg/']:
+              with urllib.request.urlopen(url, timeout=30) as r:
+                  body = r.read().decode()
+                  print('PUBLIC', url, r.status)
+                  if url.endswith('.xml'):
+                      locs = [x.text for x in ET.fromstring(body).iter() if x.tag.endswith('}loc')]
+                      print('SITEMAP', len(locs), 'all_canonical', all(x.startswith('https://koliotamerika.bg/') for x in locs))
+                  else:
+                      body = body.replace(chr(92)+chr(34), chr(34))
+                      for key in ['enabled','hostname','installation','gaId','pixelId','clarityId','gtmId']:
+                          print('TRACKING', key, re.findall('"'+key+'":("[^"]*"|true|false)', body)[:10])
+          PY
