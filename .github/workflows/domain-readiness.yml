@@ -1,0 +1,51 @@
+name: Domain readiness verification
+on:
+  push:
+    branches: ['codex/domain-readiness']
+permissions:
+  contents: read
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci --include=dev
+      - name: Read installed route and metadata guides
+        run: |
+          node --input-type=module <<'JS'
+          import { readdirSync, readFileSync } from 'node:fs';
+          const root='node_modules/next/dist/docs/';
+          for(const file of readdirSync(root,{recursive:true}).filter(file=>file.startsWith('01-app/')&&/robots\.|sitemap\.|proxy\./.test(file))) {
+            console.log('DOCUMENTATION',file);
+            console.log(readFileSync(root+file,'utf8').split('\n').slice(0,250).join('\n'));
+          }
+          JS
+      - run: pip install requests
+      - run: python scripts/audit-migration-urls.py
+      - run: python scripts/check-migration-resources.py
+      - name: Inspect live launch endpoints
+        run: |
+          python - <<'PY'
+          import requests,json,hashlib
+          sites=['https://koliotamerika.bg','https://papayawhip-ram-220810.hostingersite.com']
+          for base in sites:
+            for path in ['/robots.txt','/sitemap.xml','/sitemap_index.xml','/api/account','/api/media/file/IMG_6961-1.JPEG','/zabravena-parola']:
+              if base==sites[0] and path.startswith('/api/'):continue
+              try:
+                r=requests.get(base+path,timeout=25,headers={'User-Agent':'OwnerLaunchAudit/1.0'})
+                item={'url':base+path,'status':r.status_code,'final':r.url,'type':r.headers.get('Content-Type'),'xRobots':r.headers.get('X-Robots-Tag'),'bytes':len(r.content)}
+                if path.endswith('.txt') or path=='/api/account':item['text']=r.text[:5000]
+                if r.headers.get('Content-Type','').startswith('image/'):item['sha256']=hashlib.sha256(r.content).hexdigest()
+                print('LAUNCH_ENDPOINT',json.dumps(item,ensure_ascii=False),flush=True)
+              except requests.RequestException as e:print('LAUNCH_ENDPOINT',json.dumps({'url':base+path,'error':str(e)}),flush=True)
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: live-domain-readiness
+          path: url-audit
