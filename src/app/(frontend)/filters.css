@@ -314,3 +314,12 @@
 @media (prefers-reduced-motion: reduce) {
   :root body :is(.finder,.auction-filters) :is(input,select) { transition: none; }
 }
+
+.auction-navigation-status {
+ position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+ z-index: 1200; padding: 14px 22px; border: 1px solid var(--line);
+ border-radius: 12px; background: var(--paper); color: var(--ink);
+ box-shadow: 0 6px 28px #0003; font-size: 14px; font-weight: 700;
+ white-space: nowrap; pointer-events: none;
+}
+:root body .auction-filters .auction-source { grid-column: 1 / -1; }

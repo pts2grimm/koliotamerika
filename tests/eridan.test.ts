@@ -56,7 +56,8 @@ test('Eridan translates filters, keeps 24 results for both auctions, and never i
  assert.equal(query.get('make__name'), 'BMW'); assert.equal(query.get('model__name'), 'X5')
  assert.equal(query.get('year_from'), '2020'); assert.equal(query.get('year_to'), '2024')
  assert.equal(query.get('item_type'), 'VEHTYPE_V')
- assert.equal(query.get('page_size'), '49'); assert.equal(query.get('page'), '1'); assert.equal(query.get('auction'), null)
+ assert.equal(query.get('page_size'), '49'); assert.equal(query.get('page'), '1'); assert.equal(query.get('auction'), 'copart')
+ assert.ok(calls.some(call=>call.params.get('auction')==='iaai'))
  assert.equal(data.total, null); assert.equal(data.totalPages, null); assert.equal(data.hasNext, false)
 })
 test('single auction query is scoped, with no unsupported parameters leaked to Eridan', async () => {
@@ -171,7 +172,7 @@ test('fuel aliases from both auctions merge before pagination, without duplicate
   if (path === '/item_types') return [{ value: 'VEHTYPE_V', label: 'Vehicle' }, { value: 'VEHTYPE_M', label: 'Motorcycle' }]
   if (path === '/fuel_types') return ['GAS', 'Gas', 'Gasoline']
   const fuel = params.get('fuel_type__name')!.toLowerCase()
-  const matches = data.filter(item => item.fuel.toLowerCase() === fuel).sort((a, b) => b.id - a.id)
+  const matches = data.filter(item => item.fuel.toLowerCase() === fuel && item.auction === params.get('auction')).sort((a, b) => b.id - a.id)
   const page = Number(params.get('page'))
   // Upstream clamps requested windows: the adapter must follow every stream correctly.
   const size = Math.min(10, Number(params.get('page_size')))
@@ -225,7 +226,7 @@ test('road catalogue merges cars and motorcycles with full galleries before pagi
   assert.ok(params.get('makes')!.split(',').includes('HONDA'))
   assert.ok(!params.get('makes')!.split(',').includes('CATERPILLAR'))
   // Include known upstream bad rows deliberately, even though a correctly scoped API would exclude them.
-  const all = [...rows.filter(row => row.item_type === params.get('item_type')), ...excluded].sort((a,b) => b.id-a.id)
+  const all = [...rows.filter(row => row.item_type === params.get('item_type') && row.auction === params.get('auction')), ...excluded].sort((a,b) => b.id-a.id)
   const page = Number(params.get('page')), size = Math.min(8, Number(params.get('page_size')))
   return envelope(all.slice((page-1)*size,page*size),page,page*size<all.length,size)
  })
@@ -287,7 +288,7 @@ test('independent catalogue streams overlap with bounded concurrency and preserv
   const id=motorcycle?50:40
   return envelope([{...row,id,lot_number:String(73000000+id),item_type:motorcycle?'VEHTYPE_M':'VEHTYPE_V',model:{id:1,name:motorcycle?'S 1000':'X5'}}])
  })
- const result=await provider.search(new URLSearchParams('site=1,2&fuel=Gasoline'))
+ const result=await provider.search(new URLSearchParams('site=1&fuel=Gasoline'))
  assert.equal(peak,2);assert.equal(calls,4);assert.equal(active,0)
  assert.deepEqual(result.items.map(car=>car.lot_id),[73000050,73000040])
 })
@@ -308,4 +309,29 @@ test('missing current bids never borrow buy-now or final prices, while real zero
  assert.equal(normalizeEridanCar({...row,current_bid:null,buy_now_price:9000,final_bid:7000})?.current_bid,undefined)
  assert.equal(normalizeEridanCar({...row,current_bid:0})?.current_bid,0)
  assert.equal(normalizeEridanCar({...row,current_bid:550})?.current_bid,550)
+})
+
+test('a newer Copart import cannot hide IAAI, and unequal auction pools paginate without gaps', async()=>{
+ const rows=[
+  ...Array.from({length:35},(_,i)=>({...row,id:9000+i,lot_number:String(75000000+i),auction:'copart'})),
+  ...Array.from({length:10},(_,i)=>({...row,id:100+i,lot_number:String(76000000+i),auction:'iaai'})),
+ ]
+ const provider=createEridanProvider(async(path,params)=>{
+  if(path==='/item_types')return [{value:'VEHTYPE_V',label:'Vehicle'},{value:'VEHTYPE_M',label:'Motorcycle'}]
+  const matches=rows.filter(row=>row.auction===params.get('auction')).sort((a,b)=>b.id-a.id)
+  const page=Number(params.get('page')),size=Math.min(10,Number(params.get('page_size')))
+  return envelope(matches.slice((page-1)*size,page*size),page,page*size<matches.length,size)
+ })
+ const pages=[]
+ for(const page of [1,2,3,4])pages.push(await provider.search(new URLSearchParams({site:'1,2',size:'6',page:String(page),vehicle_type:'Automobile'})))
+ assert.deepEqual(pages.map(page=>page.items.length),[12,12,12,9])
+ assert.deepEqual(pages.map(page=>page.hasNext),[true,true,true,false])
+ assert.deepEqual(pages[0].items.map(car=>car.site),[1,2,1,2,1,2,1,2,1,2,1,2])
+ const all=pages.flatMap(page=>page.items)
+ assert.equal(new Set(all.map(car=>car.id)).size,45)
+ assert.deepEqual(all.filter(car=>car.site===1).map(car=>car.lot_id),rows.filter(row=>row.auction==='copart').sort((a,b)=>b.id-a.id).map(row=>Number(row.lot_number)))
+ assert.equal(all.filter(car=>car.site===2).length,10)
+ const iaai=await provider.search(new URLSearchParams('site=2&size=6&vehicle_type=Automobile'))
+ assert.ok(iaai.items.every(car=>car.site===2))
+ assert.equal(iaai.items.length,6)
 })
