@@ -17,12 +17,15 @@ export function createEridanTransport(options: Options): AuctionTransport {
   if (options.apiKey !== 'eridan-local-fixture' || url.protocol !== 'http:' || url.hostname !== '127.0.0.1' || url.username || url.password || url.search || url.hash || url.pathname !== '/') throw new Error('Invalid Eridan test transport')
   base = url.origin
  }
+ // Browser fixtures execute many independent journeys in one process. Real API budgets
+ // remain fixed at 20; the loopback override above requires a non-secret fixture token.
+ const requestLimit = options.testBaseURL ? 200 : 20
  return async (path, params) => {
   if (!options.apiKey?.trim()) throw new Error('ERIDAN_API_KEY is missing')
   if (!paths.has(path)) throw new Error('Unsupported Eridan operation')
   if (now() < blockedUntil) throw new Error('Eridan is temporarily paused after an access or rate limit error')
   if (now() - windowStart >= 60000) { windowStart = now(); requests = 0 }
-  if (requests >= 20) throw new Error('Eridan local request budget reached')
+  if (requests >= requestLimit) throw new Error('Eridan local request budget reached')
   requests++
   const url = new URL(base + path); url.search = params.toString()
   let response

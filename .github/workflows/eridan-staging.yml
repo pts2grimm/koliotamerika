@@ -5,6 +5,25 @@ on:
 permissions:
   contents: read
 jobs:
+  next-route-guide:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: |
+          mkdir -p work
+          cd work
+          npm pack next@16.4.0 --silent
+          python3 - <<'PY'
+          import tarfile,glob
+          with tarfile.open(glob.glob('next-*.tgz')[0]) as tar:
+              matches=[m for m in tar.getmembers() if '/dist/docs/' in m.name and ('route-handlers' in m.name or m.name.endswith('/route.md'))]
+              for m in matches:
+                  print('GUIDE',m.name)
+                  print(tar.extractfile(m).read().decode())
+          PY
   contracts-and-browser:
     runs-on: ubuntu-latest
     timeout-minutes: 18

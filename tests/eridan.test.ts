@@ -104,7 +104,7 @@ test('directories join models by make_id and fetch all pages when upstream clamp
   return { items: [second ? { id: 20, name: 'Mustang', make_id: 2 } : { id: 10, name: 'X5', make_id: 1 }], count: 2 }
  })
  const map = await provider.makes()
- assert.deepEqual({ ...map }, { BMW: ['X5'], Ford: ['Mustang'] }); assert.equal(calls.length, 4)
+ assert.deepEqual(map, { BMW: ['X5'], Ford: ['Mustang'] }); assert.equal(Object.getPrototypeOf(map), Object.prototype); assert.equal(calls.length, 4)
 })
 test('incomplete directories and malformed pagination fail instead of being cached as an empty catalogue', async () => {
  const { provider } = fixture(() => ({ count: 2, items: [{ id: 1, name: 'BMW' }] }))

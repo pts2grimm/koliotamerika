@@ -173,7 +173,8 @@ export function createEridanProvider(request: AuctionTransport): AuctionProvider
     result[make].push(String(model.name))
    }
    for (const make of Object.keys(result)) result[make] = [...new Set(result[make])].sort((a, b) => a.localeCompare(b))
-   return result
+   // React Server Components require a plain object, including on a cold cache.
+   return { ...result }
   },
   async lookup(query) {
    const q = query.trim().toUpperCase()
