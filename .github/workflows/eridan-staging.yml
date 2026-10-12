@@ -7,26 +7,26 @@ permissions:
 jobs:
   inspect:
     runs-on: ubuntu-latest
-    timeout-minutes: 8
+    timeout-minutes: 3
+    env:
+      ERIDAN_API_KEY: ${{ secrets.ERIDAN_API_KEY }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '24'
-          cache: npm
-      - run: npm ci --include=dev
-      - name: Read installed Next cache guide and Eridan schema
+      - name: Verify protected Eridan access without logging credentials or vehicle identities
         run: |
           python3 - <<'PY'
-          from pathlib import Path
-          import urllib.request,json
-          for p in Path('node_modules/next/dist/docs/01-app').rglob('unstable_cache.*'):
-              print('NEXT_GUIDE',str(p)); print(p.read_text())
-          with urllib.request.urlopen('https://catalog.eridan.software/api/openapi.json',timeout=30) as r: doc=json.load(r)
-          schemas=doc['components']['schemas']
-          for name in ['Auction','ItemType','LotSchema','PagedLotSchema','PagedMakeSchema','PagedModelSchema','ModelSchema','MakeSchema']:
-              print('ERIDAN_SCHEMA',name,json.dumps(schemas[name]))
+          import os,urllib.request,urllib.error,urllib.parse,json
+          key=os.environ.get('ERIDAN_API_KEY','').strip()
+          if not key:
+              print('LIVE_CHECK_SKIPPED: ERIDAN_API_KEY repository secret is not configured.')
+              raise SystemExit(0)
+          for path in ['/api/item_types','/api/fuel_types','/api/lots?page_size=2']:
+              try:
+                  req=urllib.request.Request('https://catalog.eridan.software'+path,headers={'Authorization':'Bearer '+key,'Accept':'application/json'})
+                  with urllib.request.urlopen(req,timeout=30) as r: data=json.load(r); print('HTTP',path,r.status)
+                  if path.startswith('/api/lots'):
+                      print('PAGINATION',{k:data.get(k) for k in ['page','page_size','has_next']})
+                      for item in data.get('items',[]):
+                          print('LOT_CONTRACT',json.dumps({'keys':list(item),'auction':item.get('auction'),'status':item.get('status'),'highlights':item.get('highlights'),'item_type':item.get('item_type'),'fuel':item.get('fuel'),'country':item.get('country'),'currency':item.get('currency'),'image_hosts':list(set(urllib.parse.urlparse(u).hostname for u in item.get('images',[]) if isinstance(u,str))),'odometer_unit':item.get('odometer_unit')},ensure_ascii=False))
+                  else: print('DIRECTORY',path,json.dumps(data,ensure_ascii=False))
+              except urllib.error.HTTPError as e: print('HTTP_ERROR',path,e.code); raise SystemExit(1)
           PY
-      - name: Inspect provider contracts and media handling
-        run: |
-          rg -n 'totalPages|seller_type|auctionImages|APICAR_API_KEY|createApiCarProvider|cs.copart.com' src tests scripts --glob '!payload-types.ts'
