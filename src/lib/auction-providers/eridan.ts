@@ -139,20 +139,24 @@ export function createEridanProvider(request: AuctionTransport): AuctionProvider
    // Recently imported Eridan records can have only a thumbnail. Wait for real images
    // in catalogue results; direct/saved lot URLs still resolve while ingestion finishes.
    params.set('has_images', 'true')
-   let fuels: (string | undefined)[] = [undefined]
+   const fuelsBySite = new Map<string, (string | undefined)[]>(sites.map(site => [site, [undefined]]))
    if (valid.get('fuel')) {
-    const raw = await request('/fuel_types', new URLSearchParams())
-    if (!Array.isArray(raw) || raw.some(value => typeof value !== 'string')) throw new Error('Invalid Eridan fuel types')
     const wanted = fuelGroups[valid.get('fuel')!] || [valid.get('fuel')!.toLowerCase()]
-    fuels = [...new Map(raw.filter(value => wanted.includes(value.trim().toLowerCase())).map(value => [value.toLowerCase(), value])).values()]
-    if (!fuels.length) throw new UnsupportedEridanFilterError(['fuel'])
+    for (const site of sites) {
+     const raw = await request('/fuel_types', new URLSearchParams({ auction: auctions[site] }))
+     if (!Array.isArray(raw) || raw.some(value => typeof value !== 'string')) throw new Error('Invalid Eridan fuel types')
+     // Directories contain case and trailing-space duplicates. Only query aliases
+     // actually used by this auction, once each, using the trimmed API value.
+     fuelsBySite.set(site, [...new Map(raw.filter(value => wanted.includes(value.trim().toLowerCase())).map(value => [value.trim().toLowerCase(), value.trim()])).values()])
+    }
+    if (![...fuelsBySite.values()].some(fuels => fuels.length)) throw new UnsupportedEridanFilterError(['fuel'])
    }
    const needed = page * size + 1
    if (needed > 10000) throw new Error('Eridan search window exceeded; narrow the filters')
    const merged = new Map<string, { car: AuctionCar; order: number }>()
    let calls = 0
    const make = valid.get('make')
-   const streams = sites.flatMap(site => types.filter(type => !make || isEridanRoadMake(make, type)).flatMap(type => fuels.map(fuel => ({ site, type, fuel }))))
+   const streams = sites.flatMap(site => types.filter(type => !make || isEridanRoadMake(make, type)).flatMap(type => fuelsBySite.get(site)!.map(fuel => ({ site, type, fuel }))))
    const loadStream = async ({ site, type, fuel }: { site: string; type: EridanRoadType; fuel: string | undefined }) => {
      const stream = new Map<string, { car: AuctionCar; order: number }>()
      const seen = new Set<number>()

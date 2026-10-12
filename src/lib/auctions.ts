@@ -40,11 +40,11 @@ const eridanTransport=createEridanTransport({
  apiKey:process.env.ERIDAN_API_KEY,testBaseURL:process.env.ERIDAN_TEST_API_BASE_URL,
  fetch:(url,init)=>proxyFetch(url,{dispatcher,method:init.method,redirect:init.redirect,signal:init.signal,headers:init.headers as Record<string,string>}),
 })
-const eridanReferences=unstable_cache(async(path:string)=>coalesce(JSON.stringify(['eridan-reference',path]),()=>eridanTransport(path,new URLSearchParams())),['eridan-references-v1'],{revalidate:3600})
+const eridanReferences=unstable_cache(async(path:string,params:string)=>coalesce(JSON.stringify(['eridan-reference',path,params]),()=>eridanTransport(path,new URLSearchParams(params))),['eridan-references-v2-scoped'],{revalidate:3600})
 const eridanRequest:AuctionTransport=async(path,params)=>{
  const start=Date.now()
  try{
-  return await (path==='/item_types'||path==='/fuel_types'?eridanReferences(path):coalesce(JSON.stringify(['eridan-request',path,[...params].sort()]),()=>eridanTransport(path,params)))
+  return await (path==='/item_types'||path==='/fuel_types'?eridanReferences(path,params.toString()):coalesce(JSON.stringify(['eridan-request',path,[...params].sort()]),()=>eridanTransport(path,params)))
  }catch(error){
   // Log only known operational categories, never response bodies, keys, VINs or query values.
   const message=error instanceof Error?error.message:''

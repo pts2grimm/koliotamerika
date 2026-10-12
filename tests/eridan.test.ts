@@ -355,3 +355,36 @@ test('dense non-road motorcycle rows use one bounded larger page per auction',as
  assert.deepEqual(data.items.map(c=>c.site),Array.from({length:24},(_,i)=>i%2+1))
  assert.ok(data.items.every(c=>c.model!=='WAVERUNNER'))
 })
+
+test('fuel choices are auction-scoped and padded aliases do not multiply Copart requests',async()=>{
+ const calls:{path:string;params:URLSearchParams}[]=[]
+ const provider=createEridanProvider(async(path,params)=>{
+  calls.push({path,params:new URLSearchParams(params)})
+  if(path==='/item_types')return [{value:'VEHTYPE_V',label:'Vehicle'},{value:'VEHTYPE_M',label:'Motorcycle'}]
+  if(path==='/fuel_types'){
+   assert.ok(['copart','iaai'].includes(params.get('auction')!))
+   return params.get('auction')==='copart'?['Gas','GAS','GAS                           ']:['Gasoline','Gasoline ']
+  }
+  const auction=params.get('auction'),fuel=params.get('fuel_type__name')
+  assert.equal(fuel,auction==='copart'?'GAS':'Gasoline')
+  const items=params.get('item_type')==='VEHTYPE_V'?[{...row,auction,lot_number:auction==='copart'?'70000001':'70000002',fuel}]:[]
+  return envelope(items,Number(params.get('page')),false)
+ })
+ for(const site of ['1,2','2','1']){
+  const data=await provider.search(new URLSearchParams({make:'BMW',model:'3 SERIES',year_from:'2013',fuel:'Gasoline',site}))
+  assert.deepEqual(data.items.map(c=>c.site),site.split(',').map(Number))
+ }
+ assert.equal(calls.filter(c=>c.path==='/lots').length,8)
+ assert.equal(calls.length,13)
+})
+test('a fuel absent from one auction does not block valid results from the other',async()=>{
+ const provider=createEridanProvider(async(path,params)=>{
+  if(path==='/item_types')return [{value:'VEHTYPE_V',label:'Vehicle'},{value:'VEHTYPE_M',label:'Motorcycle'}]
+  if(path==='/fuel_types')return params.get('auction')==='copart'?['GAS']:['Diesel']
+  assert.equal(params.get('auction'),'copart')
+  return envelope([{...row,fuel:'GAS'}],Number(params.get('page')),false)
+ })
+ const data=await provider.search(new URLSearchParams('site=1,2&fuel=Gasoline&vehicle_type=Automobile'))
+ assert.deepEqual(data.items.map(c=>c.site),[1])
+ await assert.rejects(()=>provider.search(new URLSearchParams('site=2&fuel=Gasoline')),UnsupportedEridanFilterError)
+})
