@@ -51,3 +51,31 @@ test('old saved-lot identifiers and VIN lookup resolve Eridan records with the s
  await page.goto('/targove/kola?lot=70000015&site=2')
  await expect(page.getByRole('heading', { level: 1 })).toContainText('BMW X5')
 })
+
+test('model choices load per make, ignore late responses and allow typing when the directory is unavailable', async ({ page, request }) => {
+ let failBMW = false
+ await page.route('**/api/auction-models?*', async route => {
+  const make = new URL(route.request().url()).searchParams.get('make')
+  if (make === 'BMW' && !failBMW) await new Promise(resolve => setTimeout(resolve, 350))
+  try {
+   await route.fulfill({ status: make === 'BMW' && failBMW ? 503 : 200, contentType: 'application/json', body: JSON.stringify({ models: make === 'BMW' ? ['X3', 'X5'] : ['Mustang'] }) })
+  } catch { /* Switching makes intentionally aborts the stale request. */ }
+ })
+ await page.goto('/targove')
+ const filters = page.getByRole('form', { name: 'Филтри за автомобили' })
+ await filters.getByRole('combobox', { name: 'Марка', exact: true }).selectOption('BMW')
+ await filters.getByRole('combobox', { name: 'Марка', exact: true }).selectOption('Ford')
+ await filters.getByRole('combobox', { name: 'Модел', exact: true }).selectOption('Mustang')
+ await page.waitForTimeout(450)
+ await expect(filters.getByRole('combobox', { name: 'Модел', exact: true })).toHaveValue('Mustang')
+ await expect(filters.locator('select[name="model"] option[value="X5"]')).toHaveCount(0)
+ failBMW = true
+ await filters.getByRole('combobox', { name: 'Марка', exact: true }).selectOption('BMW')
+ await expect(filters.locator('input[name="model"]')).toBeVisible()
+ await filters.locator('input[name="model"]').fill('X5')
+ expect((await request.get('/api/auction-models')).status()).toBe(400)
+ expect((await request.get('/api/auction-models?make=BMW&make=Ford')).status()).toBe(400)
+ const models = await request.get('/api/auction-models?make=BMW')
+ expect(models.status()).toBe(200)
+ expect(await models.json()).toEqual({ models: ['X3', 'X5'] })
+})
