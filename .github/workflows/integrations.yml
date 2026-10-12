@@ -1,7 +1,7 @@
 name: Admin integrations verification
 on:
   push:
-    branches: ['codex/admin-integrations']
+    branches: ['codex/admin-integrations', 'codex/first-visit-consent']
 permissions:
   contents: read
 jobs:

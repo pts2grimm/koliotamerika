@@ -14,8 +14,51 @@ test('admin setup, consent, single page views, lead dedup IDs and revocation wor
     return (await response.json()).result
   }
   expect((await page.request.get(settingsURL)).ok()).toBeFalsy()
+  // Stub every provider before the first visit, including while integrations are disabled.
+  const vendors: string[] = []
+  await page.route(/https:\/\/(?:www\.googletagmanager\.com|connect\.facebook\.net|www\.clarity\.ms)\//, async route => {
+    vendors.push(route.request().url())
+    await route.fulfill({ contentType: 'application/javascript', body: '/* provider stub */' })
+  })
+  const banner = page.getByText('Ти избираш бисквитките', { exact: true })
   await page.goto('/')
-  await expect(page.getByText('Ти избираш бисквитките', { exact: true })).toHaveCount(0)
+  await expect(banner).toBeVisible()
+  for (const theme of ['light', 'dark']) {
+    await page.evaluate(theme => document.documentElement.dataset.theme = theme, theme)
+    for (const width of [320, 390, 1440]) {
+      await page.setViewportSize({ width, height: 850 })
+      const box = await page.locator('.cookie-panel').boundingBox()
+      expect(box).not.toBeNull()
+      expect(box!.x).toBeGreaterThanOrEqual(0)
+      expect(box!.x + box!.width).toBeLessThanOrEqual(width)
+      expect(box!.y).toBeGreaterThanOrEqual(0)
+      expect(box!.y + box!.height).toBeLessThanOrEqual(850)
+      await expect(page.getByRole('button', { name: 'Само необходимите', exact: true })).toBeVisible()
+      await page.screenshot({ path: `test-results/cookie-first-visit-${theme}-${width}.png` })
+      if (width === 390) console.log('COOKIE_VISUAL_' + theme + ' ' + (await page.screenshot({ type: 'jpeg', quality: 55 })).toString('base64'))
+    }
+  }
+  expect(vendors).toEqual([])
+  await page.getByRole('button', { name: 'Само необходимите', exact: true }).click()
+  await page.reload()
+  await expect(banner).toHaveCount(0)
+  await page.getByRole('button', { name: 'Настройки на бисквитките', exact: true }).click()
+  await expect(banner).toBeVisible()
+  await page.getByRole('button', { name: 'Приеми всички', exact: true }).click()
+  await page.reload()
+  await expect(banner).toHaveCount(0)
+  expect(vendors).toEqual([])
+  expect(await page.evaluate(() => !!window.gtag || !!window.fbq || !!window.clarity)).toBe(false)
+
+  // Expired consent prompts again; even accepting cannot enable disabled integrations.
+  await page.evaluate(() => {
+    const expired = encodeURIComponent(JSON.stringify({ version: 1, analytics: true, marketing: true, updatedAt: Date.now() - 181 * 86400000 }))
+    document.cookie = 'koa-consent=' + expired + '; Path=/; SameSite=Lax'
+    localStorage.setItem('koa-consent', expired)
+  })
+  await page.reload()
+  await expect(banner).toBeVisible()
+  expect(vendors).toEqual([])
   await update({ enabled: true, hostname: 'localhost', installation: 'direct', gaEnabled: true, gaId: 'G-TEST12345',
     adsEnabled: true, adsId: 'AW-123456789', adsLeadLabel: 'TestLead123',
     pixelEnabled: true, pixelId: '12345678901', capiEnabled: false, metaAccessToken: 'test-only-token',
@@ -27,12 +70,6 @@ test('admin setup, consent, single page views, lead dedup IDs and revocation wor
   await update({ metaAccessToken: '' })
   expect((await (await admin.get(settingsURL, { headers })).json()).tokenConfigured).toBe(true)
 
-  // Real provider scripts are replaced with empty scripts. No external account receives QA events.
-  const vendors: string[] = []
-  await page.route(/https:\/\/(?:www\.googletagmanager\.com|connect\.facebook\.net|www\.clarity\.ms)\//, async route => {
-    vendors.push(route.request().url())
-    await route.fulfill({ contentType: 'application/javascript', body: '/* provider stub */' })
-  })
   const googleEvents = async (name: string) => page.evaluate(name => (window.dataLayer || []).map(item => Array.from(item as ArrayLike<unknown>)).filter(item => item[0] === 'event' && item[1] === name), name)
   await page.goto('/kontakti')
   await expect(page.locator('meta[name="google-site-verification"]')).toHaveAttribute('content', 'verification-test-google-123')
@@ -136,6 +173,23 @@ test('admin setup, consent, single page views, lead dedup IDs and revocation wor
   await update({ hostname: 'koliotamerika.bg' })
   await page.goto('/kontakti')
   expect(vendors).toEqual([])
+
+  // A first-time visitor still gets a choice on the preview host, with no providers loaded.
+  const previewContext = await browser.newContext({ baseURL })
+  const previewPage = await previewContext.newPage()
+  const previewVendors: string[] = []
+  await previewPage.route(/https:\/\/(?:www\.googletagmanager\.com|connect\.facebook\.net|www\.clarity\.ms)\//, async route => {
+    previewVendors.push(route.request().url())
+    await route.fulfill({ contentType: 'application/javascript', body: '/* provider stub */' })
+  })
+  await previewPage.goto('/kontakti')
+  await expect(previewPage.getByText('Ти избираш бисквитките', { exact: true })).toBeVisible()
+  await previewPage.getByRole('button', { name: 'Приеми всички', exact: true }).click()
+  await previewPage.reload()
+  await expect(previewPage.getByText('Ти избираш бисквитките', { exact: true })).toHaveCount(0)
+  expect(previewVendors).toEqual([])
+  expect(await previewPage.evaluate(() => !!window.gtag || !!window.fbq || !!window.clarity)).toBe(false)
+  await previewContext.close()
 
   // Admin UI has provider tabs and a write-only password field.
   const adminContext = await browser.newContext({ storageState: await admin.storageState() })
