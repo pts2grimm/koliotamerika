@@ -9,31 +9,19 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 3
     steps:
-      - name: Check public domain recovery
+      - name: Verify the new public upload
         run: |
           python3 - <<'PY'
-          import concurrent.futures, subprocess, json, datetime, urllib.request, urllib.error, re
-          print('CHECKED '+datetime.datetime.now(datetime.timezone.utc).isoformat(),flush=True)
-          def dns(item):
-           server,typ=item
+          import urllib.request,urllib.error,datetime,json,hashlib,time
+          url='https://koliotamerika.bg/api/media/file/Remove%20background%20project%20%282%29.png'
+          for target in [url,url+'?verify='+str(int(time.time()))]:
            try:
-            p=subprocess.run(['dig','@'+server,'koliotamerika.bg',typ,'+time=2','+tries=1'],capture_output=True,text=True,timeout=8)
-            print('DNS '+json.dumps({'server':server,'type':typ,'output':p.stdout}),flush=True)
-           except Exception as e: print('ERROR '+str(e),flush=True)
-          with concurrent.futures.ThreadPoolExecutor(max_workers=6) as pool:
-           list(pool.map(dns,[(s,t) for s in ['1.1.1.1','8.8.8.8','atlas.dns-parking.com'] for t in ['NS','A','MX']]))
-          def http(path):
-           url=path if path.startswith('http') else 'https://koliotamerika.bg'+path
-           try:
-            req=urllib.request.Request(url,headers={'User-Agent':'Koliotamerika launch verification'})
-            try: r=urllib.request.urlopen(req,timeout=20)
-            except urllib.error.HTTPError as e: r=e
-            with r:
-             data=r.read(2500000)
-             body=data.decode('utf-8','replace') if not r.headers.get('content-type','').startswith('image/') else ''
-             print('HTTP '+json.dumps({'url':url,'status':r.status,'final':r.url,'server':r.headers.get('server'),'type':r.headers.get('content-type'),'xRobots':r.headers.get('x-robots-tag'),'bytes':len(data),'next':'/_next/' in body,'canonical':re.findall(r'<link[^>]*rel="canonical"[^>]*>',body),'robotsMeta':re.findall(r'<meta[^>]*name="robots"[^>]*>',body),'sitemapLocations':re.findall(r'<loc>(.*?)</loc>',body) if path=='/sitemap.xml' else None,'text':body[:2000] if path in ['/robots.txt','/api/account'] else None},ensure_ascii=False),flush=True)
-           except Exception as e: print('HTTP_ERROR '+json.dumps({'url':url,'error':str(e)}),flush=True)
-          with concurrent.futures.ThreadPoolExecutor(max_workers=7) as pool:
-           list(pool.map(http,['/','https://www.koliotamerika.bg/','/robots.txt','/sitemap.xml','/api/account','/api/media/file/IMG_6961-1.JPEG','/vnos-na-koli-usa/vnos-na-koli-ot-amerika-cena']))
+            req=urllib.request.Request(target,headers={'User-Agent':'Koliotamerika media verification','Cache-Control':'no-cache'})
+            try: response=urllib.request.urlopen(req,timeout=25)
+            except urllib.error.HTTPError as e: response=e
+            with response as r:
+             data=r.read(16777217)
+             print('MEDIA_CHECK '+json.dumps({'checkedAt':datetime.datetime.now(datetime.timezone.utc).isoformat(),'url':target,'status':r.status,'finalURL':r.url,'contentType':r.headers.get('content-type'),'bytesRead':len(data),'truncated':len(data)>16777216,'pngSignature':data.startswith(bytes([137,80,78,71,13,10,26,10])),'sha256':hashlib.sha256(data).hexdigest(),'errorText':data[:400].decode('utf-8','replace') if r.status>=400 else None}),flush=True)
+           except Exception as e: print('MEDIA_ERROR '+str(e),flush=True)
           
           PY
