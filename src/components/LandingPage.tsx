@@ -1,3 +1,4 @@
+import { SeaTransportOverview } from './SeaTransportOverview'
 import { ArrowUpRight, ChevronDown, CarFront, Bike, ScanSearch, FileCheck2 } from 'lucide-react'
 import type { Page } from '@/payload-types'
 import { imageAlt, mediaUrl, settings, siteURL } from '@/lib/data'
@@ -12,6 +13,7 @@ import { LegacyExamples } from './LegacyExamples'
 import type { ReactNode } from 'react'
 
 const profiles: Record<string, { eyebrow: string; image?: string; tags: string[] }> = {
+ 'morski-transport-na-avtomobili-ot-sasht': { eyebrow: 'Морски транспорт', tags: ['От САЩ', 'До Европа', 'До България'] },
  'vnos-na-koli-ot-usa': { eyebrow: 'Внос от САЩ и Канада', tags: ['Избор на автомобил', 'Участие в търг', 'Транспорт до България'] },
  'uslugi': { eyebrow: 'Нашите услуги', image: '/images/legacy/wp-32.webp', tags: ['Консултация', 'Проверка', 'Организация на вноса'] },
  'kak-rabotim': { eyebrow: 'Как работим', image: '/images/legacy/wp-2420.webp', tags: ['Твоите изисквания', 'Ясен план', 'Следващи стъпки'] },
@@ -30,16 +32,18 @@ const services = [
  { href: '/homologacia', title: 'Хомологация', description: 'Подготовка за европейските изисквания и регистрацията.', icon: FileCheck2 },
  { href: '/vnos-na-motori-ot-sasht', title: 'Мотори и ATV', description: 'Възможности за покупка и внос на две и четири колела.', icon: Bike },
 ]
-export async function LandingPage({ page, children }: { page: Page; children?: ReactNode }) {
+export async function LandingPage({ page, children, editorial }: { page: Page; children?: ReactNode; editorial?: { structuredData: object; metadata: ReactNode } }) {
  const site = await settings()
  const related = landingRelatedLinks(page.slug)
  const profile = profiles[page.slug]
  const sections = landingSections(page)
  const image = mediaUrl(page.image) || profile?.image || page.legacyImage || '/images/legacy/wp-32.webp'
  const isServices = page.slug === 'uslugi'
- return <div className="landing-page">
-  <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(landingStructuredData(page, siteURL(), site.brand)).replace(/</g, '\\u003c') }} />
-  <LandingHero title={page.title} intro={page.intro} eyebrow={page.eyebrow || profile?.eyebrow || 'Коли от Америка'} image={image} imageAlt={imageAlt(page.image, page.title)} tags={profile?.tags} />
+ const seaTransport = page.slug === 'morski-transport-na-avtomobili-ot-sasht'
+ return <div className={seaTransport ? "landing-page sea-transport-page" : "landing-page"}>
+  <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(editorial?.structuredData || landingStructuredData(page, siteURL(), site.brand)).replace(/</g, '\\u003c') }} />
+  <LandingHero title={page.title} intro={page.intro} eyebrow={page.eyebrow || profile?.eyebrow || 'Коли от Америка'} image={image} imageAlt={imageAlt(page.image, page.title)} tags={profile?.tags} parent={editorial ? { href: '/blog', label: 'Блог' } : undefined} metadata={editorial?.metadata} primary={seaTransport ? { href: '/kontakti', label: 'Поискай транспортна оферта' } : undefined} caption={seaTransport ? 'От площадката в САЩ до доставката в България.' : undefined} />
+  {seaTransport && <SeaTransportOverview sections={sections} />}
   {page.slug === 'koli-ot-amerika-galeriya' && <LegacyGallery />}
   {isServices && <section className="container landing-services" aria-labelledby="services-title"><div className="landing-section-heading"><span className="eyebrow orange">ОТ КАКВО ИМАШ НУЖДА?</span><h2 id="services-title">Всяка стъпка има значение.</h2></div><div className="landing-service-grid">{services.map(({ href, title, description, icon: Icon }, i) => <Link href={href} className="landing-service-card" key={href}><span className="landing-service-top"><Icon size={30} strokeWidth={1.5} /><span>0{i + 1}</span></span><h3>{title}</h3><p>{description}</p><span className="landing-service-link">Разгледай услугата<ArrowUpRight size={21} /></span></Link>)}</div></section>}
   <div className="container landing-content-grid" id="landing-content">
