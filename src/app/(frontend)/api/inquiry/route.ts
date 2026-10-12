@@ -1,3 +1,5 @@
+import { notifyInquiry } from '@/lib/inquiry-notification'
+import { passwordRecoveryEnabled } from '@/lib/accounts-enabled'
 import { recordLead } from '@/lib/record-lead'
 import { NextResponse, after } from 'next/server'
 import { createHmac, randomUUID } from 'node:crypto'
@@ -27,16 +29,29 @@ export async function POST(request: Request) {
    const recent = await payload.count({ collection: 'submission-limits', where: { and: [{ key: { equals: key } }, { createdAt: { greater_than: cutoff } }] } })
    if (recent.totalDocs >= (client === 'shared' ? 30 : 5)) return NextResponse.json({ error: 'Твърде много запитвания. Опитай отново след час.' }, { status: 429, headers: { 'Retry-After': '3600' } })
    const customer = await customerFromRequest(request)
-   await payload.create({ collection: 'inquiries', data: { ...result.data, ...(customer ? { customer: customer.id, email: customer.email } : {}) } })
-   await payload.create({ collection: 'submission-limits', data: { key } })
-   await payload.delete({ collection: 'submission-limits', where: { createdAt: { less_than: cutoff } } })
+   const inquiry = await payload.create({ collection: 'inquiries', data: { ...result.data, ...(customer ? { customer: customer.id, email: customer.email } : {}) } })
+   // A housekeeping error must not tell the customer their already-saved inquiry was lost.
+   try {
+    await payload.create({ collection: 'submission-limits', data: { key } })
+    await payload.delete({ collection: 'submission-limits', where: { createdAt: { less_than: cutoff } } })
+   } catch { payload.logger.warn('Inquiry saved; submission limit housekeeping failed.') }
    const eventId = randomUUID()
    const tracking = (input as { tracking?: { path?: unknown; marketing?: unknown } }).tracking
    // Schedule ONLY after persistence and validation, never from a public arbitrary-event endpoint.
    const lead = { id: eventId, email: customer?.email || result.data.email, phone: result.data.phone,
      path: typeof tracking?.path === 'string' ? tracking.path.slice(0, 2000) : '/kontakti',
      marketing: tracking?.marketing === true, time: Date.now() }
-   after(() => recordLead(payload, request, lead))
+   after(async () => {
+    await Promise.allSettled([
+     recordLead(payload, request, lead),
+     notifyInquiry({ ...result.data, id: inquiry.id, email: customer?.email || result.data.email }, {
+      enabled: passwordRecoveryEnabled(), siteURL: siteURL(),
+      getRecipient: async () => (await payload.findGlobal({ slug: 'site-settings', depth: 0 })).email,
+      send: mail => payload.sendEmail(mail),
+      warn: message => payload.logger.warn(message),
+     }),
+    ])
+   })
    return NextResponse.json({ success: true, eventId }, { status: 201 })
  } catch (error) { console.error('Inquiry persistence failed:', error instanceof Error ? error.name : 'Unknown error'); return NextResponse.json({ error: 'Запитването не беше записано. Моля, опитай отново.' }, { status: 500 }) }
 }
