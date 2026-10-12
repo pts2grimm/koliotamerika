@@ -1,0 +1,32 @@
+name: Eridan staging verification
+on:
+  push:
+    branches: ['eridan-staging']
+permissions:
+  contents: read
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci --include=dev
+      - name: Read installed Next cache guide and Eridan schema
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import urllib.request,json
+          for p in Path('node_modules/next/dist/docs/01-app').rglob('unstable_cache.*'):
+              print('NEXT_GUIDE',str(p)); print(p.read_text())
+          with urllib.request.urlopen('https://catalog.eridan.software/api/openapi.json',timeout=30) as r: doc=json.load(r)
+          schemas=doc['components']['schemas']
+          for name in ['Auction','ItemType','LotSchema','PagedLotSchema','PagedMakeSchema','PagedModelSchema','ModelSchema','MakeSchema']:
+              print('ERIDAN_SCHEMA',name,json.dumps(schemas[name]))
+          PY
+      - name: Inspect provider contracts and media handling
+        run: |
+          rg -n 'totalPages|seller_type|auctionImages|APICAR_API_KEY|createApiCarProvider|cs.copart.com' src tests scripts --glob '!payload-types.ts'
