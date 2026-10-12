@@ -1,0 +1,49 @@
+name: Eridan performance and bid diagnosis
+on:
+  push:
+    branches: ['codex/eridan-performance-check']
+permissions:
+  contents: read
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - name: Measure public staging and read bid fields
+        env:
+          ERIDAN_API_KEY: ${{ secrets.ERIDAN_API_KEY }}
+        run: |
+          python3 -u - <<'PY'
+          import json, os, time, urllib.request, urllib.parse, re, html
+          token=os.environ['ERIDAN_API_KEY']
+          base='https://catalog.eridan.software/api'
+          def get(path,params={}):
+              start=time.monotonic()
+              req=urllib.request.Request(base+path+('?' + urllib.parse.urlencode(params,doseq=True) if params else ''),headers={'Accept':'application/json','Authorization':'Bearer '+token})
+              with urllib.request.urlopen(req,timeout=30) as r:
+                  body=r.read(); data=json.loads(body)
+              print('TIMING',path,{**params},'ms',round((time.monotonic()-start)*1000),'bytes',len(body))
+              return data
+          def sample(rows):
+              return [{'lot':r.get('lot_number'),'auction':r.get('auction'),'status':r.get('status'),'currency':r.get('currency'),'current_bid':r.get('current_bid'),'buy_now_price':r.get('buy_now_price'),'final_bid':r.get('final_bid'),'sale_date':r.get('sale_date'),'price_keys':[k for k in r if any(x in k.lower() for x in ['bid','price','amount'])]} for r in rows[:6]]
+          for auction in ['copart','iaai']:
+              for ordering in ['-id','-updated_at']:
+                  data=get('/lots',{'auction':auction,'item_type':'VEHTYPE_V','has_images':'true','page_size':12,'ordering':ordering})
+                  print('BIDS',auction,ordering,sample(data.get('items',[])))
+                  if ordering=='-id' and data.get('items'):
+                      detail=get('/lots/'+str(data['items'][0]['id']))
+                      print('DETAIL_BID',sample([detail]))
+          get('/lots',{'item_type':'VEHTYPE_M','has_images':'true','makes':'BMW,HONDA,YAMAHA,SUZUKI,KAWASAKI,HARLEY-DAVIDSON','page_size':25,'ordering':'-id'})
+          stage='https://darkturquoise-duck-750266.hostingersite.com'
+          for path in ['/targove','/targove','/targove?make=BMW&model=X5']:
+              start=time.monotonic()
+              try:
+                  with urllib.request.urlopen(stage+path,timeout=60) as r:
+                      ttfb=round((time.monotonic()-start)*1000); body=r.read().decode()
+                  print('STAGE',path,'ttfb_ms',ttfb,'total_ms',round((time.monotonic()-start)*1000),'bytes',len(body.encode()),'cards',body.count('class="car-card auction-card"'))
+                  if path=='/targove':
+                      links=list(dict.fromkeys(html.unescape(x) for x in re.findall(r'href="([^"]*targove/kola[^"]*)"',body)))
+                      print('STAGE_FIRST_LINKS',links[:2])
+              except Exception as e: print('STAGE_ERROR',path,type(e).__name__)
+          
+          PY
