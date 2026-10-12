@@ -177,7 +177,7 @@ export function createEridanProvider(request: AuctionTransport): AuctionProvider
        if (order === undefined) throw new Error('Invalid Eridan sort identity')
        seen.add(order)
        // Defend against misclassified upstream rows; fill the stream before slicing.
-       if (raw.item_type !== codes[type] || !isEridanRoadMake(car.make, type) || !isEridanRoadModel(car.model) || !car.link_img_hd?.length) continue
+       if (raw.item_type !== codes[type] || !isEridanRoadMake(car.make, type) || !isEridanRoadModel(car.model, car.make) || !car.link_img_hd?.length) continue
        if (!stream.has(car.id) || stream.get(car.id)!.order < order) stream.set(car.id, { car, order })
       }
       if (!data.hasNext) break
@@ -200,7 +200,7 @@ export function createEridanProvider(request: AuctionTransport): AuctionProvider
    if (!make.trim() || make.length > 100) throw new Error('Invalid make')
    if (!isEridanRoadMake(make)) return []
    const models = await directory('/models', { make__name: make })
-   return [...new Set(models.filter(model => Boolean(name(model)) && isEridanRoadModel(String(model.name))).map(model => String(model.name)))].sort((a, b) => a.localeCompare(b, undefined, { numeric: true }))
+   return [...new Set(models.filter(model => Boolean(name(model)) && isEridanRoadModel(String(model.name), make)).map(model => String(model.name)))].sort((a, b) => a.localeCompare(b, undefined, { numeric: true }))
   },
   async lookup(query) {
    const q = query.trim().toUpperCase()

@@ -2,6 +2,7 @@ import assert from 'node:assert/strict'
 import { test } from 'node:test'
 import { createEridanProvider, normalizeEridanCar, UnsupportedEridanFilterError } from '../src/lib/auction-providers/eridan'
 import { createEridanTransport } from '../src/lib/auction-providers/eridan-transport'
+import { isEridanRoadModel } from '../src/lib/auction-providers/eridan-scope'
 import { mileage } from '../src/lib/vehicle-details'
 import type { AuctionTransport } from '../src/lib/auction-providers/types'
 
@@ -259,4 +260,13 @@ test('full gallery wins over the thumbnail without synthesizing image URLs; old 
  assert.equal(incomplete?.id,'1:'+row.lot_number)
  assert.deepEqual(incomplete?.link_img_hd,[])
  assert.deepEqual(incomplete?.link_img_small,[row.thumb_url])
+})
+
+test('utility model exclusions are make-specific and do not hide legitimate cars with the same model name', () => {
+ assert.equal(isEridanRoadModel('SXS1000','HONDA'),false)
+ assert.equal(isEridanRoadModel('TALON','HONDA'),false)
+ assert.equal(isEridanRoadModel('TALON','EAGLE'),true)
+ assert.equal(isEridanRoadModel('CBR600RR','HONDA'),true)
+ assert.equal(isEridanRoadModel('YZF R1','YAMAHA'),true)
+ assert.equal(isEridanRoadModel('YFM700','YAMAHA'),false)
 })

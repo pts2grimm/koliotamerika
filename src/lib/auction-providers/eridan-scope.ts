@@ -31,8 +31,15 @@ const brandKeys = Object.fromEntries(eridanRoadTypes.map(type => [type, new Set(
 export function isEridanRoadMake(make: string, type?: EridanRoadType) {
  return (type ? [type] : eridanRoadTypes).some(type => brandKeys[type].has(key(make)))
 }
-export function isEridanRoadModel(model: string) {
- const value = model.trim()
- return Boolean(value) && !/^(?:SXS\d|TRX\d|FOURTRAX|PIONEER|TALON|MULE|TERYX|BRUTE FORCE|YXZ\d|YFM\d|YXR\d|YXE\d|KFX\d|KRF\d|KRT\d|KVF\d|LT-?[AZF]?\d)/i.test(value) && !/^(?:unknown|unk|other|n\/a|none|not specified|[?*.-]+)$/i.test(value) &&
+export function isEridanRoadModel(model: string, make = '') {
+ const value = model.trim(), brand = key(make)
+ const utilityModels: Record<string, RegExp> = {
+  HONDA: /^(?:SXS\d|TRX\d|FOURTRAX|PIONEER|TALON)/i,
+  YAMAHA: /^(?:YXZ\d|YFM\d|YXR\d|YXE\d)/i,
+  KAWASAKI: /^(?:MULE|TERYX|BRUTE FORCE|KFX\d|KRF\d|KRT\d|KVF\d)/i,
+  SUZUKI: /^LT-?[AZF]?\d/i,
+ }
+ return Boolean(value) && !utilityModels[brand]?.test(value) &&
+  !/^(?:unknown|unk|other|n\/a|none|not specified|[?*.-]+)$/i.test(value) &&
   !/\b(?:boat|marine|outboard|waverunner|wave runner|jet ski|jetski|seadoo|sea doo|atv|utv|snowmobile|mower|tractor|trailer|forklift|excavator)\b/i.test(value)
 }
