@@ -1,28 +1,19 @@
-name: Diagnose full mixed Eridan catalogue
+name: Inspect public catalogue failure
 on:
   push:
     branches: ['codex/eridan-navigation-profile']
 permissions:
   contents: read
 jobs:
-  full-catalogue:
+  public:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 2
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '24'
-          cache: npm
-      - run: npm ci --include=dev
-      - run: node --import tsx scripts/profile-eridan-auctions.ts
-        env:
-          ERIDAN_API_KEY: ${{ secrets.ERIDAN_API_KEY }}
-      - name: Public catalogue check
-        run: |
+      - run: |
           node --input-type=module <<'JS'
           const start=Date.now();
           const r=await fetch('https://darkturquoise-duck-750266.hostingersite.com/targove',{signal:AbortSignal.timeout(60000)});
           const html=await r.text();
-          console.log('PUBLIC',JSON.stringify({status:r.status,ms:Date.now()-start,cards:(html.match(/class="auction-card"/g)||[]).length,empty:html.match(/<[^>]*class="empty-state"[^>]*>[\s\S]*?<\/section>/)?.[0]?.replace(/<[^>]+>/g,' ').slice(0,1500)}));
+          const plain=html.replace(/<script[\s\S]*?<\/script>/g,'').replace(/<style[\s\S]*?<\/style>/g,'').replace(/<[^>]+>/g,' ').replace(/\s+/g,' ');
+          console.log('PUBLIC',JSON.stringify({status:r.status,ms:Date.now()-start,cardMentions:(html.match(/auction-card/g)||[]).length,text:plain.slice(-11000)}));
           JS
