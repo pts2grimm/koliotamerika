@@ -1,19 +1,21 @@
-name: Check live mobile auction filters
+name: Compare public auction environments
 on:
   push:
     branches: ['codex/eridan-navigation-profile']
 permissions:
   contents: read
 jobs:
-  inspect:
+  compare:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 3
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '24'
-          cache: npm
-      - run: npm ci --include=dev
-      - run: npx playwright install --with-deps chromium
-      - run: node scripts/inspect-eridan-filters.mjs
+      - run: |
+          node --input-type=module <<'JS'
+          for(const host of ['koliotamerika.bg','darkturquoise-duck-750266.hostingersite.com']){
+            const r=await fetch('https://'+host+'/targove?site=2',{signal:AbortSignal.timeout(60000)});
+            const html=await r.text();
+            const badges=[...html.matchAll(/class="car-badge"[^>]*>([^<]+)</g)].map(m=>m[1]);
+            const empty=html.match(/class="empty-state"[\s\S]*?<\/div>/)?.[0]?.replace(/<[^>]+>/g,' ').slice(0,700);
+            console.log('ENVIRONMENT',JSON.stringify({host,status:r.status,badges,empty,eridanFields:html.includes('name="vehicle_type"')}));
+          }
+          JS
