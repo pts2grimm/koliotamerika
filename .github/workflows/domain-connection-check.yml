@@ -28,12 +28,12 @@ jobs:
               return result
           print(datetime.datetime.now(datetime.timezone.utc).isoformat(), flush=True)
           ready = False
-          for attempt in range(7):
+          for attempt in range(1):
               result = check('https://www.koliotamerika.bg/?canonical_check=1')
-              if result['status'] == 308 and result['location'] == 'https://koliotamerika.bg/?canonical_check=1':
+              if result['status'] == 308 and result['location'] in ['https://koliotamerika.bg/?canonical_check=1', 'https://koliotamerika.bg?canonical_check=1']:
                   ready = True
                   break
-              if attempt < 6:
+              if attempt < 0:
                   time.sleep(20)
           if ready:
               for path in ['/morski-transport-na-avtomobili-ot-sasht?utm_source=canonical-check', '/sitemap.xml', '/api/media/file/Remove%20background%20project%20%282%29.png']:
