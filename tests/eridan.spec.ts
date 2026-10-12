@@ -111,7 +111,7 @@ test('catalogue offers only road brands, keeps cars and motorcycles selectable, 
 
 
 test('cards load lightweight previews, galleries retain full images, and missing bids stay distinct from zero and other prices', async ({page})=>{
- await page.goto('/targove?make=BMW&model=X5&site=1')
+ await page.goto('/targove?make=BMW&model=X5&site=1&page=2')
  const card=page.locator('.auction-card').filter({has:page.locator('a[href="/targove/kola?lot=70000001&site=1"]')})
  await expect(card.locator('.card-photo-link img')).toHaveAttribute('src',/test-gallery-thumb/)
  await expect(card.locator('.auction-price-row')).toContainText('Не е предоставен')
