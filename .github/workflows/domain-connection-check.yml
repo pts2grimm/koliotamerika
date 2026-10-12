@@ -9,31 +9,25 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 4
     steps:
-      - name: Inspect public DNS and HTTP without credentials
+      - name: Inspect authoritative DNS and DNSSEC without changes
         run: |
           python3 - <<'PY'
-          import concurrent.futures, json, urllib.request, urllib.error, datetime
-          def get(url):
-           req=urllib.request.Request(url,headers={'User-Agent':'Koliotamerika migration diagnostics','Accept':'application/dns-json, text/html;q=0.9, */*;q=0.8'})
-           try: return urllib.request.urlopen(req,timeout=18)
-           except urllib.error.HTTPError as e: return e
-          def dns(item):
-           name,typ,provider=item
+          import concurrent.futures,json,urllib.request,subprocess,shutil
+          def doh(item):
+           typ,cd=item
+           url='https://dns.google/resolve?name=koliotamerika.bg&type='+typ+'&cd='+cd
            try:
-            with get(provider+'?name='+name+'&type='+typ) as r: data=json.load(r)
-            print('DNS '+json.dumps({'name':name,'type':typ,'provider':provider,'status':data.get('Status'),'answer':data.get('Answer'),'authority':data.get('Authority')},ensure_ascii=False),flush=True)
-           except Exception as e: print('DNS_ERROR '+json.dumps({'name':name,'type':typ,'error':str(e)}),flush=True)
-          def http(url):
+            with urllib.request.urlopen(url,timeout=15) as r: data=json.load(r)
+            print('DOH '+json.dumps({'type':typ,'cd':cd,'result':data}),flush=True)
+           except Exception as e: print('ERROR '+str(e),flush=True)
+          with concurrent.futures.ThreadPoolExecutor(max_workers=6) as pool: list(pool.map(doh,[(t,c) for t in ['NS','A','MX','DS'] for c in ['false','true']]))
+          def query(item):
+           server,typ=item
            try:
-            with get(url) as r:
-             body=r.read(65536).decode('utf-8','replace')
-             headers={k:r.headers.get(k) for k in ['server','content-type','x-robots-tag','location','x-powered-by']}
-             print('HTTP '+json.dumps({'url':url,'status':r.status,'final':r.url,'headers':headers,'next':'/_next/' in body,'wordpress':'wp-content' in body,'forbidden':'403' in body and 'Forbidden' in body,'previewHero':'Следващата ти кола' in body,'excerpt':body[:600] if ('json' in headers.get('content-type','') or url.endswith('robots.txt')) else None},ensure_ascii=False),flush=True)
-           except Exception as e: print('HTTP_ERROR '+json.dumps({'url':url,'error':str(e)}),flush=True)
-          print('CHECKED '+datetime.datetime.now(datetime.timezone.utc).isoformat(),flush=True)
-          queries=[(name,typ,p) for name,typ in [('koliotamerika.bg','NS'),('koliotamerika.bg','A'),('koliotamerika.bg','AAAA'),('koliotamerika.bg','MX'),('www.koliotamerika.bg','A'),('papayawhip-ram-220810.hostingersite.com','A')] for p in ['https://dns.google/resolve','https://cloudflare-dns.com/dns-query']]
-          with concurrent.futures.ThreadPoolExecutor(max_workers=6) as pool: list(pool.map(dns,queries))
-          urls=['https://koliotamerika.bg/','https://www.koliotamerika.bg/','https://koliotamerika.bg/api/account','https://koliotamerika.bg/robots.txt','https://papayawhip-ram-220810.hostingersite.com/']
-          with concurrent.futures.ThreadPoolExecutor(max_workers=5) as pool: list(pool.map(http,urls))
+            p=subprocess.run(['dig','@'+server,'koliotamerika.bg',typ,'+norecurse','+time=3','+tries=1'],capture_output=True,text=True,timeout=10)
+            print('DIG '+json.dumps({'server':server,'type':typ,'output':p.stdout,'error':p.stderr}),flush=True)
+           except Exception as e: print('ERROR '+str(e),flush=True)
+          if shutil.which('dig'):
+           with concurrent.futures.ThreadPoolExecutor(max_workers=6) as pool: list(pool.map(query,[(s,t) for s in ['atlas.dns-parking.com','hyperion.dns-parking.com','ns1.dns-parking.com','ns2.dns-parking.com'] for t in ['SOA','A','MX']]))
           
           PY
