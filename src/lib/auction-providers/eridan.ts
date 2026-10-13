@@ -1,3 +1,4 @@
+import { canonicalEridanMake, eridanMakeAliases, eridanMakeParams, sameEridanMake } from './make-aliases'
 import { auctionSort } from '../auction-sorting'
 import { groupModelDirectory } from './model-families'
 import { isAuctionClosed } from '../auction-lifecycle'
@@ -117,9 +118,11 @@ export function createEridanProvider(request: AuctionTransport): AuctionProvider
  }
  const modelGroups = new Map<string, Promise<Map<string, number[]>>>()
  const groupsFor = (make: string) => {
-  const key = make.trim().toUpperCase()
-  if (!modelGroups.has(key)) modelGroups.set(key, directory('/models', { make__name: make }).then(rows =>
-   groupModelDirectory(make, rows.map(row => ({ id: Number(row.id), name: String(row.name) })))
+  const canonical = canonicalEridanMake(make), key = canonical.toUpperCase()
+  // /models supports an exact make name, so union the complete directories.
+  // The largest alias group has three members; failures must not produce partial models.
+  if (!modelGroups.has(key)) modelGroups.set(key, Promise.all(eridanMakeAliases(make).map(alias => directory('/models', { make__name: alias }))).then(parts =>
+   groupModelDirectory(canonical, parts.flat().map(row => ({ id: Number(row.id), name: String(row.name) })))
   ).catch(error => { modelGroups.delete(key); throw error }))
   return modelGroups.get(key)!
  }
@@ -168,10 +171,11 @@ export function createEridanProvider(request: AuctionTransport): AuctionProvider
    if (!sites.length || sites.some(site => !auctions[site])) throw new Error('Invalid auction')
    const page = Number(valid.get('page')), size = Number(valid.get('size')) * sites.length
    const params = new URLSearchParams({ page: String(page), page_size: String(size), ordering: sorting.ordering, ...(archive ? {sale_date__lte: new Date().toISOString()} : {status: 'active'}) })
-   for (const [from, to] of [['make', 'make__name'], ['year_from', 'year_from'], ['year_to', 'year_to']]) {
+   for (const [from, to] of [['year_from', 'year_from'], ['year_to', 'year_to']]) {
     const value = valid.get(from); if (value) params.set(to, value)
    }
    const selectedModel = valid.get('model'), selectedMake = valid.get('make')
+   if (selectedMake) for (const [key, value] of Object.entries(eridanMakeParams(selectedMake))) params.set(key, value)
    if (selectedModel) {
     const groups = selectedMake ? await groupsFor(selectedMake) : undefined
     const ids = groups?.get(selectedModel.toUpperCase())
@@ -290,7 +294,7 @@ export function createEridanProvider(request: AuctionTransport): AuctionProvider
   async makes() {
    const makes = await directory('/makes')
    // Models are loaded only for the selected make. Eridan has >50k model rows.
-   return Object.fromEntries(makes.filter(make => Boolean(name(make)) && isEridanRoadMake(String(make.name))).map(make => [String(make.name), []]))
+   return Object.fromEntries(makes.filter(make => Boolean(name(make)) && isEridanRoadMake(String(make.name))).map(make => [canonicalEridanMake(String(make.name)), []]))
   },
   async models(make: string, vehicleType?: string) {
    if (!make.trim() || make.length > 100) throw new Error('Invalid make')
@@ -308,14 +312,14 @@ export function createEridanProvider(request: AuctionTransport): AuctionProvider
     const seen = new Set<number>()
     for (let page=1; page<=24; page++) {
      if (Date.now() > deadline) throw new Error('Category directory time limit')
-     const params = new URLSearchParams({make__name:make,item_type:codes[type],status:'active',has_images:'true',ordering:'id',page:String(page),page_size:'1000',...(undated?{sale_date__isnull:'true'}:{sale_date__gte:cutoff})})
+     const params = new URLSearchParams({...eridanMakeParams(make),item_type:codes[type],status:'active',has_images:'true',ordering:'id',page:String(page),page_size:'1000',...(undated?{sale_date__isnull:'true'}:{sale_date__gte:cutoff})})
      const response = record(await request('/lots',params))
      const data = lots(response,page), rawItems = response.items as unknown[], before=seen.size
      for (let index=0;index<data.items.length;index++) {
       const car=data.items[index], raw=record(rawItems[index]), model=record(raw.model)
       if (!Number.isSafeInteger(raw.id)) throw new Error('Invalid category directory identity')
       seen.add(Number(raw.id))
-      if (car.vehicle_type!==type || car.make.trim().toLowerCase()!==make.trim().toLowerCase() || car.auction_status!=='active' || isAuctionClosed(car) || !car.link_img_hd?.length) continue
+      if (car.vehicle_type!==type || !sameEridanMake(car.make,make) || car.auction_status!=='active' || isAuctionClosed(car) || !car.link_img_hd?.length) continue
       if (Number.isSafeInteger(model.id) && typeof model.name==='string' && isEridanRoadModel(model.name,make)) found.set(Number(model.id),{id:Number(model.id),name:model.name})
      }
      if (!data.hasNext) return

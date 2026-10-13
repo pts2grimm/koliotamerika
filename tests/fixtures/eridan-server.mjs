@@ -32,6 +32,10 @@ cars[6].seller = ''
 cars.push({...cars[0],id:9500,lot_number:'86000001',vin:'TST00000086000001',status:'sold',sale_date:'2026-10-12T14:00:00Z',buy_now_price:15000})
 cars.push({...cars[0],id:9501,lot_number:'86000002',vin:'TST00000086000002',auction:'iaai',status:'sold',sale_date:'2026-10-12T14:00:00Z'})
 cars.push({...cars[0],id:9502,lot_number:'72239476',vin:'TST00000072239476',status:'active',sale_date:'2026-10-12T19:00:00Z',current_bid:12000})
+const aliasMakes=['MERCEDES','MERCEDES BENZ','MERCEDES-BENZ','ROLLS ROYCE','ROLLS-ROYCE']
+const aliasModels=aliasMakes.map((_,i)=>({id:201+i,name:i<3?['C300','AMG C 43','C-CLASS C300'][i]:'GHOST',make_id:101+i}))
+const aliasCars=Array.from({length:36},(_,i)=>({...cars[0],id:50000+i,lot_number:String(95000000+i),auction:i%2?'iaai':'copart',make:{id:101+i%3,name:aliasMakes[i%3]},model:aliasModels[i%3],name:'2023 '+aliasMakes[i%3]+' '+aliasModels[i%3].name}))
+let aliasExamples=false
 let searchOutage = false, transientSearchFailures = 0, expiredBackfill = false, familyExamples = false, sortExamples = false
 const backfill = Array.from({length:600},(_,i)=>({...cars[0], id:20000+i, lot_number:String(88000000+i), sale_date:'2026-09-01T12:00:00Z'}))
 const undated = [0,1].map(i=>({...cars[0],id:30000+i,lot_number:String(89000000+i),auction:i?'iaai':'copart',sale_date:null,seller:i?'Named company':' '}))
@@ -41,6 +45,7 @@ familyCars.push({...cars[0],id:41000,lot_number:'94000000',model:familyModels[4]
 createServer((req, res) => {
  const url = new URL(req.url, 'http://127.0.0.1'), p = url.searchParams
  const send = (data, status = 200) => { res.writeHead(status, { 'Content-Type': 'application/json' }); res.end(JSON.stringify(data)) }
+ if (url.pathname === '/test-make-aliases' && req.method === 'POST') { aliasExamples=p.get('enabled')==='true'; return send({ok:true}) }
  if (url.pathname === '/') return send({ ok: true })
  if (url.pathname === '/test-sort-examples' && req.method === 'POST') { sortExamples = p.get('enabled') === 'true'; return send({ok:true}) }
  if (url.pathname === '/test-model-families' && req.method === 'POST') { familyExamples = p.get('enabled') === 'true'; return send({ok:true}) }
@@ -52,8 +57,10 @@ createServer((req, res) => {
  requests.push({ path: url.pathname, params: Object.fromEntries(p) })
  if (url.pathname === '/item_types') return send([{ value: 'VEHTYPE_V', label: 'Vehicle' }, { value: 'VEHTYPE_M', label: 'Motorcycle' }, { value: 'VEHTYPE_A', label: 'ATV' }])
  if (url.pathname === '/fuel_types') return send(['GAS', 'DIESEL', 'ELECTRIC', 'HYBRID ENGINE'])
- if (url.pathname === '/makes') return send({ items: [{ id: 1, name: 'BMW' }, { id: 2, name: 'Ford' }, { id: 3, name: 'Honda' }, { id: 4, name: 'CATERPILLAR' }, { id: 5, name: 'SEA RAY' }, { id: 6, name: '*' }, {id:8,name:'POLARIS'}, {id:9,name:'CF MOTO'}], count: 8 })
+ if (url.pathname === '/makes') return send({ items: [{ id: 1, name: 'BMW' }, { id: 2, name: 'Ford' }, { id: 3, name: 'Honda' }, { id: 4, name: 'CATERPILLAR' }, { id: 5, name: 'SEA RAY' }, { id: 6, name: '*' }, {id:8,name:'POLARIS'}, {id:9,name:'CF MOTO'},...aliasMakes.map((name,i)=>({id:101+i,name}))], count: 13 })
  if (url.pathname === '/models') {
+  const aliasIndex=aliasMakes.indexOf(p.get('make__name'))
+  if(aliasIndex>=0)return send({items:[aliasModels[aliasIndex]],count:1})
   const models = p.get('make__name') === 'BMW' ? [{ id: 10, name: 'X5', make_id: 1 }, { id: 11, name: 'X3', make_id: 1 }, ...familyModels] : p.get('make__name') === 'Ford' ? [{ id: 20, name: 'Mustang', make_id: 2 }] : p.get('make__name') === 'Honda' ? [{ id: 30, name: 'CBR600RR', make_id: 3 }] : p.get('make__name') === 'POLARIS' ? [{id:80,name:'SPORTSMAN 570',make_id:8}] : p.get('make__name') === 'CF MOTO' ? [{id:90,name:'UFORCE 1000',make_id:9}] : []
   return send({ items: models, count: models.length })
  }
@@ -72,7 +79,7 @@ createServer((req, res) => {
  }
  const allowed = ['page', 'page_size', 'ordering', 'auction', 'lot_number', 'vin', 'make__name', 'model__name', 'model_ids', 'year_from', 'year_to', 'fuel_type__name', 'item_type', 'has_images', 'makes', 'status', 'sale_date__lte', 'sale_date__gte', 'sale_date__isnull']
  if ([...p.keys()].some(key => !allowed.includes(key))) return send({ error: 'unknown filter' }, 422)
- const items = [...cars.map((car,i)=>sortExamples&&i<30?{...car,sale_date:i>27?null:new Date(Date.UTC(2032,0,1+(29-i))).toISOString(),created_at:new Date(Date.UTC(2026,0,i+1)).toISOString()}:car),...(familyExamples ? familyCars : []),...(expiredBackfill ? [...backfill,...undated] : [])].filter(car =>
+ const items = [...cars.map((car,i)=>sortExamples&&i<30?{...car,sale_date:i>27?null:new Date(Date.UTC(2032,0,1+(29-i))).toISOString(),created_at:new Date(Date.UTC(2026,0,i+1)).toISOString()}:car),...(aliasExamples ? aliasCars : []),...(familyExamples ? familyCars : []),...(expiredBackfill ? [...backfill,...undated] : [])].filter(car =>
   (!p.get('sale_date__gte') || car.sale_date && Date.parse(car.sale_date) >= Date.parse(p.get('sale_date__gte'))) &&
   (p.get('sale_date__isnull') !== 'true' || car.sale_date == null) &&
   (!p.get('sale_date__lte') || car.sale_date && Date.parse(car.sale_date) <= Date.parse(p.get('sale_date__lte'))) &&
