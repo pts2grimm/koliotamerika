@@ -7,6 +7,7 @@ test.beforeEach(async ({ page }) => {
 test('homepage carries make/model to auctions and changing make resets model', async ({ page }) => {
  await page.goto('/')
  const search = page.getByRole('form', { name: 'Намери автомобил', exact: true })
+ await expect(search.locator('select[name=make] option[value=POLARIS]')).toHaveCount(0)
  await expect(search.getByRole('combobox', { name: 'Модел', exact: true })).toBeDisabled()
  await search.getByRole('combobox', { name: 'Марка', exact: true }).selectOption('BMW')
  await search.getByRole('combobox', { name: 'Модел', exact: true }).selectOption('X5')
