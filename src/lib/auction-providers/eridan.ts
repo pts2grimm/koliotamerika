@@ -1,3 +1,4 @@
+import { auctionSort } from '../auction-sorting'
 import { groupModelDirectory } from './model-families'
 import { isAuctionClosed } from '../auction-lifecycle'
 import type { AuctionCar, AuctionProvider, AuctionTransport } from './types'
@@ -155,6 +156,7 @@ export function createEridanProvider(request: AuctionTransport): AuctionProvider
    const unsupported = unsupportedEridanFilters(input)
    if (unsupported.length) throw new UnsupportedEridanFilterError(unsupported)
    const valid = validSearchParams(input)
+   const sorting = auctionSort(input.get('sort'))
    const archive = ['sold', 'ended'].includes(input.get('archive') || '')
    const condition = valid.get('status'), seller = input.get('seller')?.trim().toLowerCase()
    if (seller && (seller.length < 2 || seller.length > 100)) throw new UnsupportedEridanFilterError(['seller'])
@@ -165,7 +167,7 @@ export function createEridanProvider(request: AuctionTransport): AuctionProvider
    const sites = [...new Set((input.get('site') || '1').split(','))]
    if (!sites.length || sites.some(site => !auctions[site])) throw new Error('Invalid auction')
    const page = Number(valid.get('page')), size = Number(valid.get('size')) * sites.length
-   const params = new URLSearchParams({ page: String(page), page_size: String(size), ordering: '-id', ...(archive ? {sale_date__lte: new Date().toISOString()} : {status: 'active'}) })
+   const params = new URLSearchParams({ page: String(page), page_size: String(size), ordering: sorting.ordering, ...(archive ? {sale_date__lte: new Date().toISOString()} : {status: 'active'}) })
    for (const [from, to] of [['make', 'make__name'], ['year_from', 'year_from'], ['year_to', 'year_to']]) {
     const value = valid.get(from); if (value) params.set(to, value)
    }
@@ -201,7 +203,7 @@ export function createEridanProvider(request: AuctionTransport): AuctionProvider
    }
    const needed = page * size + 1
    if (needed > 10000) throw new EridanSearchLimitError()
-   const merged = new Map<string, { car: AuctionCar; order: number }>()
+   const merged = new Map<string, { car: AuctionCar; order: number; sortValue?: number }>()
    let calls = 0
    const make = valid.get('make')
    // Filter expired active rows upstream. Keep undated lots in a separate stream;
@@ -210,7 +212,7 @@ export function createEridanProvider(request: AuctionTransport): AuctionProvider
    const streams = sites.flatMap(site => types.filter(type => !make || isEridanRoadMake(make, type)).flatMap(type => fuelsBySite.get(site)!.flatMap(fuel => dateScopes.map(dateScope => ({ site, type, fuel, dateScope })))))
    const maxCalls = Math.min(48, Math.max(16, streams.length * 4))
    const loadStream = async ({ site, type, fuel, dateScope }: { site: string; type: EridanRoadType; fuel: string | undefined; dateScope: 'archive' | 'upcoming' | 'undated' }) => {
-     const stream = new Map<string, { car: AuctionCar; order: number }>()
+     const stream = new Map<string, { car: AuctionCar; order: number; sortValue?: number }>()
      const seen = new Set<number>()
      let streamPage = 1
      while (stream.size < needed) {
@@ -234,6 +236,11 @@ export function createEridanProvider(request: AuctionTransport): AuctionProvider
       for (let index = 0; index < data.items.length; index++) {
        const car = data.items[index], raw = record(rawItems[index]), order = number(raw.id)
        if (order === undefined) throw new Error('Invalid Eridan sort identity')
+       const field = raw[sorting.field]
+       const parsed = sorting.field === 'sale_date' || sorting.field === 'created_at'
+        ? (typeof field === 'string' ? Date.parse(field) : NaN)
+        : (field == null || field === '' ? NaN : Number(field))
+       const sortValue = Number.isFinite(parsed) ? parsed : undefined
        seen.add(order)
        // Defend against misclassified upstream rows; fill the stream before slicing.
        if ((archive ? !isAuctionClosed(car) : car.auction_status !== 'active' || isAuctionClosed(car)) || String(car.site) !== site || raw.item_type !== codes[type] || !isEridanRoadMake(car.make, type) || !isEridanRoadModel(car.model, car.make) || !car.link_img_hd?.length) continue
@@ -241,7 +248,7 @@ export function createEridanProvider(request: AuctionTransport): AuctionProvider
        if (condition === 'Enhanced Vehicles' ? !car.enhanced : condition && car.status !== condition) continue
        if (seller && !car.seller?.toLowerCase().includes(seller)) continue
        if (sellerType && car.seller_type !== sellerType) continue
-       if (!stream.has(car.id) || stream.get(car.id)!.order < order) stream.set(car.id, { car, order })
+       if (!stream.has(car.id) || stream.get(car.id)!.order < order) stream.set(car.id, { car, order, sortValue })
       }
       if (!data.hasNext) break
       if (seen.size === before) throw new Error('Eridan pagination made no progress')
@@ -259,13 +266,22 @@ export function createEridanProvider(request: AuctionTransport): AuctionProvider
     }
    }))
    for (const worker of workers) if (worker.status === 'rejected') throw worker.reason
-   // Internal IDs reflect provider ingestion, so a new Copart batch must not hide IAAI.
-   // Merge categories/fuels within each auction, then alternate before pagination.
-   // If an auction runs out, the remaining auction fills the page.
-   const pools = sites.map(site => [...merged.values()].filter(item => String(item.car.site) === site).sort((a,b) => b.order-a.order).map(item => item.car))
-   const all: AuctionCar[] = []
-   for (let index=0; index<Math.max(0,...pools.map(pool=>pool.length)); index++) {
-    for (const pool of pools) if (pool[index]) all.push(pool[index])
+   let all: AuctionCar[]
+   if (sorting.value) {
+    // Each upstream stream uses the same compound ordering before its pagination.
+    // Merge its first N matches globally, then slice once across both auctions.
+    all = [...merged.values()].sort((a,b) => {
+     if (a.sortValue === undefined && b.sortValue !== undefined) return 1
+     if (a.sortValue !== undefined && b.sortValue === undefined) return -1
+     return sorting.direction * ((a.sortValue ?? 0) - (b.sortValue ?? 0) || a.order - b.order)
+    }).map(item => item.car)
+   } else {
+    // Preserve the original mixed feed when no explicit sort is selected.
+    const pools = sites.map(site => [...merged.values()].filter(item => String(item.car.site) === site).sort((a,b) => b.order-a.order).map(item => item.car))
+    all = []
+    for (let index=0; index<Math.max(0,...pools.map(pool=>pool.length)); index++) {
+     for (const pool of pools) if (pool[index]) all.push(pool[index])
+    }
    }
    return { success: true, items: all.slice((page - 1) * size, page * size), page, size, total: null, totalPages: null, hasNext: all.length > page * size }
   },
@@ -274,10 +290,38 @@ export function createEridanProvider(request: AuctionTransport): AuctionProvider
    // Models are loaded only for the selected make. Eridan has >50k model rows.
    return Object.fromEntries(makes.filter(make => Boolean(name(make)) && isEridanRoadMake(String(make.name))).map(make => [String(make.name), []]))
   },
-  async models(make: string) {
+  async models(make: string, vehicleType?: string) {
    if (!make.trim() || make.length > 100) throw new Error('Invalid make')
    if (!isEridanRoadMake(make)) return []
-   return [...(await groupsFor(make)).keys()].sort((a, b) => a.localeCompare(b, undefined, { numeric: true }))
+   if (!vehicleType) return [...(await groupsFor(make)).keys()].sort((a, b) => a.localeCompare(b, undefined, { numeric: true }))
+   if (!eridanRoadTypes.includes(vehicleType as EridanRoadType)) throw new Error('Invalid vehicle type')
+   const type = vehicleType as EridanRoadType
+   if (!isEridanRoadMake(make, type)) return []
+   // /models has no category filter. Discover complete model IDs from actual active
+   // lots of this make/type instead of guessing from a shared brand's model names.
+   const codes = await categoryCodes(), cutoff = new Date().toISOString(), deadline = Date.now() + 40000
+   const found = new Map<number, {id:number;name:string}>()
+   const collect = async (undated:boolean) => {
+    const seen = new Set<number>()
+    for (let page=1; page<=24; page++) {
+     if (Date.now() > deadline) throw new Error('Category directory time limit')
+     const params = new URLSearchParams({make__name:make,item_type:codes[type],status:'active',has_images:'true',ordering:'id',page:String(page),page_size:'1000',...(undated?{sale_date__isnull:'true'}:{sale_date__gte:cutoff})})
+     const response = record(await request('/lots',params))
+     const data = lots(response,page), rawItems = response.items as unknown[], before=seen.size
+     for (let index=0;index<data.items.length;index++) {
+      const car=data.items[index], raw=record(rawItems[index]), model=record(raw.model)
+      if (!Number.isSafeInteger(raw.id)) throw new Error('Invalid category directory identity')
+      seen.add(Number(raw.id))
+      if (car.vehicle_type!==type || car.make.trim().toLowerCase()!==make.trim().toLowerCase() || car.auction_status!=='active' || isAuctionClosed(car) || !car.link_img_hd?.length) continue
+      if (Number.isSafeInteger(model.id) && typeof model.name==='string' && isEridanRoadModel(model.name,make)) found.set(Number(model.id),{id:Number(model.id),name:model.name})
+     }
+     if (!data.hasNext) return
+     if (seen.size===before) throw new Error('Category directory pagination made no progress')
+    }
+    throw new Error('Category directory page limit')
+   }
+   await Promise.all([collect(false),collect(true)])
+   return [...groupModelDirectory(make,[...found.values()]).keys()].sort((a,b)=>a.localeCompare(b,undefined,{numeric:true}))
   },
   async lookup(query, lifecycle = 'active') {
    const q = query.trim().toUpperCase()

@@ -13,7 +13,7 @@
   --search-selected: #163038;
   --search-chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%23b8d1dc' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
 }
-:root body :is(.finder,.auction-filters) :is(input:not([type=checkbox]),select) {
+:root body :is(.finder,.auction-filters,.auction-sort) :is(input:not([type=checkbox]),select) {
   display: block;
   width: 100%;
   min-width: 0;
@@ -29,7 +29,7 @@
   font-weight: 500;
   transition: border-color .15s, box-shadow .15s, background-color .15s;
 }
-:root body :is(.finder,.auction-filters) select:not([multiple]) {
+:root body :is(.finder,.auction-filters,.auction-sort) select:not([multiple]) {
   appearance: none;
   -webkit-appearance: none;
   padding-right: 42px;
@@ -39,27 +39,27 @@
   background-repeat: no-repeat;
   cursor: pointer;
 }
-:root body :is(.finder,.auction-filters) :is(input,select):enabled:hover {
+:root body :is(.finder,.auction-filters,.auction-sort) :is(input,select):enabled:hover {
   border-color: var(--search-hover);
 }
-:root body :is(.finder,.auction-filters) :is(input,select):focus-visible {
+:root body :is(.finder,.auction-filters,.auction-sort) :is(input,select):focus-visible {
   outline: 3px solid var(--orange);
   outline-offset: 3px;
   border-color: var(--orange);
 }
-:root body :is(.finder,.auction-filters) select:has(option:checked:not([value='']):not([value='1,2'])),
+:root body :is(.finder,.auction-filters,.auction-sort) select:has(option:checked:not([value='']):not([value='1,2'])),
 :root body .auction-filters input:not(:placeholder-shown) {
   background-color: var(--search-selected);
   border-color: var(--orange);
 }
-:root body :is(.finder,.auction-filters) :is(input,select):disabled {
+:root body :is(.finder,.auction-filters,.auction-sort) :is(input,select):disabled {
   background-color: var(--search-disabled);
   border-color: var(--line);
   color: var(--muted);
   opacity: 1;
   cursor: not-allowed;
 }
-:root body :is(.finder,.auction-filters) label {
+:root body :is(.finder,.auction-filters,.auction-sort) label {
   display: grid;
   min-width: 0;
   gap: 8px;
@@ -70,7 +70,7 @@
   font-weight: 700;
   line-height: 1.5;
 }
-:root body :is(.finder,.auction-filters) label > span {
+:root body :is(.finder,.auction-filters,.auction-sort) label > span {
   margin: 0;
   font-size: 13px;
   letter-spacing: 0;
@@ -305,14 +305,14 @@
   .filter-dialog-inner { padding-inline: 20px; }
 }
 @media (forced-colors: active) {
-  :root body :is(.finder,.auction-filters) select:not([multiple]) {
+  :root body :is(.finder,.auction-filters,.auction-sort) select:not([multiple]) {
     appearance: auto;
     background-image: none;
     padding-right: 14px;
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  :root body :is(.finder,.auction-filters) :is(input,select) { transition: none; }
+  :root body :is(.finder,.auction-filters,.auction-sort) :is(input,select) { transition: none; }
 }
 
 .auction-navigation-status {
@@ -334,3 +334,11 @@
 
 .auction-removal { margin-top: 24px; padding-top: 24px; border-top: 1px solid var(--line); }
 .auction-removal button:disabled { cursor: not-allowed; opacity: .6; }
+
+/* Sorting stays above the results and outside the mobile filter sheet. */
+.auction-sort { display: flex; flex-wrap: wrap; justify-content: flex-end; align-items: center; gap: 12px; margin: 0 0 22px; }
+:root body .auction-sort label { width: min(100%,320px); }
+.auction-sort [role=status] { color: var(--muted); font-size: 13px; }
+@media (max-width: 600px) { :root body .auction-sort label { width: 100%; } }
+
+.vehicle-type-field { grid-column: 1 / -1; }

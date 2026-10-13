@@ -1,4 +1,5 @@
-export const auctionFilterKeys = ['make', 'model', 'year_from', 'year_to', 'status', 'site', 'fuel', 'seller_type', 'seller', 'vehicle_type'] as const
+import { auctionSort } from './auction-sorting'
+export const auctionFilterKeys = ['make', 'model', 'year_from', 'year_to', 'status', 'site', 'fuel', 'seller_type', 'seller', 'vehicle_type', 'sort'] as const
 export type AuctionQuery = Record<string, string | string[] | undefined>
 
 export function readAuctionFilters(input: AuctionQuery) {
@@ -8,6 +9,8 @@ export function readAuctionFilters(input: AuctionQuery) {
     const value = typeof raw === 'string' ? raw.trim() : ''
     if (value && value.length <= 100) filters[key] = value
   }
+  const sort = auctionSort(filters.sort).value
+  if (sort) filters.sort = sort; else delete filters.sort
   if (!filters.make) delete filters.model
   if (filters.site === '1,2' || filters.site === '2,1') delete filters.site
   return filters

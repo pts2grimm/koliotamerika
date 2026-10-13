@@ -736,3 +736,51 @@ test('model families expand through documented model_ids before mixed pagination
  assert.ok(old.items.length>0);assert.ok(old.items.every(c=>c.model==='328I'))
  assert.equal(queries.at(-1)!.get('model__name'),'328I')
 })
+
+test('explicit sorting merges all streams globally before paging, preserves filters and puts undated last',async()=>{
+ const rows=Array.from({length:45},(_,i)=>({...row,id:1000+i,lot_number:String(91000000+i),auction:i%3?'iaai':'copart',year:2000+i%9,seller:i%4?'Insurer':'',sale_date:i>=42?null:new Date(Date.UTC(2032,0,1+Math.floor(i/2))).toISOString(),created_at:new Date(Date.UTC(2026,0,1+Math.floor((44-i)/2))).toISOString()}))
+ const {provider,calls}=fixture((path,p)=>{
+  assert.equal(path,'/lots')
+  assert.equal(p.get('make__name'),'BMW')
+  let eligible=rows.filter(r=>r.auction===p.get('auction')&&r.item_type===p.get('item_type')&&(!p.has('sale_date__gte')||r.sale_date&&Date.parse(r.sale_date)>=Date.parse(p.get('sale_date__gte')!))&&(p.get('sale_date__isnull')!=='true'||!r.sale_date))
+  const fields=p.get('ordering')!.split(',')
+  eligible.sort((a,b)=>{for(const field of fields){const key=field.replace(/^-/,'') as keyof typeof a;const av=a[key],bv=b[key];if(av===bv)continue;if(av==null)return 1;if(bv==null)return -1;return (av<bv?-1:1)*(field.startsWith('-')?-1:1)}return 0})
+  const page=Number(p.get('page')),size=Number(p.get('page_size'))
+  return envelope(eligible.slice((page-1)*size,page*size),page,page*size<eligible.length,size)
+ })
+ for(const [sort,field,dir] of [['auction_soon','sale_date',1],['auction_late','sale_date',-1],['newest','created_at',-1],['year_asc','year',1],['year_desc','year',-1]] as const){
+  const expected=rows.slice().sort((a,b)=>{const av=a[field],bv=b[field];if(av==null&&bv!=null)return 1;if(av!=null&&bv==null)return -1;return ((av===bv?0:av!<bv!?-1:1)||a.id-b.id)*dir}).map(r=>r.lot_number)
+  const ids:string[]=[]
+  for(let page=1;page<=4;page++){
+   const result=await provider.search(new URLSearchParams({make:'BMW',vehicle_type:'Automobile',site:'1,2',size:'6',page:String(page),sort}))
+   ids.push(...result.items.map(c=>String(c.lot_id)))
+   assert.equal(result.hasNext,page<4)
+  }
+  assert.deepEqual(ids,expected,sort)
+  assert.equal(new Set(ids).size,45)
+ }
+ const filtered=await provider.search(new URLSearchParams({make:'BMW',vehicle_type:'Automobile',site:'1,2',size:'6',sort:'auction_soon',seller_type:'insurance',status:'Run & Drive'}))
+ assert.deepEqual(filtered.items.map(c=>c.lot_id),rows.filter(r=>r.seller).slice(0,12).map(r=>Number(r.lot_number)))
+ assert.ok(calls.filter(c=>c.path==='/lots').every(c=>c.params.get('ordering')!== '-id'))
+})
+
+test('category model lists use actual lots of shared brands, include later pages and reject mismatches',async()=>{
+ const rows=[
+ {...row,id:1,lot_number:'91000001',make:{id:3,name:'HONDA'},model:{id:1,name:'CIVIC EX'},item_type:'VEHTYPE_V'},
+ {...row,id:2,lot_number:'91000002',make:{id:3,name:'HONDA'},model:{id:2,name:'CBR600RR'},item_type:'VEHTYPE_M'},
+ {...row,id:3,lot_number:'91000003',make:{id:3,name:'HONDA'},model:{id:3,name:'CRF450R'},item_type:'VEHTYPE_M'},
+ {...row,id:4,lot_number:'91000004',make:{id:3,name:'HONDA'},model:{id:4,name:'TRX420'},item_type:'VEHTYPE_A',sale_date:null}
+ ]
+ const {provider,calls}=fixture((path,p)=>{
+  assert.equal(path,'/lots');assert.equal(p.get('make__name'),'HONDA')
+  const eligible=rows.filter(r=>r.item_type===p.get('item_type')&&(p.get('sale_date__isnull')==='true'?!r.sale_date:Boolean(r.sale_date)))
+  const page=Number(p.get('page'))
+  return envelope(eligible.slice(page-1,page),page,page<eligible.length,1)
+ })
+ assert.deepEqual(await provider.models!('HONDA','Automobile'),['CIVIC'])
+ assert.deepEqual(await provider.models!('HONDA','Motorcycle'),['CBR600RR','CRF450R'])
+ assert.deepEqual(await provider.models!('HONDA','ATVUTV'),['TRX420'])
+ assert.deepEqual(await provider.models!('TOYOTA','Motorcycle'),[])
+ await assert.rejects(provider.models!('HONDA','Boat'))
+ assert.ok(calls.some(c=>c.path==='/lots'&&c.params.get('page')==='2'))
+})
