@@ -6,7 +6,7 @@ type Fetcher = (url: URL, init: RequestInit) => Promise<{
 }>
 type Options = { apiKey?: string; fetch: Fetcher; now?: () => number; testBaseURL?: string; timeoutMs?: number }
 const baseURL = 'https://catalog.eridan.software/api'
-const paths = new Set(['/lots', '/makes', '/models', '/series', '/item_types', '/fuel_types'])
+const paths = new Set(['/lots', '/makes', '/models', '/item_types', '/fuel_types'])
 
 export function createEridanTransport(options: Options): AuctionTransport {
  const now = options.now || Date.now
