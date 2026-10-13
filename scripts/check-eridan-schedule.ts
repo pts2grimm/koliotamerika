@@ -8,11 +8,12 @@ async function main() {
  const schemaResponse = await fetch('https://catalog.eridan.software/api/openapi.json', {signal: AbortSignal.timeout(15000), redirect: 'error'})
  assert.ok(schemaResponse.ok)
  const schema = await schemaResponse.json()
- console.log('SCHEDULE_SCHEMA', Object.entries(schema.components?.schemas || {}).flatMap(([name, value]) => {
+ console.log('SCHEDULE_ENDPOINTS', JSON.stringify(Object.entries(schema.paths || {}).map(([path,value])=>({path,operations:Object.entries(value as Record<string,unknown>).filter(([method])=>method==='get').map(([method,op])=>({method,...op as Record<string,unknown>}))}))))
+ console.log('SCHEDULE_SCHEMA', JSON.stringify(Object.entries(schema.components?.schemas || {}).flatMap(([name, value]) => {
   const properties = (value as {properties?: Record<string,unknown>}).properties
   return properties && ('sale_date' in properties || 'next_sale_date' in properties)
    ? [{name, properties: Object.fromEntries(Object.entries(properties).filter(([key]) => /date|time|status|sale|auction/i.test(key)))}] : []
- }))
+ })))
  const request = createEridanTransport({apiKey:process.env.ERIDAN_API_KEY,fetch})
  const response = await request('/lots', new URLSearchParams({lot_number:'57397516',auction:'copart',ordering:'-updated_at',page:'1',page_size:'10'})) as {items:Record<string,unknown>[],has_next:boolean}
  assert.ok(Array.isArray(response.items))
@@ -20,7 +21,7 @@ async function main() {
  console.log('SCHEDULE_MATCHES', {count:response.items.length,hasNext:response.has_next})
  for (const row of response.items) {
   const car=normalizeEridanCar(row)
-  console.log('SCHEDULE_ROW', {keys:Object.keys(row),fields:Object.fromEntries(Object.entries(row).filter(([key,value])=> /date|time|status|sold/i.test(key) && (value===null || ['string','number','boolean'].includes(typeof value)))),normalized:car?.auction_date,schedule:auctionSchedule(parseAuctionDate(car?.auction_date),Date.now())})
+  console.log('SCHEDULE_ROW', {id:row.id,isFutureSale:row.is_future_sale,keys:Object.keys(row),fields:Object.fromEntries(Object.entries(row).filter(([key,value])=> /date|time|status|sold/i.test(key) && (value===null || ['string','number','boolean'].includes(typeof value)))),normalized:car?.auction_date,schedule:auctionSchedule(parseAuctionDate(car?.auction_date),Date.now())})
  }
  const site = await fetch('https://darkturquoise-duck-750266.hostingersite.com/targove/kola?lot=57397516&site=1', {signal:AbortSignal.timeout(30000)})
  const html = await site.text()
