@@ -223,3 +223,45 @@ for(const viewport of [{width:1280,height:900},{width:390,height:844}]){
   expect(await page.locator('.auction-card .car-badge').allTextContents()).toEqual(Array(12).fill('IAAI'))
  })
 }
+
+test('a stalled model directory times out and can be retried without refreshing or losing filters', async ({ page }) => {
+ let requests = 0
+ let release: (() => void) | undefined
+ await page.route('**/api/auction-models?*', async route => {
+  requests++
+  if (requests === 1) {
+   await new Promise<void>(resolve => { release = resolve })
+   await route.abort().catch(() => {})
+  } else await route.fulfill({contentType: 'application/json', body: JSON.stringify({models: ['X3', 'X5']})})
+ })
+ await page.goto('/targove')
+ await page.clock.install()
+ const form = page.getByRole('form', {name: 'Филтри за автомобили'})
+ await form.locator('[name=year_from]').fill('2015')
+ await form.locator('[name=make]').selectOption('BMW')
+ await expect.poll(() => requests).toBe(1)
+ await expect(form.locator('select[name=model]')).toBeDisabled()
+ await page.clock.fastForward(10001)
+ await expect(form.locator('input[name=model]')).toBeEnabled()
+ await form.locator('input[name=model]').fill('X5')
+ const url = page.url()
+ await form.getByRole('button', {name: 'Зареди моделите отново'}).click()
+ await expect(form.locator('select[name=model]')).toBeEnabled()
+ await expect(form.locator('select[name=model]')).toHaveValue('X5')
+ await expect(form.locator('[name=year_from]')).toHaveValue('2015')
+ expect(requests).toBe(2)
+ expect(page.url()).toBe(url)
+ release?.()
+})
+
+test('a temporary catalogue error can recover with the same filters using the retry button', async ({ page }) => {
+ await page.goto('/targove?make=BMW&model=X5&site=2&year_from=2019&year_to=2023')
+ await expect(page.locator('.empty-state')).toContainText('В момента търговете не се зареждат.')
+ const retry = page.getByRole('link', {name: 'Опитай отново', exact: true})
+ const target = new URL((await retry.getAttribute('href'))!, page.url())
+ expect(Object.fromEntries(target.searchParams)).toEqual({make:'BMW',model:'X5',site:'2',year_from:'2019',year_to:'2023'})
+ await retry.click()
+ await expect(page.locator('.auction-card')).toHaveCount(12)
+ expect(await page.locator('.auction-card .car-badge').allTextContents()).toEqual(Array(12).fill('IAAI'))
+ await expect(page.locator('.empty-state')).toHaveCount(0)
+})

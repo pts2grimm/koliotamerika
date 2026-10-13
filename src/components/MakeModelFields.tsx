@@ -14,10 +14,17 @@ export function MakeModelFields({ makes, initialMake = '', initialModel = '', mo
   const matchingMake = names.find(name => name.toLowerCase() === initialMake.toLowerCase()) || initialMake
   const [make, setMake] = useState(matchingMake)
   const [model, setModel] = useState(initialModel)
+  const [retry, setRetry] = useState(0)
+  const hasMakes = names.length > 0
   const [remote, setRemote] = useState<{ make: string; models: string[]; failed: boolean } | null>(null)
   useEffect(() => {
-    if (!modelsOnDemand || !make) return
+    if (!modelsOnDemand || !make || !hasMakes) return
     const controller = new AbortController()
+    // A stalled connection must not leave the model selector disabled indefinitely.
+    const timeout = window.setTimeout(() => {
+      setRemote({ make, models: [], failed: true })
+      controller.abort()
+    }, 10000)
     fetch('/api/auction-models?make=' + encodeURIComponent(make), { signal: controller.signal })
       .then(async response => {
         if (!response.ok) throw new Error('Models unavailable')
@@ -26,8 +33,9 @@ export function MakeModelFields({ makes, initialMake = '', initialModel = '', mo
         if (!controller.signal.aborted) setRemote({ make, models: data.models, failed: false })
       })
       .catch(() => { if (!controller.signal.aborted) setRemote({ make, models: [], failed: true }) })
-    return () => controller.abort()
-  }, [make, modelsOnDemand])
+      .finally(() => window.clearTimeout(timeout))
+    return () => { window.clearTimeout(timeout); controller.abort() }
+  }, [make, modelsOnDemand, hasMakes, retry])
   const loading = Boolean(modelsOnDemand && make && remote?.make !== make)
   const modelError = Boolean(modelsOnDemand && remote?.make === make && remote.failed)
   const availableModels = modelsOnDemand ? remote?.make === make ? remote.models : [] : makes[make] || []
@@ -50,7 +58,7 @@ export function MakeModelFields({ makes, initialMake = '', initialModel = '', mo
       <option value="">Всички марки</option>
       {makeOptions.map(name => <option key={name} value={name}>{name}</option>)}
     </select></label>
-    <label><span>Модел</span>{modelError ? <><input name="model" value={model} onChange={event => setModel(event.target.value)} maxLength={100} placeholder="Въведи модел" /><small role="status">Списъкът не се зареди. Можеш да въведеш модела.</small></> : <select name="model" value={model} onChange={event => setModel(event.target.value)} disabled={!make || loading} aria-busy={loading}>
+    <label><span>Модел</span>{modelError ? <><input name="model" value={model} onChange={event => setModel(event.target.value)} maxLength={100} placeholder="Въведи модел" /><small role="status">Списъкът не се зареди. Можеш да въведеш модела.</small><button className="text-link" type="button" onClick={() => { setRemote(null); setRetry(value => value + 1) }}>Зареди моделите отново</button></> : <select name="model" value={model} onChange={event => setModel(event.target.value)} disabled={!make || loading} aria-busy={loading}>
       <option value="">{loading ? 'Зареждане…' : make ? 'Всички модели' : 'Първо избери марка'}</option>
       {modelOptions.map(name => <option key={name} value={name}>{name}</option>)}
     </select>}{loading && model && <input type="hidden" name="model" value={model} />}</label>
