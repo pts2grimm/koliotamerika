@@ -7,6 +7,7 @@ import { siteURL } from '@/lib/data'
 import { AuctionCard } from '@/components/AuctionCard'
 import { AuctionFilters } from '@/components/AuctionFilters'
 import { unsupportedEridanFilters, UnsupportedEridanFilterError, EridanSearchLimitError } from '@/lib/auction-providers/eridan'
+import { AuctionSort } from '@/components/AuctionSort'
 import { AuctionSEO } from '@/components/AuctionSEO'
 
 type Props = { searchParams: Promise<AuctionQuery> }
@@ -29,6 +30,8 @@ export async function AuctionCatalogue({ searchParams, archive = false }: Props 
     } else lookupError = 'Въведи номер на лот (6–12 цифри) или валиден 17-символен VIN.'
   }
   const initial = readAuctionFilters(input)
+  if (auctionProviderName() !== 'eridan') delete initial.sort
+  const filterEntries = Object.entries(initial).filter(([key]) => key !== 'sort')
   const page = getPage(input)
   const params = new URLSearchParams({ size: '12', page: String(page), ...(auctionProviderName() === 'eridan' ? {} : { vehicle_type: 'Automobile' }), site: '1,2', ...initial, ...(archive ? {archive: 'ended'} : {}) })
   const [carsResult, makesResult] = await Promise.allSettled([searchAuctions(params.toString()), auctionMakes()])
@@ -54,7 +57,8 @@ export async function AuctionCatalogue({ searchParams, archive = false }: Props 
       {lookupError && <p className="form-error" role="alert">{lookupError}</p>}
       <div className="auction-browse-layout"><AuctionFilters basePath={basePath} key={JSON.stringify(initial)} makes={makes} initial={initial} modelsOnDemand={auctionProviderName() === 'eridan'} eridan={auctionProviderName() === 'eridan'} unavailableFilters={[]} />
       <div className="auction-results"><div className="results-count"><span>{data ? data.total !== null ? <><strong>{data.total.toLocaleString('bg-BG')}</strong> резултата</> : 'Намерени автомобили' : 'Данните временно не са достъпни.'}</span><span>{archive ? 'Търгове с минала дата. Резултатът е посочен, когато е потвърден.' : 'Текущите залози не включват разходите за внос.'}</span></div>
-      {Object.keys(initial).length > 0 && <nav className="active-filters" aria-label="Активни филтри">{Object.entries(initial).map(([key, value]) => <Link key={key} href={removeFilter(key)} aria-label={`Премахни филтър: ${auctionFilterLabel(key, value)}`}>{auctionFilterLabel(key, value)}<X size={14} /></Link>)}<Link className="clear-filters" href={basePath}>Изчисти всички</Link></nav>}
+      {auctionProviderName() === 'eridan' && <AuctionSort key={JSON.stringify(initial)} initial={initial} basePath={basePath} archive={archive} />}
+      {filterEntries.length > 0 && <nav className="active-filters" aria-label="Активни филтри">{filterEntries.map(([key, value]) => <Link key={key} href={removeFilter(key)} aria-label={`Премахни филтър: ${auctionFilterLabel(key, value)}`}>{auctionFilterLabel(key, value)}<X size={14} /></Link>)}<Link className="clear-filters" href={basePath}>Изчисти всички</Link></nav>}
       {data?.items.length ? <div className="car-grid">{data.items.map(car => <AuctionCard key={car.id} car={car} />)}</div> : <div className="empty-state"><h2>{scanLimited ? 'Уточни търсенето.' : data ? 'Няма автомобили по тези критерии.' : 'В момента търговете не се зареждат.'}</h2><p>{filterError || (data ? 'Промени филтрите или ни изпрати запитване.' : 'Опитай отново малко по-късно или се свържи с нас за конкретен автомобил.')}</p>{!data && !filterError && <a className="button button-outline" href={resultsURL(initial, page)}>Опитай отново</a>}<Link className="button button-orange" href="/kontakti">Изпрати запитване</Link></div>}
       {data && (page > 1 || hasNext) && <nav className="pagination" aria-label="Страници с търгове">{page > 1 && <Link className="button button-outline" href={resultsURL(initial, page - 1)}>Предишна</Link>}<span>{maxPage === null ? `Страница ${page}` : `${page} / ${maxPage}`}</span>{hasNext && <Link className="button button-outline" href={resultsURL(initial, page + 1)}>Следваща</Link>}</nav>}
       </div></div>

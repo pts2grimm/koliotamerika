@@ -1,24 +1,48 @@
 import assert from 'node:assert/strict'
+import { createEridanProvider } from '../src/lib/auction-providers/eridan'
 import { createEridanTransport } from '../src/lib/auction-providers/eridan-transport'
 async function main(){
- const schema=await (await fetch('https://catalog.eridan.software/api/openapi.json')).json()
- const path=Object.keys(schema.paths).find(p=>/\/lots\/?$/.test(p))!
- const op=schema.paths[path]
- const parameters=[...(op.parameters||[]),...(op.get?.parameters||[])].map(p=>p.$ref?p.$ref.slice(2).split('/').reduce((v,k)=>v?.[k],schema):p)
- console.log('SORT_SCHEMA',JSON.stringify(parameters.find(p=>p.name==='ordering')))
- for(const suffix of ['/makes','/models']){
-  const path=Object.keys(schema.paths).find(p=>p.replace(/\/$/,'').endsWith(suffix))!
-  const op=schema.paths[path]
-  const pars=[...(op.parameters||[]),...(op.get?.parameters||[])].map(p=>p.$ref?p.$ref.slice(2).split('/').reduce((v,k)=>v?.[k],schema):p)
-  console.log('CATEGORY_SCHEMA',JSON.stringify({path,parameters:pars}))
- }
- const request=createEridanTransport({apiKey:process.env.ERIDAN_API_KEY,fetch})
- for(const [make,item_type] of [['BMW','VEHTYPE_V'],['BMW','VEHTYPE_M'],['HONDA','VEHTYPE_V'],['HONDA','VEHTYPE_M'],['HONDA','VEHTYPE_A']]){
-  for(const scope of ['upcoming','undated']){
-   const params=new URLSearchParams({make__name:make,item_type,status:'active',has_images:'true',page_size:'1000',ordering:'id',...(scope==='upcoming'?{sale_date__gte:new Date().toISOString()}:{sale_date__isnull:'true'})})
-   const started=Date.now(), data=await request('/lots',params) as {items:Record<string,any>[];has_next:boolean;page_size:number}
-   console.log('CATEGORY_PAGE',JSON.stringify({make,item_type,scope,items:data.items.length,pageSize:data.page_size,hasNext:data.has_next,models:new Set(data.items.map(r=>r.model?.id)).size,wrongType:data.items.some(r=>r.item_type!==item_type),ms:Date.now()-started}))
+ const transport=createEridanTransport({apiKey:process.env.ERIDAN_API_KEY,fetch})
+ let calls=0
+ const originals=new Map<string,Record<string,any>>()
+ const provider=createEridanProvider(async(path,params)=>{
+  calls++
+  const data=await transport(path,params)
+  if(path==='/lots')for(const row of (data as {items:Record<string,any>[]}).items) originals.set((row.auction==='copart'?1:2)+':'+row.lot_number,row)
+  return data
+ })
+ for(const [sort,field,dir] of [['auction_soon','sale_date',1],['auction_late','sale_date',-1],['newest','created_at',-1],['year_desc','year',-1],['year_asc','year',1]] as const){
+  const start=Date.now(),before=calls
+  const results=[]
+  for(const page of ['1','2']){
+   const data=await provider.search(new URLSearchParams({make:'BMW',vehicle_type:'Automobile',site:'1,2',size:'6',sort,page}))
+   results.push(...data.items)
   }
+  assert.ok(results.length>12)
+  assert.equal(new Set(results.map(r=>r.id)).size,results.length)
+  const raw=results.map(r=>originals.get(r.id)!)
+  for(let i=1;i<raw.length;i++){
+   const a=raw[i-1][field],b=raw[i][field]
+   if(b==null)continue
+   assert.notEqual(a,null)
+   const cmp=a===b?raw[i-1].id-raw[i].id:a<b?-1:1
+   assert.ok(cmp*dir<=0,'Global ordering mismatch')
+  }
+  console.log('SORT_ADAPTER_OK',JSON.stringify({sort,items:results.length,sites:[...new Set(results.map(r=>r.site))],requests:calls-before,ms:Date.now()-start}))
  }
+ for(const [make,type] of [['BMW','Motorcycle'],['HONDA','Automobile'],['HONDA','Motorcycle'],['HONDA','ATVUTV']]){
+  originals.clear()
+  const before=calls,started=Date.now()
+  const models=await provider.models!(make,type)
+  assert.ok(models.length>0)
+  if(type==='Motorcycle')assert.ok(!models.some(m=>['CIVIC','ACCORD','3 SERIES','X5'].includes(m)))
+  if(make==='HONDA'&&type==='Automobile')assert.ok(models.includes('CIVIC')&&!models.includes('CBR600RR'))
+  console.log('CATEGORY_MODELS_OK',JSON.stringify({make,type,models:models.length,requests:calls-before,ms:Date.now()-started}))
+ }
+ console.log('SORT_AND_CATEGORY_CHECK_OK',{requests:calls})
 }
-main().catch(()=>{console.error('CATEGORY_CHECK_FAILED');process.exitCode=1})
+main().catch(error=>{
+ const message=error instanceof Error?error.message:''
+ console.error('SORT_AND_CATEGORY_FAILED',/^Auction provider HTTP \d{3}$/.test(message)?message:message.includes('limit')?'bounded-directory-limit':'request-or-contract')
+ process.exitCode=1
+})

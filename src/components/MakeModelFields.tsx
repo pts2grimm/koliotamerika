@@ -7,9 +7,10 @@ type Props = {
   initialMake?: string
   initialModel?: string
   modelsOnDemand?: boolean
+  vehicleType?: string
 }
 
-export function MakeModelFields({ makes, initialMake = '', initialModel = '', modelsOnDemand = false }: Props) {
+export function MakeModelFields({ makes, initialMake = '', initialModel = '', modelsOnDemand = false, vehicleType = '' }: Props) {
   const names = Object.keys(makes)
   const matchingMake = names.find(name => name.toLowerCase() === initialMake.toLowerCase()) || initialMake
   const [make, setMake] = useState(matchingMake)
@@ -24,8 +25,8 @@ export function MakeModelFields({ makes, initialMake = '', initialModel = '', mo
     const timeout = window.setTimeout(() => {
       setRemote({ make, models: [], failed: true })
       controller.abort()
-    }, 10000)
-    fetch('/api/auction-models?make=' + encodeURIComponent(make), { signal: controller.signal })
+    }, vehicleType ? 45000 : 10000)
+    fetch('/api/auction-models?make=' + encodeURIComponent(make) + (vehicleType ? '&vehicle_type=' + encodeURIComponent(vehicleType) : ''), { signal: controller.signal })
       .then(async response => {
         if (!response.ok) throw new Error('Models unavailable')
         const data = await response.json()
@@ -35,7 +36,7 @@ export function MakeModelFields({ makes, initialMake = '', initialModel = '', mo
       .catch(() => { if (!controller.signal.aborted) setRemote({ make, models: [], failed: true }) })
       .finally(() => window.clearTimeout(timeout))
     return () => { window.clearTimeout(timeout); controller.abort() }
-  }, [make, modelsOnDemand, hasMakes, retry])
+  }, [make, modelsOnDemand, hasMakes, retry, vehicleType])
   const loading = Boolean(modelsOnDemand && make && remote?.make !== make)
   const modelError = Boolean(modelsOnDemand && remote?.make === make && remote.failed)
   const availableModels = modelsOnDemand ? remote?.make === make ? remote.models : [] : makes[make] || []

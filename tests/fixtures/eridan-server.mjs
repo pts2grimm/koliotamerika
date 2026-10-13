@@ -32,7 +32,7 @@ cars[6].seller = ''
 cars.push({...cars[0],id:9500,lot_number:'86000001',vin:'TST00000086000001',status:'sold',sale_date:'2026-10-12T14:00:00Z',buy_now_price:15000})
 cars.push({...cars[0],id:9501,lot_number:'86000002',vin:'TST00000086000002',auction:'iaai',status:'sold',sale_date:'2026-10-12T14:00:00Z'})
 cars.push({...cars[0],id:9502,lot_number:'72239476',vin:'TST00000072239476',status:'active',sale_date:'2026-10-12T19:00:00Z',current_bid:12000})
-let searchOutage = false, transientSearchFailures = 0, expiredBackfill = false, familyExamples = false
+let searchOutage = false, transientSearchFailures = 0, expiredBackfill = false, familyExamples = false, sortExamples = false
 const backfill = Array.from({length:600},(_,i)=>({...cars[0], id:20000+i, lot_number:String(88000000+i), sale_date:'2026-09-01T12:00:00Z'}))
 const undated = [0,1].map(i=>({...cars[0],id:30000+i,lot_number:String(89000000+i),auction:i?'iaai':'copart',sale_date:null,seller:i?'Named company':' '}))
 const familyModels=[{id:101,name:'3 SERIES',make_id:1},{id:102,name:'328I',make_id:1},{id:103,name:'330',make_id:1},{id:104,name:'M340I',make_id:1},{id:105,name:'4 SERIES',make_id:1}]
@@ -42,6 +42,7 @@ createServer((req, res) => {
  const url = new URL(req.url, 'http://127.0.0.1'), p = url.searchParams
  const send = (data, status = 200) => { res.writeHead(status, { 'Content-Type': 'application/json' }); res.end(JSON.stringify(data)) }
  if (url.pathname === '/') return send({ ok: true })
+ if (url.pathname === '/test-sort-examples' && req.method === 'POST') { sortExamples = p.get('enabled') === 'true'; return send({ok:true}) }
  if (url.pathname === '/test-model-families' && req.method === 'POST') { familyExamples = p.get('enabled') === 'true'; return send({ok:true}) }
  if (url.pathname === '/test-expired-backfill' && req.method === 'POST') { expiredBackfill = p.get('enabled') === 'true'; return send({ok:true}) }
  if (url.pathname === '/test-requests') return send({ requests })
@@ -71,7 +72,7 @@ createServer((req, res) => {
  }
  const allowed = ['page', 'page_size', 'ordering', 'auction', 'lot_number', 'vin', 'make__name', 'model__name', 'model_ids', 'year_from', 'year_to', 'fuel_type__name', 'item_type', 'has_images', 'makes', 'status', 'sale_date__lte', 'sale_date__gte', 'sale_date__isnull']
  if ([...p.keys()].some(key => !allowed.includes(key))) return send({ error: 'unknown filter' }, 422)
- const items = [...cars,...(familyExamples ? familyCars : []),...(expiredBackfill ? [...backfill,...undated] : [])].filter(car =>
+ const items = [...cars.map((car,i)=>sortExamples&&i<30?{...car,sale_date:i>27?null:new Date(Date.UTC(2032,0,1+(29-i))).toISOString(),created_at:new Date(Date.UTC(2026,0,i+1)).toISOString()}:car),...(familyExamples ? familyCars : []),...(expiredBackfill ? [...backfill,...undated] : [])].filter(car =>
   (!p.get('sale_date__gte') || car.sale_date && Date.parse(car.sale_date) >= Date.parse(p.get('sale_date__gte'))) &&
   (p.get('sale_date__isnull') !== 'true' || car.sale_date == null) &&
   (!p.get('sale_date__lte') || car.sale_date && Date.parse(car.sale_date) <= Date.parse(p.get('sale_date__lte'))) &&
@@ -85,7 +86,16 @@ createServer((req, res) => {
   (!p.get('year_from') || car.year >= Number(p.get('year_from'))) &&
   (!p.get('year_to') || car.year <= Number(p.get('year_to')))
  )
- items.sort((a, b) => p.get('ordering') === '-sale_date' ? Date.parse(b.sale_date) - Date.parse(a.sale_date) || b.id - a.id : b.id - a.id)
+ items.sort((a,b)=>{
+  for(const field of (p.get('ordering')||'-id').split(',')){
+   const key=field.replace(/^-/,''); const av=a[key],bv=b[key]
+   if(av===bv)continue
+   if(av==null)return 1
+   if(bv==null)return -1
+   return (av<bv?-1:1)*(field.startsWith('-')?-1:1)
+  }
+  return b.id-a.id
+ })
  const page = Number(p.get('page') || 1), size = Number(p.get('page_size') || 24)
  send({ items: items.slice((page - 1) * size, page * size), page, page_size: size, has_next: page * size < items.length })
 }).listen(3199, '127.0.0.1')
