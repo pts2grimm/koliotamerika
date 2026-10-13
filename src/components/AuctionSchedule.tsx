@@ -26,8 +26,8 @@ export function AuctionSchedule({ date, initialNow, auctionStatus, showPreviousD
  return <div className={`auction-schedule auction-schedule-${schedule.state}`} aria-label="Дата и час на търга">
   <CalendarClock size={19} aria-hidden="true" />
   <div><span className="auction-schedule-label">{schedule.state === 'upcoming' ? 'ДО ТЪРГА' : 'ДАТА НА ТЪРГА'}</span><strong className="auction-countdown">{schedule.countdown}</strong>
-   {timestamp !== null && (!schedule.previousDate || showPreviousDate) && <>{schedule.previousDate && <small>Предишна дата от доставчика</small>}<time dateTime={new Date(timestamp).toISOString()}>{schedule.date} · {schedule.time} ч.</time><small>Българско време</small></>}
-   {schedule.previousDate && showPreviousDate && <small>Това не потвърждава, че няма нов търг за автомобила.</small>}
+   {timestamp !== null && (!schedule.previousDate || showPreviousDate) && <>{schedule.previousDate && <small>{auctionStatus === 'active' ? 'Посочената дата е минала' : 'Предишна дата от доставчика'}</small>}<time dateTime={new Date(timestamp).toISOString()}>{schedule.date} · {schedule.time} ч.</time><small>Българско време</small></>}
+   {schedule.previousDate && showPreviousDate && <small>{auctionStatus === 'active' ? 'Доставчикът още не е потвърдил резултата от търга.' : 'Новата дата се показва само при потвърдена активна продажба на същия лот.'}</small>}
   </div>
  </div>
 }

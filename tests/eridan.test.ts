@@ -85,7 +85,7 @@ test('detail resolves old public lot/site URLs using lot_number, never /lots/{in
  const car = await provider.detail('70000001', '1')
  assert.equal(car?.id, '1:70000001')
  assert.equal(calls.length, 1); assert.equal(calls[0].path, '/lots')
- assert.equal(calls[0].params.get('status'), 'active'); assert.equal(calls[0].params.get('ordering'), '-sale_date'); assert.equal(calls[0].params.get('lot_number'), '70000001'); assert.equal(calls[0].params.get('auction'), 'copart')
+ assert.equal(calls[0].params.get('status'), null); assert.equal(calls[0].params.get('ordering'), '-sale_date'); assert.equal(calls[0].params.get('lot_number'), '70000001'); assert.equal(calls[0].params.get('auction'), 'copart')
  const wrong = fixture(() => envelope([{ ...row, lot_number: '70000002' }]))
  assert.equal(await wrong.provider.detail('70000001', '1'), undefined)
 })
@@ -507,24 +507,21 @@ test('history is excluded from every catalogue stream, even if upstream ignores 
  assert.ok(calls.filter(call=>call.path==='/lots').every(call=>call.params.get('status')==='active'))
 })
 
-test('detail prefers the active sale to recently reimported history and never falls back after an API error', async () => {
- const {provider,calls}=fixture((_,params)=>envelope(params.get('status')==='active'?[{...row,sale_date:'2026-10-14T14:00:00Z'}]:[{...row,status:'not_sold',sale_date:'2026-09-23T14:00:00Z'}]))
- assert.equal((await provider.detail('70000001','1'))?.auction_date,'2026-10-14T14:00:00Z')
- assert.equal(calls.length,1)
+test('detail uses one supplied sale and does not retry a different status or date after an error', async () => {
+ const {provider,calls}=fixture(()=>envelope([{...row,sale_date:'2030-10-14T14:00:00Z'}]))
+ assert.equal((await provider.detail('70000001','1'))?.auction_date,'2030-10-14T14:00:00Z')
+ assert.equal(calls.length,1); assert.equal(calls[0].params.has('status'),false)
  let errors=0
  const failed=createEridanProvider(async()=>{errors++;throw new Error('Auction provider HTTP 503')})
  await assert.rejects(()=>failed.detail('70000001','1'),/503/)
  assert.equal(errors,1)
 })
 
-test('an unsold historical event does not become an available current listing', async () => {
- const {provider,calls}=fixture((_,params)=>envelope(params.get('status')==='active'?[]:[{...row,status:'not_sold',sale_date:'2026-09-23T14:00:00Z'}]))
- assert.equal(await provider.detail('70000001','1'),undefined)
- assert.equal(calls.length,2)
- assert.equal(calls[0].params.get('status'),'active')
- assert.equal(calls[1].params.get('status'),null)
- const ignored=fixture(()=>envelope([{...row,status:'not_sold'}]))
- assert.equal(await ignored.provider.detail('70000001','1'),undefined)
+test('expired unsold detail is retained as archive without a replacement-date query', async () => {
+ const {provider,calls}=fixture(()=>envelope([{...row,status:'not_sold',sale_date:'2026-09-23T14:00:00Z'}]))
+ const car=await provider.detail('70000001','1')
+ assert.equal(car?.auction_status,'not_sold'); assert.equal(car?.current_bid,undefined)
+ assert.equal(calls.length,1); assert.equal(calls[0].params.has('status'),false)
 })
 
 test('historical-only VIN and lot searches reject even if upstream ignores the active filter', async () => {
@@ -631,22 +628,34 @@ test('exhausting the scan budget reports a limit instead of empty or partial res
  assert.equal(calls.filter(c=>c.path==='/lots').length,16)
 })
 
-test('sold archive rejects active and unsold rows and suppresses purchase prices',async()=>{
+test('archive includes expired active and unsold events but never future active cars',async()=>{
  const {provider,calls}=fixture(()=>envelope([
-  {...row,id:80,lot_number:'70000080',status:'sold'},row,
-  {...row,id:81,lot_number:'70000081',status:'not_sold'}]))
- const archive=await provider.search(new URLSearchParams({site:'1',vehicle_type:'Automobile',archive:'sold'}))
- assert.deepEqual(archive.items.map(c=>c.lot_id),[70000080])
- assert.equal(archive.items[0].current_bid,undefined); assert.equal(archive.items[0].buy_now,undefined)
- assert.ok(calls.filter(c=>c.path==='/lots').every(c=>c.params.get('status')==='sold'))
+  {...row,id:80,lot_number:'70000080',status:'sold',sale_date:'2026-10-12T14:00:00Z'},row,
+  {...row,id:81,lot_number:'70000081',status:'not_sold',sale_date:'2026-10-12T14:00:00Z'},
+  {...row,id:82,lot_number:'70000082',status:'active',sale_date:'2026-10-12T14:00:00Z'}]))
+ const archive=await provider.search(new URLSearchParams({site:'1',vehicle_type:'Automobile',archive:'ended'}))
+ assert.deepEqual(archive.items.map(c=>c.lot_id),[70000082,70000081,70000080])
+ assert.ok(archive.items.every(c=>c.current_bid===undefined&&c.buy_now===undefined))
+ assert.ok(calls.filter(c=>c.path==='/lots').every(c=>c.params.has('sale_date__lte')&&!c.params.has('status')))
+ const current=await provider.search(new URLSearchParams({site:'1',vehicle_type:'Automobile'}))
+ assert.deepEqual(current.items.map(c=>c.lot_id),[Number(row.lot_number)])
 })
 
-test('saved sold lots have a closed detail while a newer active event takes precedence',async()=>{
- const sold=fixture((_,p)=>envelope(p.get('status')==='active'?[]:[{...row,status:'sold'}]))
- assert.equal((await sold.provider.detail('70000001','1'))?.auction_status,'sold')
- const active=fixture(()=>envelope([row]))
- assert.equal((await active.provider.detail('70000001','1'))?.auction_status,'active')
- assert.equal(active.calls.length,1)
- const unsold=fixture((_,p)=>envelope(p.get('status')==='active'?[]:[{...row,status:'not_sold'},{...row,status:'sold'}]))
- assert.equal(await unsold.provider.detail('70000001','1'),undefined)
+test('sold and expired active details are returned without looking for a replacement date',async()=>{
+ for(const status of ['sold','active','not_sold']){
+  const {provider,calls}=fixture(()=>envelope([{...row,status,sale_date:'2026-10-12T19:00:00Z'}]))
+  const car=await provider.detail('70000001','1')
+  assert.equal(car?.auction_status,status)
+  assert.equal(car?.current_bid,undefined); assert.equal(car?.buy_now,undefined)
+  assert.equal(calls.length,1)
+ }
+})
+
+test('archive VIN and lot lookup can resolve expired unsold events without mixing the active search',async()=>{
+ for(const query of [row.vin,'70000001']){
+  const {provider,calls}=fixture((_,p)=>envelope(p.get('status')==='active'?[]:[{...row,status:'not_sold',sale_date:'2026-10-12T19:00:00Z'}]))
+  assert.deepEqual(await provider.lookup(query,'sold'),{lot:'70000001',site:'1'})
+  assert.ok(calls.every(c=>!c.params.has('status')))
+  await assert.rejects(()=>provider.lookup(query),/not found/)
+ }
 })

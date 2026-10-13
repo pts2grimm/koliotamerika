@@ -309,15 +309,15 @@ test('recently imported historical records cannot replace active catalogue dates
  expect(searches.every((call:{params:Record<string,string>})=>call.params.status==='active')).toBe(true)
 })
 
-test('a historical unsold lot is not made available as a current listing', async ({ page, request }) => {
+test('an expired unsold lot shows an archive notice without a replacement-date request', async ({ page, request }) => {
  const before=(await (await request.get('http://127.0.0.1:3199/test-requests')).json()).requests.length
  await page.goto('/targove/kola?lot=57397516&site=1')
- await expect(page.getByRole('heading',{level:1})).toHaveText('Няма активно участие в данните на доставчика.')
- await expect(page.locator('.car-detail')).toHaveCount(0)
- await expect(page.getByRole('link',{name:'Провери актуалната обява в Copart'})).toHaveAttribute('href','https://www.copart.com/lot/57397516')
+ await expect(page.getByRole('status').filter({hasText:/^Търгът е минал$/})).toBeVisible()
+ await expect(page.locator('.auction-schedule')).toHaveCount(0)
+ await expect(page.getByRole('link',{name:/Запитване за този автомобил/})).toHaveCount(0)
  const calls=(await (await request.get('http://127.0.0.1:3199/test-requests')).json()).requests.slice(before).filter((call:{path:string;params:Record<string,string>})=>call.path==='/lots'&&call.params.lot_number==='57397516')
- expect(calls.length).toBeGreaterThan(0)
- expect(calls.some((call:{params:Record<string,string>})=>call.params.status==='active')).toBe(true)
+ expect(calls).toHaveLength(1)
+ expect(calls[0].params.status).toBeUndefined()
 })
 
 test('an active listing with no date stays accessible without inventing a countdown', async ({ page }) => {
@@ -376,24 +376,45 @@ for(const viewport of [{width:1280,height:900},{width:390,height:844}]) {
 
 test('sold archive stays separate, retains filters and opens a closed listing without Buy Now or inquiry',async({page,request})=>{
  await page.goto('/targove')
- await page.getByRole('link',{name:'Архив · Продадени',exact:true}).click()
- await expect(page.getByRole('heading',{level:1})).toHaveText('Архив на продадените автомобили')
- await expect(page.locator('.auction-card')).toHaveCount(2)
- await expect(page.locator('.auction-sold')).toHaveCount(2)
+ await page.getByRole('link',{name:'Архив',exact:true}).click()
+ await expect(page.getByRole('heading',{level:1})).toHaveText('Архив на търговете')
+ await expect(page.locator('.auction-card')).toHaveCount(5)
+ await expect(page.locator('.auction-sold').filter({hasText:/^Продаден$/})).toHaveCount(2)
+ await expect(page.locator('.auction-sold').filter({hasText:/^Търгът е минал$/})).toHaveCount(3)
  await expect(page.locator('.auction-card .auction-price-row')).toHaveCount(0)
  await expect(page.locator('.auction-card .auction-buy-now')).toHaveCount(0)
  await expect(page.locator('meta[name=robots]')).toHaveAttribute('content',/noindex/)
  await page.goto('/targove/arhiv?make=BMW&site=1')
- await expect(page.locator('.auction-card')).toHaveCount(1)
+ await expect(page.locator('.auction-card')).toHaveCount(3)
  await expect(page.getByRole('link',{name:'Премахни филтър: BMW'})).toHaveAttribute('href','/targove/arhiv?site=1')
- await page.locator('.auction-card-link').click()
+ await page.locator('.auction-card-link[href*="lot=86000001"]').click()
  await expect(page.getByRole('status').filter({hasText:/^Продаден$/})).toBeVisible()
  await expect(page.locator('.gallery-open img')).toBeVisible()
  await expect(page.locator('.auction-buy-now')).toHaveCount(0)
  await expect(page.getByRole('link',{name:/Запитване за този автомобил/})).toHaveCount(0)
  await expect(page.locator('.auction-schedule')).toHaveCount(0)
  await expect(page.getByRole('button',{name:'Премахване на обявата',exact:true})).toBeDisabled()
- await expect(page.locator('.vehicle-facts')).toContainText('WBA00000000000000')
+ await expect(page.locator('.vehicle-facts')).toContainText('TST00000086000001')
  const calls=(await (await request.get('http://127.0.0.1:3199/test-requests')).json()).requests
- expect(calls.some((r:{params:Record<string,string>})=>r.params.status==='sold')).toBe(true)
+ expect(calls.some((r:{params:Record<string,string>})=>Boolean(r.params.sale_date__lte)&&!r.params.status)).toBe(true)
+})
+
+test('archive VIN search opens a sold listing and keeps the active search separate',async({page})=>{
+ await page.goto('/targove/arhiv?q=TST00000086000001')
+ await expect(page).toHaveURL(/targove\\/kola\\?lot=86000001&site=1/)
+ await expect(page.getByRole('status').filter({hasText:/^Продаден$/})).toBeVisible()
+ await page.goto('/targove?q=TST00000086000001')
+ await expect(page.locator('.lot-search')).toBeVisible()
+ await expect(page.getByRole('alert')).toContainText('Не намерихме съответстваща обява')
+})
+
+test('expired active lot 72239476 goes to archive without being falsely labelled sold',async({page})=>{
+ await page.goto('/targove?make=BMW')
+ await expect(page.locator('.auction-card a[href*="lot=72239476"]')).toHaveCount(0)
+ await page.goto('/targove/kola?lot=72239476&site=1')
+ await expect(page.getByRole('status').filter({hasText:/^Търгът е минал$/})).toBeVisible()
+ await expect(page.locator('.detail-summary')).toContainText('Резултатът от продажбата не е потвърден')
+ await expect(page.locator('.auction-buy-now')).toHaveCount(0)
+ await expect(page.locator('.auction-schedule')).toHaveCount(0)
+ await expect(page.locator('.detail-summary')).not.toContainText('Текущ залог')
 })

@@ -1,16 +1,7 @@
-import { AuctionCatalogue } from '@/components/AuctionCatalogue'
-import { SiteLink as Link } from '@/components/SiteLink'
 import type { Metadata } from 'next'
-import { redirect } from 'next/navigation'
-import { Heart, Search, X } from 'lucide-react'
-import { auctionMakes, searchAuctions, lookupAuction, auctionProviderName } from '@/lib/auctions'
-import { auctionFilterLabel, auctionResultsURL, readAuctionFilters, type AuctionQuery } from '@/lib/auction-filters'
-import { siteURL } from '@/lib/data'
+import { AuctionCatalogue } from '@/components/AuctionCatalogue'
+import { auctionResultsURL, readAuctionFilters, type AuctionQuery } from '@/lib/auction-filters'
 import { isPreview } from '@/lib/preview'
-import { AuctionCard } from '@/components/AuctionCard'
-import { AuctionFilters } from '@/components/AuctionFilters'
-import { unsupportedEridanFilters, UnsupportedEridanFilterError, EridanSearchLimitError } from '@/lib/auction-providers/eridan'
-import { AuctionSEO } from '@/components/AuctionSEO'
 
 type Props = { searchParams: Promise<AuctionQuery> }
 const defaultTitle = 'Търгове за коли от Америка — Copart и IAAI'

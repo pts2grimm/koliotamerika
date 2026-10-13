@@ -1,3 +1,4 @@
+import { isAuctionClosed } from '../auction-lifecycle'
 import type { AuctionCar, AuctionProvider, AuctionTransport } from './types'
 import { record, validSearchParams } from './normalize'
 import { eridanRoadBrands, eridanRoadTypes, isEridanRoadMake, isEridanRoadModel, type EridanRoadType } from './eridan-scope'
@@ -36,7 +37,7 @@ export function normalizeEridanCar(value: unknown): AuctionCar | undefined {
  if (!lotText || !/^\d{5,12}$/.test(lotText) || !Number.isSafeInteger(lot) || !lot || !site) return undefined
  const make = name(raw.make) || '', model = name(raw.model) || name(raw.series) || '', year = number(raw.year) || 0
  const currency = text(raw.currency)?.toUpperCase()
- const active = raw.status === 'active'
+ const active = raw.status === 'active' && !isAuctionClosed({auction_status: text(raw.status), auction_date: text(raw.sale_date)})
  const knownCurrency = currency && ['USD', 'CAD', 'EUR', 'BGN'].includes(currency)
  // The current documented response does not specify odometer units. Do not assume US == miles.
  const unit = raw.odometer_unit === 'mi' || raw.odometer_unit === 'km' ? raw.odometer_unit : 'unknown'
@@ -121,22 +122,21 @@ export function createEridanProvider(request: AuctionTransport): AuctionProvider
    return [type, String(match.value)]
   })) as Record<EridanRoadType, string>
  })().catch(error => { categories = undefined; throw error })
- const findLot = async (lot: string, site: string) => {
+ const findLot = async (lot: string, site: string, lifecycle: 'active' | 'sold' = 'active') => {
   if (!/^\d{5,12}$/.test(lot) || !auctions[site]) throw new Error('Invalid lot')
   // A lot can have multiple sale events. Import time is not the auction date.
-  const params = new URLSearchParams({ lot_number: lot, auction: auctions[site], ordering: '-sale_date', page: '1', page_size: '10', status: 'active' })
+  const params = new URLSearchParams({ lot_number: lot, auction: auctions[site], ordering: '-sale_date', page: '1', page_size: '10', status: lifecycle })
   const data = lots(await request('/lots', params), 1)
-  return data.items.find(car => car.lot_id === Number(lot) && String(car.site) === site && car.auction_status === 'active')
+  return data.items.find(car => car.lot_id === Number(lot) && String(car.site) === site && car.auction_status === lifecycle)
  }
- // Active sales always win. Only old direct links may resolve a sold event;
- // historical unsold records never become an available current listing.
+ // Resolve the returned sale once. Never search for a replacement date after
+ // an expired sale, including when the provider still calls it active.
  const detail = async (lot: string, site: string) => {
-  const active = await findLot(lot, site)
-  if (active) return active
+  if (!/^\d{5,12}$/.test(lot) || !auctions[site]) throw new Error('Invalid lot')
   const params = new URLSearchParams({lot_number: lot, auction: auctions[site], ordering: '-sale_date', page: '1', page_size: '10'})
   const data = lots(await request('/lots', params), 1)
   const latest = data.items.find(car => car.lot_id === Number(lot) && String(car.site) === site)
-  return latest?.auction_status === 'sold' ? latest : undefined
+  return latest && (latest.auction_status === 'active' || isAuctionClosed(latest)) ? latest : undefined
  }
  return {
   name: 'eridan', detail,
@@ -144,7 +144,7 @@ export function createEridanProvider(request: AuctionTransport): AuctionProvider
    const unsupported = unsupportedEridanFilters(input)
    if (unsupported.length) throw new UnsupportedEridanFilterError(unsupported)
    const valid = validSearchParams(input)
-   const lifecycle = input.get('archive') === 'sold' ? 'sold' : 'active'
+   const archive = ['sold', 'ended'].includes(input.get('archive') || '')
    const condition = valid.get('status'), seller = input.get('seller')?.trim().toLowerCase()
    if (seller && (seller.length < 2 || seller.length > 100)) throw new UnsupportedEridanFilterError(['seller'])
    const needsScan = Boolean(condition || seller)
@@ -152,7 +152,7 @@ export function createEridanProvider(request: AuctionTransport): AuctionProvider
    const sites = [...new Set((input.get('site') || '1').split(','))]
    if (!sites.length || sites.some(site => !auctions[site])) throw new Error('Invalid auction')
    const page = Number(valid.get('page')), size = Number(valid.get('size')) * sites.length
-   const params = new URLSearchParams({ page: String(page), page_size: String(size), ordering: '-id', status: lifecycle })
+   const params = new URLSearchParams({ page: String(page), page_size: String(size), ordering: '-id', ...(archive ? {sale_date__lte: new Date().toISOString()} : {status: 'active'}) })
    for (const [from, to] of [['make', 'make__name'], ['model', 'model__name'], ['year_from', 'year_from'], ['year_to', 'year_to']]) {
     const value = valid.get(from); if (value) params.set(to, value)
    }
@@ -206,7 +206,7 @@ export function createEridanProvider(request: AuctionTransport): AuctionProvider
        if (order === undefined) throw new Error('Invalid Eridan sort identity')
        seen.add(order)
        // Defend against misclassified upstream rows; fill the stream before slicing.
-       if (car.auction_status !== lifecycle || String(car.site) !== site || raw.item_type !== codes[type] || !isEridanRoadMake(car.make, type) || !isEridanRoadModel(car.model, car.make) || !car.link_img_hd?.length) continue
+       if ((archive ? !isAuctionClosed(car) : car.auction_status !== 'active' || isAuctionClosed(car)) || String(car.site) !== site || raw.item_type !== codes[type] || !isEridanRoadMake(car.make, type) || !isEridanRoadModel(car.model, car.make) || !car.link_img_hd?.length) continue
        // Filter before filling/paginating the stream, not after slicing one API page.
        if (condition === 'Enhanced Vehicles' ? !car.enhanced : condition && car.status !== condition) continue
        if (seller && !car.seller?.toLowerCase().includes(seller)) continue
@@ -249,18 +249,19 @@ export function createEridanProvider(request: AuctionTransport): AuctionProvider
    const models = await directory('/models', { make__name: make })
    return [...new Set(models.filter(model => Boolean(name(model)) && isEridanRoadModel(String(model.name), make)).map(model => String(model.name)))].sort((a, b) => a.localeCompare(b, undefined, { numeric: true }))
   },
-  async lookup(query) {
+  async lookup(query, lifecycle = 'active') {
    const q = query.trim().toUpperCase()
    if (/^[A-HJ-NPR-Z0-9]{17}$/.test(q)) {
-    const params = new URLSearchParams({ vin: q, status: 'active', ordering: '-sale_date', page: '1', page_size: '10' })
+    const params = new URLSearchParams({ vin: q, ...(lifecycle === 'sold' ? {sale_date__lte: new Date().toISOString()} : {status: 'active'}), ordering: '-sale_date', page: '1', page_size: '10' })
     const data = lots(await request('/lots', params), 1)
-    const car = data.items.find(item => item.vin?.toUpperCase() === q && item.auction_status === 'active')
+    const car = data.items.find(item => item.vin?.toUpperCase() === q && (lifecycle === 'sold' ? isAuctionClosed(item) : item.auction_status === 'active' && !isAuctionClosed(item)))
     if (car) return { lot: String(car.lot_id), site: String(car.site) }
     throw new Error('VIN not found')
    }
    if (!/^\d{5,12}$/.test(q)) throw new Error('Invalid lot')
    for (const site of ['1', '2']) {
-    const car = await findLot(q, site)
+    const car = lifecycle === 'sold' ? await detail(q, site) : await findLot(q, site)
+    if (car && (lifecycle === 'sold' ? !isAuctionClosed(car) : isAuctionClosed(car))) continue
     if (car) return { lot: String(car.lot_id), site }
    }
    throw new Error('Lot not found')

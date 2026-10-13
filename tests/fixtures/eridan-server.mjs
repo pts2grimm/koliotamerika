@@ -30,6 +30,7 @@ cars[4].highlights = ['ENHANCED VEHICLES','RUNS AND DRIVES']
 cars[5].seller = 'Other Seller'
 cars.push({...cars[0],id:9500,lot_number:'86000001',vin:'TST00000086000001',status:'sold',sale_date:'2026-10-12T14:00:00Z',buy_now_price:15000})
 cars.push({...cars[0],id:9501,lot_number:'86000002',vin:'TST00000086000002',auction:'iaai',status:'sold',sale_date:'2026-10-12T14:00:00Z'})
+cars.push({...cars[0],id:9502,lot_number:'72239476',vin:'TST00000072239476',status:'active',sale_date:'2026-10-12T19:00:00Z',current_bid:12000})
 let searchOutage = false, transientSearchFailures = 0
 createServer((req, res) => {
  const url = new URL(req.url, 'http://127.0.0.1'), p = url.searchParams
@@ -60,9 +61,10 @@ createServer((req, res) => {
  if (transientSearchFailures && p.get('year_from') === '2018' && p.get('year_to') === '2023') {
   transientSearchFailures--; return send({ error: 'one temporary gateway failure' }, 503)
  }
- const allowed = ['page', 'page_size', 'ordering', 'auction', 'lot_number', 'vin', 'make__name', 'model__name', 'year_from', 'year_to', 'fuel_type__name', 'item_type', 'has_images', 'makes', 'status']
+ const allowed = ['page', 'page_size', 'ordering', 'auction', 'lot_number', 'vin', 'make__name', 'model__name', 'year_from', 'year_to', 'fuel_type__name', 'item_type', 'has_images', 'makes', 'status', 'sale_date__lte']
  if ([...p.keys()].some(key => !allowed.includes(key))) return send({ error: 'unknown filter' }, 422)
  const items = cars.filter(car =>
+  (!p.get('sale_date__lte') || car.sale_date && Date.parse(car.sale_date) <= Date.parse(p.get('sale_date__lte'))) &&
   (!p.get('has_images') || car.images.length > 0) &&
   (!p.has('makes') || p.getAll('makes').at(-1).split(',').some(make => make.toLowerCase() === car.make.name.toLowerCase())) &&
   ['auction', 'lot_number', 'vin', 'item_type', 'status'].every(key => !p.get(key) || car[key] === p.get(key)) &&
