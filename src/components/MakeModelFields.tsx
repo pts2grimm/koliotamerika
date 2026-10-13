@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { LoadingIndicator } from './LoadingIndicator'
 import { canonicalEridanMake, sameEridanMake } from '@/lib/auction-providers/make-aliases'
 
 type Props = {
@@ -63,6 +64,6 @@ export function MakeModelFields({ makes, initialMake = '', initialModel = '', mo
     <label><span>Модел</span>{modelError ? <><input name="model" value={model} onChange={event => setModel(event.target.value)} maxLength={100} placeholder="Въведи модел" /><small role="status">Списъкът не се зареди. Можеш да въведеш модела.</small><button className="text-link" type="button" onClick={() => { setRemote(null); setRetry(value => value + 1) }}>Зареди моделите отново</button></> : <select name="model" value={model} onChange={event => setModel(event.target.value)} disabled={!make || loading} aria-busy={loading}>
       <option value="">{loading ? 'Зареждане…' : make ? 'Всички модели' : 'Първо избери марка'}</option>
       {modelOptions.map(name => <option key={name} value={name}>{name}</option>)}
-    </select>}{loading && model && <input type="hidden" name="model" value={model} />}</label>
+    </select>}{loading && model && <input type="hidden" name="model" value={model} />}{loading && <LoadingIndicator className="model-loading">Зареждаме моделите…</LoadingIndicator>}</label>
   </>
 }

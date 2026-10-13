@@ -2,6 +2,8 @@
 
 import { SiteLink as Link } from '@/components/SiteLink'
 import { useState } from 'react'
+import { useDocumentNavigation } from '@/lib/use-document-navigation'
+import { LoadingIndicator } from './LoadingIndicator'
 import { ChevronDown, RotateCcw, Search, SlidersHorizontal } from 'lucide-react'
 import { FilterPanel } from './FilterPanel'
 import { MakeModelFields } from './MakeModelFields'
@@ -10,6 +12,7 @@ import { sectionVehicleType, type AuctionSection } from '@/lib/auction-sections'
 import { auctionFormURL } from '@/lib/auction-filters'
 
 export function AuctionFilters({ makes, initial, modelsOnDemand = false, unavailableFilters = [], eridan = false, basePath = '/targove', section = 'cars' }: { makes: Record<string, string[]>; initial: Record<string, string>; modelsOnDemand?: boolean; unavailableFilters?: readonly string[]; eridan?: boolean; basePath?: string; section?: AuctionSection }) {
+  const { pending, navigate } = useDocumentNavigation()
   const [resetCount, setResetCount] = useState(0)
   const [modelReset, setModelReset] = useState(0)
   const [vehicleType, setVehicleType] = useState(sectionVehicleType(section, initial.vehicle_type))
@@ -20,9 +23,9 @@ export function AuctionFilters({ makes, initial, modelsOnDemand = false, unavail
   const [yearTo, setYearTo] = useState(initial.year_to || '')
   const advancedCount = ['status', 'fuel', 'seller_type', 'seller'].filter(key => initial[key]).length + (initial.site && initial.site !== '1,2' ? 1 : 0)
 
-  return <FilterPanel hint={section === 'powersports' ? 'Открий мотор или ATV' : undefined} count={Object.keys(initial).filter(key => key !== 'sort').length}><form key={resetCount} className="auction-filters" action={basePath} onSubmit={event => {
+  return <FilterPanel hint={section === 'powersports' ? 'Открий мотор или ATV' : undefined} count={Object.keys(initial).filter(key => key !== 'sort').length}><form key={resetCount} className="auction-filters" aria-busy={pending} action={basePath} onSubmit={event => {
     event.preventDefault()
-    window.location.assign(auctionFormURL(new FormData(event.currentTarget), basePath))
+    navigate(auctionFormURL(new FormData(event.currentTarget), basePath))
   }} aria-label={section === 'powersports' ? 'Филтри за мотори и ATV' : 'Филтри за автомобили'}>
     {eridan && initial.sort && <input type="hidden" name="sort" value={initial.sort} />}
     <div className="filter-scroll">
@@ -46,6 +49,6 @@ export function AuctionFilters({ makes, initial, modelsOnDemand = false, unavail
       {eridan && <p className="bid-note">Run &amp; Drive означава, че при проверката автомобилът е запалил и се е придвижил. Enhanced Vehicles не потвърждава запалване или движение. При широко търсене избери и марка или модел.</p>}
     </details>
     </div>
-    <div className="filter-actions"><span>Промените се прилагат с бутона.</span><button className="button button-dark" type="submit"><Search size={18} />{section === 'powersports' ? 'Намери мотор / ATV' : 'Намери автомобил'}</button></div>
+    <div className="filter-actions"><span>Промените се прилагат с бутона.</span><button className="button button-dark" type="submit" disabled={pending}>{pending ? <LoadingIndicator>Търсим…</LoadingIndicator> : <><Search size={18} />{section === 'powersports' ? 'Намери мотор / ATV' : 'Намери автомобил'}</>}</button></div>
   </form></FilterPanel>
 }

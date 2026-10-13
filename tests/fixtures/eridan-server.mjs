@@ -44,7 +44,11 @@ const familyCars=Array.from({length:32},(_,i)=>({...cars[0],id:40000+i,lot_numbe
 familyCars.push({...cars[0],id:41000,lot_number:'94000000',model:familyModels[4],name:'2023 BMW 4 SERIES',year:2023})
 createServer((req, res) => {
  const url = new URL(req.url, 'http://127.0.0.1'), p = url.searchParams
- const send = (data, status = 200) => { res.writeHead(status, { 'Content-Type': 'application/json' }); res.end(JSON.stringify(data)) }
+ const send = (data, status = 200) => {
+  const finish=()=>{res.writeHead(status,{'Content-Type':'application/json'});res.end(JSON.stringify(data))}
+  if(url.pathname==='/lots'&&p.get('year_from')==='1997')setTimeout(finish,1800)
+  else finish()
+ }
  if (url.pathname === '/test-make-aliases' && req.method === 'POST') { aliasExamples=p.get('enabled')==='true'; return send({ok:true}) }
  if (url.pathname === '/') return send({ ok: true })
  if (url.pathname === '/test-sort-examples' && req.method === 'POST') { sortExamples = p.get('enabled') === 'true'; return send({ok:true}) }
