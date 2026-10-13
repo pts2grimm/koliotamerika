@@ -599,3 +599,33 @@ for (const width of [1280,390]) {
   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true)
  })
 }
+
+for(const width of [1280,390]){
+ test('merged makes retain alias models, pagination and old links at width '+width,async({page,request})=>{
+  await request.post('http://127.0.0.1:3199/test-make-aliases?enabled=true')
+  try{
+   await page.setViewportSize({width,height:900})
+   await page.goto('/targove?make=MERCEDES+BENZ&model=C-CLASS')
+   await expect(page.locator('.auction-card')).toHaveCount(24)
+   if(width<900)await page.getByRole('button',{name:/^Филтри/}).click()
+   const form=page.getByRole('form',{name:'Филтри за автомобили'})
+   await expect(form.locator('[name=make]')).toHaveValue('MERCEDES-BENZ')
+   const options=await form.locator('[name=make] option').allTextContents()
+   expect(options.filter(name=>name.startsWith('MERCEDES'))).toEqual(['MERCEDES-BENZ'])
+   expect(options.filter(name=>name.startsWith('ROLLS'))).toEqual(['ROLLS-ROYCE'])
+   await expect(form.locator('[name=model] option[value="C-CLASS"]')).toHaveCount(1)
+   await expect(form.locator('[name=model]')).toBeEnabled()
+   await form.getByRole('button',{name:'Намери автомобил'}).click()
+   await expect(page).toHaveURL(/make=MERCEDES-BENZ&model=C-CLASS$/)
+   await expect(page.locator('.auction-card')).toHaveCount(24)
+   const first=await page.locator('.auction-card-link').evaluateAll(nodes=>nodes.map(n=>n.getAttribute('href')))
+   await page.getByRole('link',{name:'Следваща',exact:true}).click()
+   await expect(page.locator('.auction-card')).toHaveCount(12)
+   const second=await page.locator('.auction-card-link').evaluateAll(nodes=>nodes.map(n=>n.getAttribute('href')))
+   expect(new Set([...first,...second]).size).toBe(36)
+   const oldModels=await request.get('/api/auction-models?make=MERCEDES&vehicle_type=Automobile')
+   expect(oldModels.status()).toBe(200)
+   expect((await oldModels.json()).models).toEqual(['C-CLASS'])
+  } finally {await request.post('http://127.0.0.1:3199/test-make-aliases?enabled=false')}
+ })
+}

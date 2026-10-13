@@ -1,3 +1,4 @@
+import { canonicalEridanMake } from '@/lib/auction-providers/make-aliases'
 import { SiteLink as Link } from '@/components/SiteLink'
 import { redirect, notFound } from 'next/navigation'
 import { Heart, Search, X } from 'lucide-react'
@@ -40,6 +41,7 @@ export async function AuctionCatalogue({ searchParams, archive = false, section 
     } else lookupError = 'Въведи номер на лот (6–12 цифри) или валиден 17-символен VIN.'
   }
   const initial = auctionProviderName() === 'eridan' ? sectionFilters(input,section) : readAuctionFilters(input)
+  if (auctionProviderName() === 'eridan' && initial.make) initial.make = canonicalEridanMake(initial.make)
   if (auctionProviderName() !== 'eridan') delete initial.sort
   const filterEntries = Object.entries(initial).filter(([key]) => key !== 'sort')
   const page = getPage(input)

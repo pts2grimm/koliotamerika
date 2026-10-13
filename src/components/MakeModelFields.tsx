@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { canonicalEridanMake, sameEridanMake } from '@/lib/auction-providers/make-aliases'
 
 type Props = {
   makes: Record<string, string[]>
@@ -12,7 +13,7 @@ type Props = {
 
 export function MakeModelFields({ makes, initialMake = '', initialModel = '', modelsOnDemand = false, vehicleType = '' }: Props) {
   const names = Object.keys(makes)
-  const matchingMake = names.find(name => name.toLowerCase() === initialMake.toLowerCase()) || initialMake
+  const matchingMake = names.find(name => modelsOnDemand ? sameEridanMake(name, initialMake) : name.toLowerCase() === initialMake.toLowerCase()) || (modelsOnDemand ? canonicalEridanMake(initialMake) : initialMake)
   const [make, setMake] = useState(matchingMake)
   const [model, setModel] = useState(initialModel)
   const [retry, setRetry] = useState(0)

@@ -1,3 +1,4 @@
+import { sameEridanMake } from './auction-providers/make-aliases'
 import 'server-only'
 import { cache } from 'react'
 import { createHash, randomUUID } from 'node:crypto'
@@ -62,8 +63,8 @@ function provider(){const name=auctionProviderName();if(name==='eridan')return c
 const cachedSearch=unstable_cache(async(_provider:string,params:string)=>{
  const data=await coalesce(JSON.stringify(['search',_provider,params]),()=>provider().search(new URLSearchParams(params)))
  return {data,fetchedAt:Date.now()}
-},['auction-search-v12-global-sorting'],{revalidate:60})
-const cachedMakes=unstable_cache(async(_provider:string)=>coalesce(JSON.stringify(['makes',_provider]),()=>provider().makes()),['auction-makes-v6-road-atv-utv'],{revalidate:3600})
+},['auction-search-v13-make-aliases'],{revalidate:60})
+const cachedMakes=unstable_cache(async(_provider:string)=>coalesce(JSON.stringify(['makes',_provider]),()=>provider().makes()),['auction-makes-v7-merged-aliases'],{revalidate:3600})
 const cachedCar=unstable_cache(async(_provider:string,lot:string,site:string)=>coalesce(JSON.stringify(['car',_provider,lot,site]),()=>provider().detail(lot,site)),['auction-car-v8-seller-category'],{revalidate:60})
 const cachedLookup=unstable_cache(async(_provider:string,q:string,lifecycle:'active'|'sold')=>coalesce(JSON.stringify(['lookup',_provider,q,lifecycle]),()=>provider().lookup(q,lifecycle)),['auction-lookup-v6-active-or-archive'],{revalidate:60})
 export async function searchAuctions(params:string){
@@ -74,14 +75,14 @@ export async function searchAuctions(params:string){
  return result.data
 }
 export const auctionMakes=()=>cachedMakes(auctionProviderName())
-const cachedModels=unstable_cache(async(_provider:string,make:string,vehicleType:string)=>coalesce(JSON.stringify(['models',_provider,make,vehicleType]),async()=>{const adapter=provider();return adapter.models?adapter.models(make,vehicleType):(await adapter.makes())[make]||[]}),['auction-models-v5-category-families'],{revalidate:3600})
+const cachedModels=unstable_cache(async(_provider:string,make:string,vehicleType:string)=>coalesce(JSON.stringify(['models',_provider,make,vehicleType]),async()=>{const adapter=provider();return adapter.models?adapter.models(make,vehicleType):(await adapter.makes())[make]||[]}),['auction-models-v6-make-aliases'],{revalidate:3600})
 export async function auctionModels(make:string,vehicleType='') {
  const types=eridanTypesForFilter(vehicleType)
  if(!types.length)throw new Error('Invalid vehicle type')
  if(vehicleType&&!types.some(type=>isEridanRoadMake(make,type)))return []
  if(!make.trim()||make.length>100)throw new Error('Invalid make')
  const makes=await auctionMakes()
- const canonical=Object.keys(makes).find(name=>name.trim().toLowerCase()===make.trim().toLowerCase())
+ const canonical=Object.keys(makes).find(name=>auctionProviderName()==='eridan'?sameEridanMake(name,make):name.trim().toLowerCase()===make.trim().toLowerCase())
  if(!canonical)return []
  return auctionProviderName()==='eridan'?cachedModels('eridan',canonical,vehicleType):makes[canonical]||[]
 }
