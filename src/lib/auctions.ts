@@ -9,7 +9,7 @@ import { createEridanProvider } from './auction-providers/eridan'
 import { createEridanTransport } from './auction-providers/eridan-transport'
 import { createApiCarProvider } from './auction-providers/apicar'
 import { createLegacyProvider } from './auction-providers/legacy'
-import { isEridanRoadMake, eridanRoadTypes, type EridanRoadType } from './auction-providers/eridan-scope'
+import { isEridanRoadMake, eridanTypesForFilter } from './auction-providers/eridan-scope'
 import type { AuctionCar,AuctionTransport } from './auction-providers/types'
 export type { AuctionCar,AuctionSearch } from './auction-providers/types'
 const dispatcher=new EnvHttpProxyAgent()
@@ -76,8 +76,9 @@ export async function searchAuctions(params:string){
 export const auctionMakes=()=>cachedMakes(auctionProviderName())
 const cachedModels=unstable_cache(async(_provider:string,make:string,vehicleType:string)=>coalesce(JSON.stringify(['models',_provider,make,vehicleType]),async()=>{const adapter=provider();return adapter.models?adapter.models(make,vehicleType):(await adapter.makes())[make]||[]}),['auction-models-v5-category-families'],{revalidate:3600})
 export async function auctionModels(make:string,vehicleType='') {
- if(vehicleType&&!eridanRoadTypes.includes(vehicleType as EridanRoadType))throw new Error('Invalid vehicle type')
- if(vehicleType&&!isEridanRoadMake(make,vehicleType as EridanRoadType))return []
+ const types=eridanTypesForFilter(vehicleType)
+ if(!types.length)throw new Error('Invalid vehicle type')
+ if(vehicleType&&!types.some(type=>isEridanRoadMake(make,type)))return []
  if(!make.trim()||make.length>100)throw new Error('Invalid make')
  const makes=await auctionMakes()
  const canonical=Object.keys(makes).find(name=>name.trim().toLowerCase()===make.trim().toLowerCase())

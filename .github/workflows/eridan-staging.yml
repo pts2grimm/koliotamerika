@@ -1,7 +1,7 @@
 name: Eridan staging verification
 on:
   push:
-    branches: ['eridan-staging', 'codex/eridan-catalogue-reliability', 'codex/eridan-auction-dates', 'codex/eridan-active-only', 'codex/eridan-condition-buy-now', 'codex/eridan-seller-filter-urls', 'codex/eridan-model-families', 'codex/eridan-catalogue-sorting']
+    branches: ['eridan-staging', 'codex/eridan-catalogue-reliability', 'codex/eridan-auction-dates', 'codex/eridan-active-only', 'codex/eridan-condition-buy-now', 'codex/eridan-seller-filter-urls', 'codex/eridan-model-families', 'codex/eridan-catalogue-sorting', 'codex/eridan-powersports-pages']
 permissions:
   contents: read
 jobs:

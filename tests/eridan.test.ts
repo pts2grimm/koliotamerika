@@ -780,7 +780,31 @@ test('category model lists use actual lots of shared brands, include later pages
  assert.deepEqual(await provider.models!('HONDA','Automobile'),['CIVIC'])
  assert.deepEqual(await provider.models!('HONDA','Motorcycle'),['CBR600RR','CRF450R'])
  assert.deepEqual(await provider.models!('HONDA','ATVUTV'),['TRX420'])
+ assert.deepEqual(await provider.models!('HONDA','Powersports'),['CBR600RR','CRF450R','TRX420'])
  assert.deepEqual(await provider.models!('TOYOTA','Motorcycle'),[])
  await assert.rejects(provider.models!('HONDA','Boat'))
  assert.ok(calls.some(c=>c.path==='/lots'&&c.params.get('page')==='2'))
+})
+
+test('combined powersports scope never queries cars and merges both auctions before paging',async()=>{
+ const rows=Array.from({length:30},(_,i)=>({...row,id:1000+i,lot_number:String(93000000+i),make:{id:3,name:'HONDA'},model:{id:30+i,name:i%2?'TRX420':'CBR600RR'},item_type:i%2?'VEHTYPE_A':'VEHTYPE_M',auction:i%3?'iaai':'copart'}))
+ const {provider,calls}=fixture((path,p)=>{
+  assert.equal(path,'/lots')
+  assert.ok(['VEHTYPE_M','VEHTYPE_A'].includes(p.get('item_type')!))
+  const items=rows.filter(r=>r.item_type===p.get('item_type')&&r.auction===p.get('auction')&&p.get('sale_date__isnull')!=='true').sort((a,b)=>b.id-a.id)
+  const page=Number(p.get('page')),size=Number(p.get('page_size'))
+  return envelope(items.slice((page-1)*size,page*size),page,page*size<items.length,size)
+ })
+ const query={vehicle_type:'Powersports',site:'1,2',sort:'newest',size:'6'}
+ const all=[]
+ for(let page=1;page<=3;page++){
+  const data=await provider.search(new URLSearchParams({...query,page:String(page)}))
+  all.push(...data.items)
+  assert.equal(data.hasNext,page<3)
+ }
+ assert.equal(all.length,30)
+ assert.equal(new Set(all.map(c=>c.id)).size,30)
+ assert.deepEqual(new Set(all.map(c=>c.vehicle_type)),new Set(['Motorcycle','ATVUTV']))
+ assert.deepEqual(new Set(all.map(c=>c.site)),new Set([1,2]))
+ assert.ok(calls.filter(c=>c.path==='/lots').every(c=>!c.params.has('vehicle_type')))
 })

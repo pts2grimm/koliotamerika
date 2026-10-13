@@ -15,6 +15,6 @@ export function AuctionSort({ initial, basePath, archive }: { initial: Record<st
     {auctionSortOptions.map(option => <option key={option.value} value={option.value}>{archive && option.value === 'auction_soon' ? 'Дата на търга: по-стари първо' : archive && option.value === 'auction_late' ? 'Дата на търга: последни първо' : option.label}</option>)}
    </select>
   </label>
-  {pending && <span role="status">Подреждаме автомобилите…</span>}
+  {pending && <span role="status">Подреждаме резултатите…</span>}
  </div>
 }

@@ -3,7 +3,7 @@ import { groupModelDirectory } from './model-families'
 import { isAuctionClosed } from '../auction-lifecycle'
 import type { AuctionCar, AuctionProvider, AuctionTransport } from './types'
 import { record, validSearchParams } from './normalize'
-import { eridanRoadBrands, eridanRoadTypes, isEridanRoadMake, isEridanRoadModel, type EridanRoadType } from './eridan-scope'
+import { eridanRoadBrands, eridanRoadTypes, eridanTypesForFilter, isEridanRoadMake, isEridanRoadModel, type EridanRoadType } from './eridan-scope'
 
 // Eridan OpenAPI 2.0.0: /api/openapi.json. Its record id is NOT an auction lot number.
 const fuelGroups: Record<string, string[]> = {
@@ -183,8 +183,8 @@ export function createEridanProvider(request: AuctionTransport): AuctionProvider
     } else params.set('model__name', selectedModel) // Preserve old specific-model URLs.
    }
    const selectedType = valid.get('vehicle_type')
-   if (selectedType && !eridanRoadTypes.includes(selectedType as EridanRoadType)) throw new UnsupportedEridanFilterError(['vehicle_type'])
-   const types = selectedType ? [selectedType as EridanRoadType] : eridanRoadTypes
+   const types = eridanTypesForFilter(selectedType || undefined)
+   if (!types.length) throw new UnsupportedEridanFilterError(['vehicle_type'])
    const codes = await categoryCodes()
    // Recently imported Eridan records can have only a thumbnail. Wait for real images
    // in catalogue results; direct/saved lot URLs still resolve while ingestion finishes.
@@ -294,14 +294,15 @@ export function createEridanProvider(request: AuctionTransport): AuctionProvider
    if (!make.trim() || make.length > 100) throw new Error('Invalid make')
    if (!isEridanRoadMake(make)) return []
    if (!vehicleType) return [...(await groupsFor(make)).keys()].sort((a, b) => a.localeCompare(b, undefined, { numeric: true }))
-   if (!eridanRoadTypes.includes(vehicleType as EridanRoadType)) throw new Error('Invalid vehicle type')
-   const type = vehicleType as EridanRoadType
-   if (!isEridanRoadMake(make, type)) return []
+   const types = eridanTypesForFilter(vehicleType)
+   if (!types.length) throw new Error('Invalid vehicle type')
+   const makeTypes = types.filter(type => isEridanRoadMake(make, type))
+   if (!makeTypes.length) return []
    // /models has no category filter. Discover complete model IDs from actual active
    // lots of this make/type instead of guessing from a shared brand's model names.
    const codes = await categoryCodes(), cutoff = new Date().toISOString(), deadline = Date.now() + 40000
    const found = new Map<number, {id:number;name:string}>()
-   const collect = async (undated:boolean) => {
+   const collect = async (type:EridanRoadType, undated:boolean) => {
     const seen = new Set<number>()
     for (let page=1; page<=24; page++) {
      if (Date.now() > deadline) throw new Error('Category directory time limit')
@@ -320,7 +321,7 @@ export function createEridanProvider(request: AuctionTransport): AuctionProvider
     }
     throw new Error('Category directory page limit')
    }
-   await Promise.all([collect(false),collect(true)])
+   await Promise.all(makeTypes.flatMap(type => [collect(type,false),collect(type,true)]))
    return [...groupModelDirectory(make,[...found.values()]).keys()].sort((a,b)=>a.localeCompare(b,undefined,{numeric:true}))
   },
   async lookup(query, lifecycle = 'active') {

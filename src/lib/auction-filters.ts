@@ -18,7 +18,7 @@ export function readAuctionFilters(input: AuctionQuery) {
 
 export function auctionFilterLabel(key: string, value: string) {
   const labels: Record<string, Record<string, string>> = {
-    vehicle_type: { Automobile: 'Автомобили', Motorcycle: 'Мотоциклети', ATVUTV: 'ATV и UTV' },
+    vehicle_type: { Automobile: 'Автомобили', Motorcycle: 'Мотоциклети', ATVUTV: 'ATV и UTV', Powersports: 'Мотори и ATV / UTV' },
     site: { '1': 'Copart', '2': 'IAAI' },
     fuel: { Gasoline: 'Бензин', Diesel: 'Дизел', Hybrid: 'Хибрид', Electric: 'Електрически' },
     status: { 'Run & Drive': 'Движи се', Starts: 'Запалва', Stationary: 'Не се движи', 'Enhanced Vehicles': 'Enhanced Vehicles', "Can't test": 'Не е тестван' },
@@ -32,6 +32,8 @@ export function auctionFilterLabel(key: string, value: string) {
 export function auctionResultsURL(filters: Record<string, string>, page = 1, basePath = '/targove') {
   const params = new URLSearchParams()
   const clean = readAuctionFilters(filters)
+  // The section path already carries its default category.
+  if (basePath.startsWith('/targove/motori-atv') ? clean.vehicle_type === 'Powersports' : clean.vehicle_type === 'Automobile') delete clean.vehicle_type
   for (const key of auctionFilterKeys) if (clean[key]) params.set(key, clean[key])
   if (page > 1) params.set('pagenum', String(page))
   return params.size ? `${basePath}?${params}` : basePath
