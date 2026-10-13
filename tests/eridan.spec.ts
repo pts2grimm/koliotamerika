@@ -179,7 +179,8 @@ test('auction routes are not prefetched from the viewport but the intended car i
  expect(detailRequests).toEqual([])
  const response=page.waitForResponse(res=>new URL(res.url()).pathname==='/targove/kola'&&res.request().resourceType()==='fetch')
  await card.hover()
- await (await response).finished()
+ // RSC prefetch streams may remain open; headers and successful navigation prove readiness.
+ expect((await response).ok()).toBe(true)
  await page.waitForTimeout(700)
  // Next 16 can prefetch separate route-tree and page segments for one URL.
  const preparedRequests=detailRequests.length
@@ -405,7 +406,7 @@ test('archive VIN search opens a sold listing and keeps the active search separa
  await expect(page.getByRole('status').filter({hasText:/^Продаден$/})).toBeVisible()
  await page.goto('/targove?q=TST00000086000001')
  await expect(page.locator('.lot-search')).toBeVisible()
- await expect(page.getByRole('alert')).toContainText('Не намерихме съответстваща обява')
+ await expect(page.locator('.form-error[role=alert]')).toContainText('Не намерихме съответстваща обява')
 })
 
 test('expired active lot 72239476 goes to archive without being falsely labelled sold',async({page})=>{
