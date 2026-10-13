@@ -15,7 +15,8 @@ export function statusHint(value: string): DetailHint {
  if (/stationary/.test(lower)) return { label: value, text: 'Автомобилът не е отбелязан като движещ се на собствен ход. Необходима е допълнителна проверка на състоянието.', tone: 'bad' }
  return { label: value, text: 'Статусът е предоставен от аукциона. Ако автомобилът не е тестван, запалването и движението му не са потвърдени.', tone: 'neutral' }
 }
-export function sellerHint(value: string): DetailHint {
+export function sellerHint(value: string, source?: 'seller_presence'): DetailHint {
+ if (source === 'seller_presence') return { label: value === 'insurance' ? 'Застраховател' : 'Частно лице', text: value === 'insurance' ? 'Категория в нашия каталог за обява с посочено име на продавача. Това не е потвърждение от аукциона, че продавачът е застраховател.' : 'Категория в нашия каталог за обява без посочено име на продавача. Самоличността на продавача се уточнява преди покупка.', tone: 'neutral' }
  if (/insurance/i.test(value)) return { label: 'Застраховател', text: 'Автомобилът е обявен от застраховател. Провери историята, щетите и снимките; типът продавач не изключва скрити дефекти.', tone: 'good' }
  if (/dealer|private|individual|person|owner/i.test(value)) return { label: 'Частно лице', text: 'В каталога тази категория включва частни продавачи и дилъри. Провери историята и състоянието, включително за предишни ремонти и неописани дефекти.', tone: 'warn' }
  return { label: value, text: 'Категория на продавача, предоставена от аукциона. Историята и състоянието се проверяват отделно.', tone: 'neutral' }

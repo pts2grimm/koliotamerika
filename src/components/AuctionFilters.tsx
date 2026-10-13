@@ -5,6 +5,7 @@ import { useState } from 'react'
 import { ChevronDown, RotateCcw, Search, SlidersHorizontal } from 'lucide-react'
 import { FilterPanel } from './FilterPanel'
 import { MakeModelFields } from './MakeModelFields'
+import { auctionFormURL } from '@/lib/auction-filters'
 
 export function AuctionFilters({ makes, initial, modelsOnDemand = false, unavailableFilters = [], eridan = false, basePath = '/targove' }: { makes: Record<string, string[]>; initial: Record<string, string>; modelsOnDemand?: boolean; unavailableFilters?: readonly string[]; eridan?: boolean; basePath?: string }) {
   const [resetCount, setResetCount] = useState(0)
@@ -12,7 +13,10 @@ export function AuctionFilters({ makes, initial, modelsOnDemand = false, unavail
   const [yearTo, setYearTo] = useState(initial.year_to || '')
   const advancedCount = ['status', 'fuel', 'seller_type', 'seller', 'vehicle_type'].filter(key => initial[key]).length + (initial.site && initial.site !== '1,2' ? 1 : 0)
 
-  return <FilterPanel count={Object.keys(initial).length}><form key={resetCount} className="auction-filters" action={basePath} aria-label="Филтри за автомобили">
+  return <FilterPanel count={Object.keys(initial).length}><form key={resetCount} className="auction-filters" action={basePath} onSubmit={event => {
+    event.preventDefault()
+    window.location.assign(auctionFormURL(new FormData(event.currentTarget), basePath))
+  }} aria-label="Филтри за автомобили">
     <div className="filter-scroll">
     <div className="filter-panel-heading"><span className="filter-group-name">Автомобил</span><h2><SlidersHorizontal size={19} />Намери точния автомобил</h2><Link href={basePath} className="filter-reset" onClick={event => { if (!Object.keys(initial).length) { event.preventDefault(); setYearFrom(''); setYearTo(''); setResetCount(value => value + 1) } }}><RotateCcw size={14} />Изчисти</Link></div>
     <div className="filter-primary">
@@ -26,10 +30,10 @@ export function AuctionFilters({ makes, initial, modelsOnDemand = false, unavail
         <label>Аукцион<select aria-label="Аукцион" name="site" defaultValue={initial.site || '1,2'}><option value="1,2">Copart и IAAI</option><option value="1">Copart</option><option value="2">IAAI</option></select></label>
         <label>Състояние<select disabled={unavailableFilters.includes('status')} aria-describedby={unavailableFilters.includes('status') ? 'auction-filter-availability' : undefined} name="status" defaultValue={initial.status || ''}><option value="">Всички</option><option value="Run & Drive">Движи се (Run & Drive)</option><option value="Starts">Запалва (Starts)</option><option value="Stationary">Не се движи (Stationary)</option>{eridan ? <option value="Enhanced Vehicles">Enhanced Vehicles</option> : <option value="Can't test">Не е тестван</option>}</select></label>
         <label>Гориво<select name="fuel" defaultValue={initial.fuel || ''}><option value="">Всички</option><option value="Gasoline">Бензин</option><option value="Diesel">Дизел</option><option value="Hybrid">Хибрид</option><option value="Electric">Електрически</option></select></label>
-        {eridan ? <label>Име на продавача<input name="seller" defaultValue={initial.seller || ''} minLength={2} maxLength={100} placeholder="Напр. име на компания" /></label> : <label>Продавач<select disabled={unavailableFilters.includes('seller_type')} aria-describedby={unavailableFilters.includes('seller_type') ? 'auction-filter-availability' : undefined} name="seller_type" defaultValue={initial.seller_type || ''}><option value="">Всички</option><option value="insurance">Застраховател</option><option value="dealer">Частно лице</option></select></label>}
+        <label>Продавач<select disabled={unavailableFilters.includes('seller_type')} name="seller_type" defaultValue={initial.seller_type || ''}><option value="">Всички</option><option value="insurance">Застраховател</option><option value="dealer">Частно лице</option></select></label>
 
       </div>
-      {unavailableFilters.length > 0 && <p id="auction-filter-availability" className="bid-note">Доставчикът не посочва типа продавач. Можеш да търсиш по името му.</p>}
+      {unavailableFilters.length > 0 && <p id="auction-filter-availability" className="bid-note">Избраният филтър временно не е достъпен.</p>}
       {eridan && <p className="bid-note">Run &amp; Drive означава, че при проверката автомобилът е запалил и се е придвижил. Enhanced Vehicles не потвърждава запалване или движение. При широко търсене избери и марка или модел.</p>}
     </details>
     </div>

@@ -19,7 +19,7 @@ export function AuctionFacts({ car }: { car: AuctionCar }) {
   ['Състояние', car.status ? <DetailTooltip {...statusHint(car.status)} /> : undefined],
   ['Обозначение на аукциона', car.enhanced ? <DetailTooltip label="Enhanced Vehicles" text="Това обозначение не потвърждава, че автомобилът пали или се движи. Провери техническото състояние отделно." tone="neutral" /> : undefined],
   ['Документ', car.document_old ? <DetailTooltip {...documentHint(car.document_old)} /> : undefined],
-  ['Продавач', car.seller], ['Тип продавач', car.seller_type ? <DetailTooltip {...sellerHint(car.seller_type)} /> : undefined],
+  ['Продавач', car.seller || (car.seller_type_source === 'seller_presence' ? 'Частно лице' : undefined)], ['Тип продавач', car.seller_type ? <DetailTooltip {...sellerHint(car.seller_type, car.seller_type_source)} /> : undefined],
  ]} />
 }
 export function DamageFacts({ car }: { car: AuctionCar }) {

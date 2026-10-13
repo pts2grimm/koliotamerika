@@ -28,14 +28,18 @@ cars[2].highlights = ['ENGINE START PROGRAM','AUTOCHECK','CERT-S','IV']
 cars[3].highlights = ['ENHANCED VEHICLES','CERT-E','IV']
 cars[4].highlights = ['ENHANCED VEHICLES','RUNS AND DRIVES']
 cars[5].seller = 'Other Seller'
+cars[6].seller = ''
 cars.push({...cars[0],id:9500,lot_number:'86000001',vin:'TST00000086000001',status:'sold',sale_date:'2026-10-12T14:00:00Z',buy_now_price:15000})
 cars.push({...cars[0],id:9501,lot_number:'86000002',vin:'TST00000086000002',auction:'iaai',status:'sold',sale_date:'2026-10-12T14:00:00Z'})
 cars.push({...cars[0],id:9502,lot_number:'72239476',vin:'TST00000072239476',status:'active',sale_date:'2026-10-12T19:00:00Z',current_bid:12000})
-let searchOutage = false, transientSearchFailures = 0
+let searchOutage = false, transientSearchFailures = 0, expiredBackfill = false
+const backfill = Array.from({length:600},(_,i)=>({...cars[0], id:20000+i, lot_number:String(88000000+i), sale_date:'2026-09-01T12:00:00Z'}))
+const undated = [0,1].map(i=>({...cars[0],id:30000+i,lot_number:String(89000000+i),auction:i?'iaai':'copart',sale_date:null,seller:i?'Named company':' '}))
 createServer((req, res) => {
  const url = new URL(req.url, 'http://127.0.0.1'), p = url.searchParams
  const send = (data, status = 200) => { res.writeHead(status, { 'Content-Type': 'application/json' }); res.end(JSON.stringify(data)) }
  if (url.pathname === '/') return send({ ok: true })
+ if (url.pathname === '/test-expired-backfill' && req.method === 'POST') { expiredBackfill = p.get('enabled') === 'true'; return send({ok:true}) }
  if (url.pathname === '/test-requests') return send({ requests })
  if (url.pathname === '/test-search-outage' && req.method === 'POST') { searchOutage = p.get('enabled') === 'true'; return send({ok:true}) }
  if (url.pathname === '/test-transient-search' && req.method === 'POST') { transientSearchFailures = 1; return send({ok:true}) }
@@ -61,9 +65,11 @@ createServer((req, res) => {
  if (transientSearchFailures && p.get('year_from') === '2018' && p.get('year_to') === '2023') {
   transientSearchFailures--; return send({ error: 'one temporary gateway failure' }, 503)
  }
- const allowed = ['page', 'page_size', 'ordering', 'auction', 'lot_number', 'vin', 'make__name', 'model__name', 'year_from', 'year_to', 'fuel_type__name', 'item_type', 'has_images', 'makes', 'status', 'sale_date__lte']
+ const allowed = ['page', 'page_size', 'ordering', 'auction', 'lot_number', 'vin', 'make__name', 'model__name', 'year_from', 'year_to', 'fuel_type__name', 'item_type', 'has_images', 'makes', 'status', 'sale_date__lte', 'sale_date__gte', 'sale_date__isnull']
  if ([...p.keys()].some(key => !allowed.includes(key))) return send({ error: 'unknown filter' }, 422)
- const items = cars.filter(car =>
+ const items = [...cars,...(expiredBackfill ? [...backfill,...undated] : [])].filter(car =>
+  (!p.get('sale_date__gte') || car.sale_date && Date.parse(car.sale_date) >= Date.parse(p.get('sale_date__gte'))) &&
+  (p.get('sale_date__isnull') !== 'true' || car.sale_date == null) &&
   (!p.get('sale_date__lte') || car.sale_date && Date.parse(car.sale_date) <= Date.parse(p.get('sale_date__lte'))) &&
   (!p.get('has_images') || car.images.length > 0) &&
   (!p.has('makes') || p.getAll('makes').at(-1).split(',').some(make => make.toLowerCase() === car.make.name.toLowerCase())) &&

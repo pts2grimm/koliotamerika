@@ -52,7 +52,7 @@ export function normalizeEridanCar(value: unknown): AuctionCar | undefined {
   damage_pr: name(raw.primary_damage), damage_sec: name(raw.secondary_damage),
   document_old: [text(raw.title_type), text(raw.title_state)].filter(Boolean).join(' ') || undefined,
   fuel: Object.entries(fuelGroups).find(([, names]) => names.includes(text(raw.fuel)?.toLowerCase() || ''))?.[0] || text(raw.fuel), transmission: text(raw.transmission), engine: text(raw.engine), drive: text(raw.drive),
-  seller: text(raw.seller), link_img_hd: imageURLs(raw.images), link_img_small: imageURLs([raw.thumb_url]),
+  seller: text(raw.seller), seller_type: text(raw.seller) ? 'insurance' : 'dealer', seller_type_source: 'seller_presence', link_img_hd: imageURLs(raw.images), link_img_small: imageURLs([raw.thumb_url]),
  }
 }
 
@@ -60,8 +60,10 @@ export class UnsupportedEridanFilterError extends Error {
  constructor(readonly filters: string[]) { super('Eridan does not document these filters: ' + filters.join(', ')) }
 }
 export function unsupportedEridanFilters(input: URLSearchParams) {
- // Seller classification is absent. Mechanical highlights are scanned across API pages below.
- const unsupported = ['seller_type', 'cylinders'].filter(key => Boolean(input.get(key)?.trim()))
+ // Seller categories follow the site's explicit rule: named seller / empty seller.
+ const unsupported = ['cylinders'].filter(key => Boolean(input.get(key)?.trim()))
+ const sellerType = input.get('seller_type')?.trim()
+ if (sellerType && !['insurance', 'dealer'].includes(sellerType)) unsupported.push('seller_type')
  const condition = input.get('status')?.trim()
  if (condition && !['Run & Drive', 'Starts', 'Stationary', 'Enhanced Vehicles'].includes(condition)) unsupported.push('status')
  return unsupported
@@ -147,8 +149,10 @@ export function createEridanProvider(request: AuctionTransport): AuctionProvider
    const archive = ['sold', 'ended'].includes(input.get('archive') || '')
    const condition = valid.get('status'), seller = input.get('seller')?.trim().toLowerCase()
    if (seller && (seller.length < 2 || seller.length > 100)) throw new UnsupportedEridanFilterError(['seller'])
-   const needsScan = Boolean(condition || seller)
-   const scanDeadline = Date.now() + 12000
+   const sellerType = valid.get('seller_type')
+   const needsScan = Boolean(condition || seller || sellerType)
+   const cutoff = new Date().toISOString()
+   const scanDeadline = Date.now() + 20000
    const sites = [...new Set((input.get('site') || '1').split(','))]
    if (!sites.length || sites.some(site => !auctions[site])) throw new Error('Invalid auction')
    const page = Number(valid.get('page')), size = Number(valid.get('size')) * sites.length
@@ -180,16 +184,22 @@ export function createEridanProvider(request: AuctionTransport): AuctionProvider
    const merged = new Map<string, { car: AuctionCar; order: number }>()
    let calls = 0
    const make = valid.get('make')
-   const streams = sites.flatMap(site => types.filter(type => !make || isEridanRoadMake(make, type)).flatMap(type => fuelsBySite.get(site)!.map(fuel => ({ site, type, fuel }))))
-   const loadStream = async ({ site, type, fuel }: { site: string; type: EridanRoadType; fuel: string | undefined }) => {
+   // Filter expired active rows upstream. Keep undated lots in a separate stream;
+   // sale_date__gte alone would incorrectly hide them.
+   const dateScopes = archive ? ['archive'] as const : ['upcoming', 'undated'] as const
+   const streams = sites.flatMap(site => types.filter(type => !make || isEridanRoadMake(make, type)).flatMap(type => fuelsBySite.get(site)!.flatMap(fuel => dateScopes.map(dateScope => ({ site, type, fuel, dateScope })))))
+   const maxCalls = Math.min(48, Math.max(16, streams.length * 4))
+   const loadStream = async ({ site, type, fuel, dateScope }: { site: string; type: EridanRoadType; fuel: string | undefined; dateScope: 'archive' | 'upcoming' | 'undated' }) => {
      const stream = new Map<string, { car: AuctionCar; order: number }>()
      const seen = new Set<number>()
      let streamPage = 1
      while (stream.size < needed) {
-      if (++calls > 16 || needsScan && Date.now() > scanDeadline) throw new EridanSearchLimitError()
+      if (++calls > maxCalls || needsScan && Date.now() > scanDeadline) throw new EridanSearchLimitError()
       const query = new URLSearchParams(params)
       query.set('auction', auctions[site])
       query.set('item_type', codes[type])
+      if (dateScope === 'upcoming') query.set('sale_date__gte', cutoff)
+      if (dateScope === 'undated') query.set('sale_date__isnull', 'true')
       // Live Eridan accepts CSV here; repeated makes= entries silently use only the last value.
       if (!make) query.set('makes', eridanRoadBrands[type].join(','))
       if (fuel) query.set('fuel_type__name', fuel)
@@ -210,6 +220,7 @@ export function createEridanProvider(request: AuctionTransport): AuctionProvider
        // Filter before filling/paginating the stream, not after slicing one API page.
        if (condition === 'Enhanced Vehicles' ? !car.enhanced : condition && car.status !== condition) continue
        if (seller && !car.seller?.toLowerCase().includes(seller)) continue
+       if (sellerType && car.seller_type !== sellerType) continue
        if (!stream.has(car.id) || stream.get(car.id)!.order < order) stream.set(car.id, { car, order })
       }
       if (!data.hasNext) break
