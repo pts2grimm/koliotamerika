@@ -26,7 +26,3 @@ for(const page of ['1','2']){
 const privateCars=await provider.search(new URLSearchParams({make:'BMW',vehicle_type:'Automobile',site:'1,2',seller_type:'dealer',size:'12'}))
 assert.ok(privateCars.items.length>0&&privateCars.items.every(c=>!c.seller))
 console.log('PRIVATE_OK',JSON.stringify({items:privateCars.items.length}))
-try{
- const broad=await provider.search(new URLSearchParams({vehicle_type:'Automobile',site:'1,2',seller_type:'insurance',size:'12'}))
- console.log('ALL_MAKES_INSURANCE',JSON.stringify({items:broad.items.length,hasNext:broad.hasNext}))
-}catch(e){console.log('ALL_MAKES_LIMIT',e instanceof Error?e.name:'unknown')}
