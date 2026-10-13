@@ -295,7 +295,7 @@ test('successive uncached searches keep both auctions available past the former 
 })
 
 test('recently imported historical records cannot replace active catalogue dates or detail snapshots', async ({ page, request }) => {
- await page.goto('/targove?make=BMW&model=X5&page=2')
+ await page.goto('/targove?make=BMW&model=X5&pagenum=2')
  await expect(page.locator('.auction-card')).toHaveCount(6)
  const card=page.locator('.auction-card').filter({has:page.locator('a[href="/targove/kola?lot=70000000&site=1"]')})
  await expect(card.locator('time')).toHaveAttribute('datetime','2030-10-12T14:00:00.000Z')
@@ -318,4 +318,20 @@ test('a historical-only saved lot clearly marks the previous date and links to C
  await expect(schedule).not.toContainText('Посоченият час е минал')
  await expect(page.getByRole('link',{name:'Провери актуалната обява в Copart'})).toHaveAttribute('href','https://www.copart.com/lot/57397516')
  await expect(page.locator('.detail-summary .detail-price')).toHaveCount(0)
+})
+
+test('ATV and UTV are included in both-auction results and seller data is rendered without invented values', async ({ page }) => {
+ await page.goto('/targove?vehicle_type=ATVUTV')
+ await expect(page.locator('.auction-card')).toHaveCount(2)
+ await expect(page.locator('.auction-card').filter({hasText:'Sportsman 570'})).toHaveCount(1)
+ await expect(page.locator('.auction-card').filter({hasText:'UFORCE 1000'})).toHaveCount(1)
+ expect(await page.locator('.auction-card .car-badge').allTextContents()).toEqual(['COPART','IAAI'])
+ await page.locator('.auction-card').filter({hasText:'Sportsman 570'}).locator('.auction-card-link').click()
+ await expect(page.locator('.vehicle-facts').filter({hasText:'Информация за автомобила'})).toContainText('Example ATV Seller')
+ await page.goto('/targove/kola?lot=85000002&site=2')
+ await expect(page.locator('.vehicle-facts dt').filter({hasText:/^Продавач$/})).toHaveCount(0)
+ await page.goto('/targove')
+ for (const lot of ['85000003','85000004','85000005','82000000','83000000'])
+  await expect(page.locator('.auction-card a[href*="lot='+lot+'"]')).toHaveCount(0)
+ await expect(page.locator('select[name=make] option[value=POLARIS]')).toHaveCount(1)
 })

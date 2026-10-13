@@ -60,6 +60,18 @@ try {
  assert.ok(bikes.items.length > 0)
  assert.ok(bikes.items.every(car => car.vehicle_type === 'Motorcycle' && (car.link_img_hd?.length || 0) > 0))
  console.log('LIVE_MOTORCYCLES_OK', { items: bikes.items.length, makes: [...new Set(bikes.items.map(car => car.make))] })
+ stage = 'atv-utv'
+ const utility = await provider.search(new URLSearchParams({site:'1,2',size:'6',vehicle_type:'ATVUTV'}))
+ assert.ok(utility.items.length > 0)
+ assert.ok(utility.items.every(car=>car.vehicle_type==='ATVUTV' && car.auction_status==='active'))
+ console.log('LIVE_ATV_UTV_OK',{items:utility.items.length,sites:[...new Set(utility.items.map(car=>car.site))]})
+ stage = 'mixed-default'
+ const defaultStart = performance.now(), beforeDefault = requests
+ const defaultCatalogue = await provider.search(new URLSearchParams({site:'1,2',size:'24'}))
+ assert.ok(defaultCatalogue.items.length > 0)
+ assert.ok(defaultCatalogue.items.every(car=>['Automobile','Motorcycle','ATVUTV'].includes(car.vehicle_type || '') && car.auction_status==='active'))
+ assert.deepEqual([...new Set(defaultCatalogue.items.map(car=>String(car.site)))].sort(), ['1','2'])
+ console.log('LIVE_DEFAULT_CATALOGUE_OK',{items:defaultCatalogue.items.length,requests:requests-beforeDefault,elapsedMs:Math.round(performance.now()-defaultStart),types:[...new Set(defaultCatalogue.items.map(car=>car.vehicle_type))]})
  stage = 'reported-lot'
  const reported = await provider.detail('66579406', '1')
  console.log('REPORTED_LOT_BID', { found: Boolean(reported), currentBid: reported?.current_bid ?? null, currency: reported?.currency })

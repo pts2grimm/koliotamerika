@@ -19,6 +19,11 @@ cars.push({ ...cars[0], id: 6000, vin: 'WBA00000000000099', lot_number: '8400000
 // Backfilled historical sale has a newer ingestion ID than the active event.
 cars.push({ ...cars[0], id: 9000, status: 'not_sold', sale_date: '2026-09-23T14:00:00Z', current_bid: 9000 })
 cars.push({ ...cars[0], id: 9001, lot_number: '57397516', name: '2020 PORSCHE MACAN S', make: {id:7,name:'PORSCHE'}, model: {id:70,name:'MACAN'}, status:'not_sold', sale_date:'2026-09-23T14:00:00Z', current_bid:5400 })
+cars.push({ ...cars[0], id:8501, lot_number:'85000001', item_type:'VEHTYPE_A', make:{id:8,name:'POLARIS'}, model:{id:80,name:'SPORTSMAN 570',make_id:8}, name:'2022 Polaris Sportsman 570', seller:'Example ATV Seller' })
+cars.push({ ...cars[0], id:8502, lot_number:'85000002', auction:'iaai', item_type:'VEHTYPE_A', make:{id:9,name:'CF MOTO'}, model:{id:90,name:'UFORCE 1000',make_id:9}, name:'2022 CF MOTO UFORCE 1000', seller:'' })
+cars.push({ ...cars[0], id:8503, lot_number:'85000003', item_type:'VEHTYPE_U', make:{id:10,name:'FREIGHTLINER'}, model:{id:100,name:'CASCADIA',make_id:10}, name:'Freightliner Cascadia truck' })
+cars.push({ ...cars[0], id:8504, lot_number:'85000004', item_type:'VEHTYPE_S', make:{id:8,name:'POLARIS'}, model:{id:81,name:'RMK',make_id:8}, name:'Polaris RMK snowmobile' })
+cars.push({ ...cars[0], id:8505, lot_number:'85000005', item_type:'VEHTYPE_R', make:{id:2,name:'Ford'}, model:{id:21,name:'F550',make_id:2}, name:'Four Winds RV' })
 let searchOutage = false, transientSearchFailures = 0
 createServer((req, res) => {
  const url = new URL(req.url, 'http://127.0.0.1'), p = url.searchParams
@@ -29,11 +34,11 @@ createServer((req, res) => {
  if (url.pathname === '/test-transient-search' && req.method === 'POST') { transientSearchFailures = 1; return send({ok:true}) }
  if (req.headers.authorization !== 'Bearer eridan-local-fixture') return send({ error: 'unauthorized' }, 401)
  requests.push({ path: url.pathname, params: Object.fromEntries(p) })
- if (url.pathname === '/item_types') return send([{ value: 'VEHTYPE_V', label: 'Vehicle' }, { value: 'VEHTYPE_M', label: 'Motorcycle' }])
+ if (url.pathname === '/item_types') return send([{ value: 'VEHTYPE_V', label: 'Vehicle' }, { value: 'VEHTYPE_M', label: 'Motorcycle' }, { value: 'VEHTYPE_A', label: 'ATV' }])
  if (url.pathname === '/fuel_types') return send(['GAS', 'DIESEL', 'ELECTRIC', 'HYBRID ENGINE'])
- if (url.pathname === '/makes') return send({ items: [{ id: 1, name: 'BMW' }, { id: 2, name: 'Ford' }, { id: 3, name: 'Honda' }, { id: 4, name: 'CATERPILLAR' }, { id: 5, name: 'SEA RAY' }, { id: 6, name: '*' }], count: 6 })
+ if (url.pathname === '/makes') return send({ items: [{ id: 1, name: 'BMW' }, { id: 2, name: 'Ford' }, { id: 3, name: 'Honda' }, { id: 4, name: 'CATERPILLAR' }, { id: 5, name: 'SEA RAY' }, { id: 6, name: '*' }, {id:8,name:'POLARIS'}, {id:9,name:'CF MOTO'}], count: 8 })
  if (url.pathname === '/models') {
-  const models = p.get('make__name') === 'BMW' ? [{ id: 10, name: 'X5', make_id: 1 }, { id: 11, name: 'X3', make_id: 1 }] : p.get('make__name') === 'Ford' ? [{ id: 20, name: 'Mustang', make_id: 2 }] : p.get('make__name') === 'Honda' ? [{ id: 30, name: 'CBR600RR', make_id: 3 }] : []
+  const models = p.get('make__name') === 'BMW' ? [{ id: 10, name: 'X5', make_id: 1 }, { id: 11, name: 'X3', make_id: 1 }] : p.get('make__name') === 'Ford' ? [{ id: 20, name: 'Mustang', make_id: 2 }] : p.get('make__name') === 'Honda' ? [{ id: 30, name: 'CBR600RR', make_id: 3 }] : p.get('make__name') === 'POLARIS' ? [{id:80,name:'SPORTSMAN 570',make_id:8}] : p.get('make__name') === 'CF MOTO' ? [{id:90,name:'UFORCE 1000',make_id:9}] : []
   return send({ items: models, count: models.length })
  }
  // A detail-only fixture proves streaming while the upstream lookup is slow.

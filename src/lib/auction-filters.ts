@@ -14,7 +14,7 @@ export function readAuctionFilters(input: AuctionQuery) {
 
 export function auctionFilterLabel(key: string, value: string) {
   const labels: Record<string, Record<string, string>> = {
-    vehicle_type: { Automobile: 'Автомобили', Motorcycle: 'Мотоциклети' },
+    vehicle_type: { Automobile: 'Автомобили', Motorcycle: 'Мотоциклети', ATVUTV: 'ATV и UTV' },
     site: { '1': 'Copart', '2': 'IAAI' },
     fuel: { Gasoline: 'Бензин', Diesel: 'Дизел', Hybrid: 'Хибрид', Electric: 'Електрически' },
     status: { 'Run & Drive': 'Движи се', Starts: 'Запалва', Stationary: 'Не се движи', "Can't test": 'Не е тестван' },

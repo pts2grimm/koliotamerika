@@ -42,7 +42,7 @@ export function normalizeEridanCar(value: unknown): AuctionCar | undefined {
  const unit = raw.odometer_unit === 'mi' || raw.odometer_unit === 'km' ? raw.odometer_unit : 'unknown'
  return {
   id: site + ':' + lot, lot_id: lot, site, title: text(raw.name) || [year || '', make, model].filter(Boolean).join(' '),
-  make, model, year, vehicle_type: raw.item_type === 'VEHTYPE_V' ? 'Automobile' : raw.item_type === 'VEHTYPE_M' ? 'Motorcycle' : undefined, vin: text(raw.vin), odometer: number(raw.odometer), odometer_unit: unit,
+  make, model, year, vehicle_type: raw.item_type === 'VEHTYPE_V' ? 'Automobile' : raw.item_type === 'VEHTYPE_M' ? 'Motorcycle' : raw.item_type === 'VEHTYPE_A' ? 'ATVUTV' : undefined, vin: text(raw.vin), odometer: number(raw.odometer), odometer_unit: unit,
   currency, current_bid: knownCurrency && active ? number(raw.current_bid) : undefined,
   buy_now: knownCurrency && active ? number(raw.buy_now_price) : undefined, price_new: knownCurrency ? number(raw.retail_value) : undefined,
   location: [text(raw.city), text(raw.state)].filter(Boolean).join(', ') || text(raw.yard),
@@ -107,10 +107,10 @@ export function createEridanProvider(request: AuctionTransport): AuctionProvider
  const categoryCodes = () => categories ||= (async () => {
   const raw = await request('/item_types', new URLSearchParams())
   if (!Array.isArray(raw)) throw new Error('Invalid Eridan vehicle types')
-  const patterns = { Automobile: /^(?:vehicle|automobiles?|passenger vehicles?)$/i, Motorcycle: /^motorcycles?$/i }
+  const patterns = { Automobile: /^(?:vehicle|automobiles?|passenger vehicles?)$/i, Motorcycle: /^motorcycles?$/i, ATVUTV: /^ATV$/i }
   return Object.fromEntries(eridanRoadTypes.map(type => {
    const match = raw.map(record).find(row => patterns[type].test(text(row.label) || ''))
-   if (!match || match.value !== (type === 'Automobile' ? 'VEHTYPE_V' : 'VEHTYPE_M')) throw new Error('Eridan road category is not confirmed')
+   if (!match || match.value !== ({ Automobile: 'VEHTYPE_V', Motorcycle: 'VEHTYPE_M', ATVUTV: 'VEHTYPE_A' }[type])) throw new Error('Eridan road category is not confirmed')
    return [type, String(match.value)]
   })) as Record<EridanRoadType, string>
  })().catch(error => { categories = undefined; throw error })
