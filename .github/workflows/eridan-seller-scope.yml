@@ -6,7 +6,7 @@ permissions:
   contents: read
 jobs:
   inspect:
-    if: contains(github.event.head_commit.message, '[seller-diagnose]')
+    if: contains(github.event.head_commit.message, '[seller-live]')
     runs-on: ubuntu-latest
     timeout-minutes: 4
     steps:
@@ -14,6 +14,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
-      - run: node scripts/inspect-eridan-seller-scope.mjs
+      - run: npm ci --include=dev
+      - run: node --import tsx scripts/check-eridan-seller-without-model.ts
         env:
           ERIDAN_API_KEY: ${{ secrets.ERIDAN_API_KEY }}

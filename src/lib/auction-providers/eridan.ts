@@ -228,7 +228,9 @@ export function createEridanProvider(request: AuctionTransport): AuctionProvider
       query.set('page', String(streamPage))
       // Motorcycle feeds include misclassified marine/utility rows. Read a bounded
       // larger page to avoid spending multiple requests to fill a small UI page.
-      query.set('page_size', String(needsScan || type === 'Motorcycle' && !make ? Math.max(100, needed) : needed))
+      // Seller fields can be absent across thousands of IAAI lots. Read the
+      // documented 1000-row batch before applying our seller-presence convention.
+      query.set('page_size', String(sellerType || seller ? Math.max(1000, needed) : needsScan || type === 'Motorcycle' && !make ? Math.max(100, needed) : needed))
       const response = record(await request('/lots', query))
       const data = lots(response, streamPage)
       const rawItems = response.items as unknown[]
