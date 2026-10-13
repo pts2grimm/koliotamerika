@@ -417,8 +417,13 @@ test('archive VIN search opens a sold listing and keeps the active search separa
  await expect(page).toHaveURL('http://localhost:3100/targove/kola?lot=86000001&site=1')
  await expect(page.getByRole('status').filter({hasText:/^Продаден$/})).toBeVisible()
  await page.goto('/targove?q=TST00000086000001')
- await expect(page.locator('.lot-search')).toBeVisible()
- await expect(page.locator('.form-error[role=alert]')).toContainText('Не намерихме съответстваща обява')
+ // Role locators exclude hidden streamed copies and still reject duplicate accessible forms.
+ const search = page.getByRole('form',{name:'Търсене по номер',exact:true})
+ await expect(search).toHaveCount(1)
+ await expect(search).toBeVisible()
+ await expect(search).toHaveAttribute('action','/targove')
+ await expect(search.locator('input[name=q]')).toHaveValue('TST00000086000001')
+ await expect(page.getByRole('alert')).toContainText('Не намерихме съответстваща обява')
 })
 
 test('expired active lot 72239476 goes to archive without being falsely labelled sold',async({page})=>{
