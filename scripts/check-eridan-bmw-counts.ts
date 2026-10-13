@@ -26,7 +26,7 @@ async function main() {
     if(row.status!=='active')counts.wrongLifecycle++
     const hs=Array.isArray(row.highlights)?row.highlights.filter((h):h is string=>typeof h==='string'):[]
     for(const h of hs)if(/runs?|driv|start|stationary|enhanced/i.test(h))highlights[h]=(highlights[h]||0)+1
-    if(hs.some(h=>/^runs?\\s*(?:&|and)\\s*drives?$/i.test(h.trim())))counts.runDriveHighlights++
+    if(hs.some(h=>/^runs?\s*(?:&|and)\s*drives?$/i.test(h.trim())))counts.runDriveHighlights++
     const car=normalizeEridanCar(row)
     if(car?.status!=='Run & Drive')continue
     counts.normalizedRunDrive++
