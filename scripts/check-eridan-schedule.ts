@@ -1,50 +1,29 @@
 import assert from 'node:assert/strict'
-import { createEridanTransport } from '../src/lib/auction-providers/eridan-transport'
-import { normalizeEridanCar } from '../src/lib/auction-providers/eridan'
-import { auctionSchedule, parseAuctionDate } from '../src/lib/auction-schedule'
-
-async function main() {
- assert.ok(process.env.ERIDAN_API_KEY, 'Missing protected API credential')
- const schemaResponse = await fetch('https://catalog.eridan.software/api/openapi.json', {signal: AbortSignal.timeout(15000), redirect: 'error'})
- assert.ok(schemaResponse.ok)
- const schema = await schemaResponse.json()
- console.log('SCHEDULE_ENDPOINTS', JSON.stringify(Object.entries(schema.paths || {}).map(([path,value])=>({path,operations:Object.entries(value as Record<string,unknown>).filter(([method])=>method==='get').map(([method,op])=>({method,...op as Record<string,unknown>}))}))))
- console.log('SCHEDULE_SCHEMA', JSON.stringify(Object.entries(schema.components?.schemas || {}).flatMap(([name, value]) => {
-  const properties = (value as {properties?: Record<string,unknown>}).properties
-  return properties && ('sale_date' in properties || 'next_sale_date' in properties)
-   ? [{name, properties: Object.fromEntries(Object.entries(properties))}] : []
- })))
- const request = createEridanTransport({apiKey:process.env.ERIDAN_API_KEY,fetch})
- const categories = await request('/item_types', new URLSearchParams()) as {value:string,label:string}[]
- console.log('ERIDAN_VEHICLE_CATEGORIES', JSON.stringify(categories))
- for (const category of categories.filter(item=>/ATV|UTV|all.terrain|utility/i.test(item.label))) {
-  const data=await request('/lots',new URLSearchParams({item_type:category.value,status:'active',page:'1',page_size:'5',ordering:'-id'})) as {items:Record<string,unknown>[]}
-  console.log('ERIDAN_UTILITY_SAMPLE',JSON.stringify({category,items:data.items.map(row=>({make:row.make,model:row.model,item_type:row.item_type,body_style:row.body_style,status:row.status}))}))
+import {createEridanTransport} from '../src/lib/auction-providers/eridan-transport'
+import {createEridanProvider} from '../src/lib/auction-providers/eridan'
+import {auctionSchedule,parseAuctionDate} from '../src/lib/auction-schedule'
+async function main(){
+ assert.ok(process.env.ERIDAN_API_KEY)
+ const request=createEridanTransport({apiKey:process.env.ERIDAN_API_KEY,fetch})
+ const fields=(row:Record<string,unknown>)=>({id:row.id,lot_number:row.lot_number,auction:row.auction,status:row.status,sale_date:row.sale_date,is_future_sale:row.is_future_sale,auction_last_update:row.auction_last_update,updated_at:row.updated_at,date_parsed:row.date_parsed})
+ console.log('CHECKED_AT',new Date().toISOString())
+ const ids=new Set<number>()
+ for(const extra of [{auction:'copart'},{auction:'copart',status:'active'},{},{auction:'copart',sale_date__gte:new Date().toISOString()}]){
+  const params=new URLSearchParams({lot_number:'57397516',ordering:'-sale_date',page:'1',page_size:'100',...extra})
+  const result=await request('/lots',params) as {items:Record<string,unknown>[],has_next:boolean}
+  assert.ok(Array.isArray(result.items))
+  console.log('FRESH_LIST',JSON.stringify({params:Object.fromEntries(params),hasNext:result.has_next,items:result.items.map(fields)}))
+  for(const row of result.items)if(Number.isSafeInteger(row.id))ids.add(Number(row.id))
  }
- const response = await request('/lots', new URLSearchParams({lot_number:'57397516',auction:'copart',ordering:'-updated_at',page:'1',page_size:'10'})) as {items:Record<string,unknown>[],has_next:boolean}
- assert.ok(Array.isArray(response.items))
- console.log('SCHEDULE_NOW', new Date().toISOString())
- console.log('SCHEDULE_MATCHES', {count:response.items.length,hasNext:response.has_next})
- for (const row of response.items) {
-  const car=normalizeEridanCar(row)
-  console.log('SCHEDULE_ROW', {id:row.id,isFutureSale:row.is_future_sale,keys:Object.keys(row),fields:Object.fromEntries(Object.entries(row).filter(([key,value])=> /date|time|status|sold/i.test(key) && (value===null || ['string','number','boolean'].includes(typeof value)))),normalized:car?.auction_date,schedule:auctionSchedule(parseAuctionDate(car?.auction_date),Date.now())})
+ assert.ok(ids.size<=10,'Unexpectedly large exact lot history')
+ for(const id of ids){
+  const result=await request('/lots/'+id,new URLSearchParams()) as Record<string,unknown>
+  console.log('FRESH_DETAIL',JSON.stringify(fields(result)))
  }
-
- // Read a small current feed sample to distinguish historical records from upcoming sales.
- for (const auction of ['copart','iaai']) {
-  const sample = await request('/lots', new URLSearchParams({auction, sale_date__gte:new Date().toISOString(), ordering:'sale_date', page:'1', page_size:'5'})) as {items:Record<string,unknown>[]}
-  assert.ok(Array.isArray(sample.items))
-  console.log('SCHEDULE_UPCOMING_SAMPLE', JSON.stringify({auction,items:sample.items.map(row=>({lot:row.lot_number,status:row.status,sale_date:row.sale_date,is_future_sale:row.is_future_sale,updated_at:row.updated_at,auction_last_update:row.auction_last_update,sellerPresent:typeof row.seller==='string'&&row.seller.trim().length>0,sellerMatches:normalizeEridanCar(row)?.seller===(typeof row.seller==='string'&&row.seller.trim()?row.seller.trim():undefined)}))}))
- }
- const future = await request('/lots', new URLSearchParams({lot_number:'57397516',auction:'copart',sale_date__gte:new Date().toISOString(),page:'1',page_size:'10'})) as {items:Record<string,unknown>[],has_next:boolean}
- console.log('SCHEDULE_REPORTED_FUTURE', {count:future.items?.length,hasNext:future.has_next})
-
- const site = await fetch('https://darkturquoise-duck-750266.hostingersite.com/targove/kola?lot=57397516&site=1', {signal:AbortSignal.timeout(30000)})
- const html = await site.text()
- console.log('SCHEDULE_STAGING', {status:site.status,pastLabel:html.includes('Посоченият час е минал'),unknownLabel:html.includes('Очаква се дата'),timeTags:html.match(/<time[^>]*>[^<]*<\/time>/g)?.slice(0,3)})
+ const car=await createEridanProvider(request).detail('57397516','1')
+ console.log('CURRENT_ADAPTER',JSON.stringify({found:Boolean(car),date:car?.auction_date,status:car?.auction_status,schedule:auctionSchedule(parseAuctionDate(car?.auction_date),Date.now(),car?.auction_status)}))
+ const site=await fetch('https://darkturquoise-duck-750266.hostingersite.com/targove/kola?lot=57397516&site=1',{signal:AbortSignal.timeout(30000),headers:{'Cache-Control':'no-cache'}})
+ const html=await site.text()
+ console.log('CURRENT_STAGING',JSON.stringify({status:site.status,url:site.url,headers:Object.fromEntries(['age','cache-control','x-nextjs-cache'].map(key=>[key,site.headers.get(key)])),awaitingCurrentDate:html.includes('Очаква се актуална дата'),previousDateLabel:html.includes('Предишна дата от доставчика'),pastLabel:html.includes('Посоченият час е минал'),originalLink:html.includes('https://www.copart.com/lot/57397516'),timeTags:html.match(/<time[^>]*>[^<]*<\/time>/g)?.slice(0,3)}))
 }
-main().catch(error => {
- const message=error instanceof Error ? error.message : ''
- console.error('SCHEDULE_CHECK_FAILED', /^Auction provider HTTP [0-9]{3}$/.test(message)?message:'request-or-contract')
- process.exitCode=1
-})
+main().catch(error=>{const message=error instanceof Error?error.message:'';console.error('CHECK_FAILED',/^Auction provider HTTP [0-9]{3}$/.test(message)?message:'request-or-contract');process.exitCode=1})
