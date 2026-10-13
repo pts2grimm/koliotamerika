@@ -70,8 +70,8 @@ test('single auction query is scoped, with no unsupported parameters leaked to E
  assert.equal(params.get('auction'), 'iaai'); assert.equal(params.get('page_size'), '13'); assert.equal(params.get('made_up'), null)
  await assert.rejects(() => provider.search(new URLSearchParams('site=3')), /Invalid auction/)
 })
-test('unsupported conditions/seller categories/cylinder filters fail explicitly before any paid request', async () => {
- for (const [key, value] of [['status', "Can't test"], ['seller_type', 'unknown'], ['cylinders', '6']]) {
+test('unsupported conditions/seller categories/invalid cylinder filters fail explicitly before any paid request', async () => {
+ for (const [key, value] of [['status', "Can't test"], ['seller_type', 'unknown'], ['cylinders', '17']]) {
   const { provider, calls } = fixture()
   await assert.rejects(() => provider.search(new URLSearchParams({ [key]: value })), UnsupportedEridanFilterError)
   assert.equal(calls.length, 0)
@@ -839,4 +839,42 @@ test('seller selection needs no model when thousands of leading rows have empty 
  assert.equal(privateCars.items.length,24)
  assert.ok(privateCars.items.every(c=>c.seller_type==='dealer'&&!c.seller))
  assert.deepEqual(new Set(privateCars.items.map(c=>c.site)),new Set([1,2]))
+})
+
+test('cylinders uses only a valid explicit provider field, never engine text',()=>{
+ for(const value of [6,'6',' 6 ','06'])assert.equal(normalizeEridanCar({...row,cylinders:value})?.cylinders,6)
+ for(const value of [null,undefined,'',0,'0','unknown',6.5,'6e0',true,17])assert.equal(normalizeEridanCar({...row,engine:'V8',cylinders:value})?.cylinders,undefined)
+})
+test('cylinder filtering fills mixed-auction pages before slicing and preserves sort/condition/seller filters',async()=>{
+ const data=Array.from({length:90},(_,i)=>({...row,id:5000+i,lot_number:String(98000000+i),auction:i%2?'iaai':'copart',cylinders:i%3===0?(i%2?6:' 6 '):i%3===1?'4':null}))
+ const {provider,calls}=fixture((path,p)=>{
+  assert.equal(path,'/lots')
+  assert.equal(p.has('cylinders'),false)
+  const selected=p.get('sale_date__isnull')==='true'?[]:data.filter(car=>car.auction===p.get('auction'))
+  selected.sort((a,b)=>p.get('ordering')!.startsWith('-')?b.id-a.id:a.id-b.id)
+  const page=Number(p.get('page')),size=7
+  return envelope(selected.slice((page-1)*size,page*size),page,page*size<selected.length,size)
+ })
+ const filters={make:'BMW',vehicle_type:'Automobile',site:'1,2',size:'6',cylinders:'6',status:'Run & Drive',seller_type:'insurance',sort:'auction_soon'}
+ const pages=[]
+ for(const page of [1,2,3])pages.push(await provider.search(new URLSearchParams({...filters,page:String(page)})))
+ assert.deepEqual(pages.map(p=>p.items.length),[12,12,6])
+ assert.deepEqual(pages.map(p=>p.hasNext),[true,true,false])
+ const cars=pages.flatMap(p=>p.items)
+ assert.equal(new Set(cars.map(car=>car.id)).size,30)
+ assert.ok(cars.every(car=>car.cylinders===6&&car.status==='Run & Drive'&&car.seller_type==='insurance'))
+ assert.deepEqual(new Set(cars.map(car=>car.site)),new Set([1,2]))
+ assert.ok(calls.filter(call=>call.path==='/lots').every(call=>call.params.get('page_size')==='1000'))
+})
+test('cylinder-only searches need no make/model and work in powersports and archives',async()=>{
+ for(const [type,code,make,model] of [['Automobile','VEHTYPE_V','BMW','X5'],['Motorcycle','VEHTYPE_M','Honda','CBR600RR'],['ATVUTV','VEHTYPE_A','POLARIS','SPORTSMAN 570']]){
+  for(const archive of ['', 'ended']){
+   const {provider}=fixture((path,p)=>envelope(p.get('sale_date__isnull')==='true'?[]:[
+    {...row,item_type:code,make:{id:1,name:make},model:{id:10,name:model},cylinders:'4',...(archive?{status:'sold',sale_date:'2020-01-01T00:00:00Z'}:{})},
+    {...row,id:43,lot_number:'70000002',item_type:code,make:{id:1,name:make},model:{id:10,name:model},cylinders:null,engine:'4 CYL',...(archive?{status:'sold',sale_date:'2020-01-01T00:00:00Z'}:{})}
+   ],Number(p.get('page'))))
+   const result=await provider.search(new URLSearchParams({vehicle_type:type,site:'1',cylinders:'4',archive}))
+   assert.equal(result.items.length,1);assert.equal(result.items[0].cylinders,4)
+  }
+ }
 })

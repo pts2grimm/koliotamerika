@@ -1,5 +1,6 @@
+import { cylinderCount } from './auction-cylinders'
 import { auctionSort } from './auction-sorting'
-export const auctionFilterKeys = ['make', 'model', 'year_from', 'year_to', 'status', 'site', 'fuel', 'seller_type', 'seller', 'vehicle_type', 'sort'] as const
+export const auctionFilterKeys = ['make', 'model', 'year_from', 'year_to', 'status', 'site', 'fuel', 'seller_type', 'seller', 'vehicle_type', 'cylinders', 'sort'] as const
 export type AuctionQuery = Record<string, string | string[] | undefined>
 
 export function readAuctionFilters(input: AuctionQuery) {
@@ -9,6 +10,8 @@ export function readAuctionFilters(input: AuctionQuery) {
     const value = typeof raw === 'string' ? raw.trim() : ''
     if (value && value.length <= 100) filters[key] = value
   }
+  const cylinders = cylinderCount(filters.cylinders)
+  if (cylinders) filters.cylinders = String(cylinders); else delete filters.cylinders
   const sort = auctionSort(filters.sort).value
   if (sort) filters.sort = sort; else delete filters.sort
   if (!filters.make) delete filters.model
@@ -24,6 +27,7 @@ export function auctionFilterLabel(key: string, value: string) {
     status: { 'Run & Drive': 'Движи се', Starts: 'Запалва', Stationary: 'Не се движи', 'Enhanced Vehicles': 'Enhanced Vehicles', "Can't test": 'Не е тестван' },
     seller_type: { insurance: 'Застраховател', dealer: 'Частно лице' },
   }
+  if (key === 'cylinders') return `${value} ${value === '1' ? 'цилиндър' : 'цилиндъра'}`
   if (key === 'year_from') return `От ${value} г.`
   if (key === 'year_to') return `До ${value} г.`
   return labels[key]?.[value] || value

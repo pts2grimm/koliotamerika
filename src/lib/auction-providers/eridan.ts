@@ -1,3 +1,4 @@
+import { cylinderCount } from '../auction-cylinders'
 import { canonicalEridanMake, eridanMakeAliases, eridanMakeParams, sameEridanMake } from './make-aliases'
 import { auctionSort } from '../auction-sorting'
 import { groupModelDirectory } from './model-families'
@@ -54,7 +55,7 @@ export function normalizeEridanCar(value: unknown): AuctionCar | undefined {
   enhanced: Array.isArray(raw.highlights) && raw.highlights.some(value => typeof value === 'string' && /^enhanced vehicles$/i.test(value.trim())),
   damage_pr: name(raw.primary_damage), damage_sec: name(raw.secondary_damage),
   document_old: [text(raw.title_type), text(raw.title_state)].filter(Boolean).join(' ') || undefined,
-  fuel: Object.entries(fuelGroups).find(([, names]) => names.includes(text(raw.fuel)?.toLowerCase() || ''))?.[0] || text(raw.fuel), transmission: text(raw.transmission), engine: text(raw.engine), drive: text(raw.drive),
+  fuel: Object.entries(fuelGroups).find(([, names]) => names.includes(text(raw.fuel)?.toLowerCase() || ''))?.[0] || text(raw.fuel), transmission: text(raw.transmission), engine: text(raw.engine), cylinders: cylinderCount(raw.cylinders), drive: text(raw.drive),
   seller: text(raw.seller), seller_type: text(raw.seller) ? 'insurance' : 'dealer', seller_type_source: 'seller_presence', link_img_hd: imageURLs(raw.images), link_img_small: imageURLs([raw.thumb_url]),
  }
 }
@@ -64,7 +65,8 @@ export class UnsupportedEridanFilterError extends Error {
 }
 export function unsupportedEridanFilters(input: URLSearchParams) {
  // Seller categories follow the site's explicit rule: named seller / empty seller.
- const unsupported = ['cylinders'].filter(key => Boolean(input.get(key)?.trim()))
+ const unsupported: string[] = []
+ if (input.get('cylinders')?.trim() && !cylinderCount(input.get('cylinders'))) unsupported.push('cylinders')
  const sellerType = input.get('seller_type')?.trim()
  if (sellerType && !['insurance', 'dealer'].includes(sellerType)) unsupported.push('seller_type')
  const condition = input.get('status')?.trim()
@@ -164,7 +166,8 @@ export function createEridanProvider(request: AuctionTransport): AuctionProvider
    const condition = valid.get('status'), seller = input.get('seller')?.trim().toLowerCase()
    if (seller && (seller.length < 2 || seller.length > 100)) throw new UnsupportedEridanFilterError(['seller'])
    const sellerType = valid.get('seller_type')
-   const needsScan = Boolean(condition || seller || sellerType)
+   const cylinders = cylinderCount(valid.get('cylinders'))
+   const needsScan = Boolean(condition || seller || sellerType || cylinders)
    const cutoff = new Date().toISOString()
    const scanDeadline = Date.now() + 20000
    const sites = [...new Set((input.get('site') || '1').split(','))]
@@ -234,7 +237,7 @@ export function createEridanProvider(request: AuctionTransport): AuctionProvider
       // larger page to avoid spending multiple requests to fill a small UI page.
       // Seller fields can be absent across thousands of IAAI lots. Read the
       // documented 1000-row batch before applying our seller-presence convention.
-      query.set('page_size', String(sellerType || seller ? Math.max(1000, needed) : needsScan || type === 'Motorcycle' && !make ? Math.max(100, needed) : needed))
+      query.set('page_size', String(sellerType || seller || cylinders ? Math.max(1000, needed) : needsScan || type === 'Motorcycle' && !make ? Math.max(100, needed) : needed))
       const response = record(await request('/lots', query))
       const data = lots(response, streamPage)
       const rawItems = response.items as unknown[]
@@ -252,6 +255,7 @@ export function createEridanProvider(request: AuctionTransport): AuctionProvider
        if ((archive ? !isAuctionClosed(car) : car.auction_status !== 'active' || isAuctionClosed(car)) || String(car.site) !== site || raw.item_type !== codes[type] || !isEridanRoadMake(car.make, type) || !isEridanRoadModel(car.model, car.make) || !car.link_img_hd?.length) continue
        // Filter before filling/paginating the stream, not after slicing one API page.
        if (condition === 'Enhanced Vehicles' ? !car.enhanced : condition && car.status !== condition) continue
+       if (cylinders && car.cylinders !== cylinders) continue
        if (seller && !car.seller?.toLowerCase().includes(seller)) continue
        if (sellerType && car.seller_type !== sellerType) continue
        if (!stream.has(car.id) || stream.get(car.id)!.order < order) stream.set(car.id, { car, order, sortValue })
