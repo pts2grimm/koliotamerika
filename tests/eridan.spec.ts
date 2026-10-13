@@ -84,7 +84,7 @@ test('model choices load per make, ignore late responses and allow typing when t
 })
 
 
-test('catalogue offers only road brands without a vehicle-type selector and preserves saved motorcycle links', async ({ page }) => {
+test('catalogue offers supported vehicle types and preserves saved motorcycle links', async ({ page }) => {
  await page.goto('/targove')
  const filters = page.getByRole('form', {name:'Филтри за автомобили'})
  const options = await filters.locator('select[name="make"] option').allTextContents()
@@ -537,6 +537,6 @@ for(const width of [1280,390]){
    await expect(page.locator('.auction-card')).toContainText('Honda CBR600RR')
    expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true)
    await page.screenshot({path:'test-results/sorting-category-'+width+'.png',fullPage:true})
-  } finally {await request.post('http://127.0.0.1:3199/test-sort-examples?enabled=false')}
+  } finally {await request.post('http://127.0.0.1:3199/test-sort-examples?enabled=false').catch(()=>undefined)}
  })
 }
