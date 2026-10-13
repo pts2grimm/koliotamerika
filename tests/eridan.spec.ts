@@ -423,7 +423,9 @@ test('archive VIN search opens a sold listing and keeps the active search separa
  await expect(search).toBeVisible()
  await expect(search).toHaveAttribute('action','/targove')
  await expect(search.locator('input[name=q]')).toHaveValue('TST00000086000001')
- await expect(page.getByRole('alert')).toContainText('Не намерихме съответстваща обява')
+ const lookupError = page.getByRole('alert').and(page.locator('.form-error'))
+ await expect(lookupError).toBeVisible()
+ await expect(lookupError).toContainText('Не намерихме съответстваща обява')
 })
 
 test('expired active lot 72239476 goes to archive without being falsely labelled sold',async({page})=>{
