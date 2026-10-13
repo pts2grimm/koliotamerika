@@ -17,7 +17,7 @@ async function main() {
  const request = createEridanTransport({apiKey:process.env.ERIDAN_API_KEY,fetch})
  const categories = await request('/item_types', new URLSearchParams()) as {value:string,label:string}[]
  console.log('ERIDAN_VEHICLE_CATEGORIES', JSON.stringify(categories))
- for (const category of categories.filter(item=>/ATV|UTV|all.terrain|utility.*vehicle/i.test(item.label))) {
+ for (const category of categories.filter(item=>/ATV|UTV|all.terrain|utility/i.test(item.label))) {
   const data=await request('/lots',new URLSearchParams({item_type:category.value,status:'active',page:'1',page_size:'5',ordering:'-id'})) as {items:Record<string,unknown>[]}
   console.log('ERIDAN_UTILITY_SAMPLE',JSON.stringify({category,items:data.items.map(row=>({make:row.make,model:row.model,item_type:row.item_type,body_style:row.body_style,status:row.status}))}))
  }
