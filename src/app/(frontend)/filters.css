@@ -322,3 +322,15 @@
  box-shadow: 0 6px 28px #0003; font-size: 14px; font-weight: 700;
  white-space: nowrap; pointer-events: none;
 }
+
+/* Provider amounts and archive state are distinct from the current bid. */
+.auction-buy-now { margin-top: 18px; padding: 16px; border: 1px solid var(--line); border-radius: 10px; background: var(--paper); }
+.auction-buy-now > div { display: grid; gap: 7px; }
+.auction-buy-now strong { font-size: 24px; color: var(--ink); }
+.auction-buy-now .price-disclaimer { font-size: 12px; line-height: 1.5; }
+.auction-sold { padding: 14px 0; font-size: 22px; font-weight: 700; }
+.archive-navigation { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 24px; }
+.archive-navigation [aria-current=page] { border-color: var(--orange); }
+
+.auction-removal { margin-top: 24px; padding-top: 24px; border-top: 1px solid var(--line); }
+.auction-removal button:disabled { cursor: not-allowed; opacity: .6; }

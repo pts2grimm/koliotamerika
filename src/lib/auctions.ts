@@ -61,10 +61,10 @@ function provider(){const name=auctionProviderName();if(name==='eridan')return c
 const cachedSearch=unstable_cache(async(_provider:string,params:string)=>{
  const data=await coalesce(JSON.stringify(['search',_provider,params]),()=>provider().search(new URLSearchParams(params)))
  return {data,fetchedAt:Date.now()}
-},['auction-search-v7-active-road-atv-utv'],{revalidate:60})
+},['auction-search-v9-ended-archive'],{revalidate:60})
 const cachedMakes=unstable_cache(async(_provider:string)=>coalesce(JSON.stringify(['makes',_provider]),()=>provider().makes()),['auction-makes-v6-road-atv-utv'],{revalidate:3600})
-const cachedCar=unstable_cache(async(_provider:string,lot:string,site:string)=>coalesce(JSON.stringify(['car',_provider,lot,site]),()=>provider().detail(lot,site)),['auction-car-v5-active-only'],{revalidate:60})
-const cachedLookup=unstable_cache(async(_provider:string,q:string)=>coalesce(JSON.stringify(['lookup',_provider,q]),()=>provider().lookup(q)),['auction-lookup-v5-active-only'],{revalidate:60})
+const cachedCar=unstable_cache(async(_provider:string,lot:string,site:string)=>coalesce(JSON.stringify(['car',_provider,lot,site]),()=>provider().detail(lot,site)),['auction-car-v7-ended-no-reschedule'],{revalidate:60})
+const cachedLookup=unstable_cache(async(_provider:string,q:string,lifecycle:'active'|'sold')=>coalesce(JSON.stringify(['lookup',_provider,q,lifecycle]),()=>provider().lookup(q,lifecycle)),['auction-lookup-v6-active-or-archive'],{revalidate:60})
 export async function searchAuctions(params:string){
  const sorted=new URLSearchParams(params);sorted.sort()
  const name=auctionProviderName()
@@ -87,7 +87,7 @@ export const auctionCar=cache((lot:string,site:string)=>{
  const snapshot=name==='eridan'?catalogueSnapshots.get(lot,site):undefined
  return snapshot?.auction_status==='active'?Promise.resolve(snapshot):cachedCar(name,lot,site)
 })
-export const lookupAuction=(q:string)=>cachedLookup(auctionProviderName(),q)
+export const lookupAuction=(q:string,archive=false)=>cachedLookup(auctionProviderName(),q,archive?'sold':'active')
 export function auctionImages(car:AuctionCar) {
  const safe=(value:string)=>{try{const url=new URL(value);return url.protocol==='https:'&&!url.username&&!url.password&&['cs.copart.com','vis.iaai.com',...(auctionProviderName()==='eridan'?(process.env.ERIDAN_IMAGE_HOSTS||'').split(',').map(host=>host.trim().toLowerCase()).filter(host=>/^[a-z0-9]+(?:[.-][a-z0-9]+)+$/.test(host)):[])].includes(url.hostname)}catch{return false}}
  const hd=(car.link_img_hd||[]).filter(safe)

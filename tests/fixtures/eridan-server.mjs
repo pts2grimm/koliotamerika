@@ -24,6 +24,13 @@ cars.push({ ...cars[0], id:8502, lot_number: '85000002', vin: 'TST00000085000002
 cars.push({ ...cars[0], id:8503, lot_number: '85000003', vin: 'TST00000085000003', item_type:'VEHTYPE_U', make:{id:10,name:'FREIGHTLINER'}, model:{id:100,name:'CASCADIA',make_id:10}, name:'Freightliner Cascadia truck' })
 cars.push({ ...cars[0], id:8504, lot_number: '85000004', vin: 'TST00000085000004', item_type:'VEHTYPE_S', make:{id:8,name:'POLARIS'}, model:{id:81,name:'RMK',make_id:8}, name:'Polaris RMK snowmobile' })
 cars.push({ ...cars[0], id:8505, lot_number: '85000005', vin: 'TST00000085000005', item_type:'VEHTYPE_R', make:{id:2,name:'Ford'}, model:{id:21,name:'F550',make_id:2}, name:'Four Winds RV' })
+cars[2].highlights = ['ENGINE START PROGRAM','AUTOCHECK','CERT-S','IV']
+cars[3].highlights = ['ENHANCED VEHICLES','CERT-E','IV']
+cars[4].highlights = ['ENHANCED VEHICLES','RUNS AND DRIVES']
+cars[5].seller = 'Other Seller'
+cars.push({...cars[0],id:9500,lot_number:'86000001',vin:'TST00000086000001',status:'sold',sale_date:'2026-10-12T14:00:00Z',buy_now_price:15000})
+cars.push({...cars[0],id:9501,lot_number:'86000002',vin:'TST00000086000002',auction:'iaai',status:'sold',sale_date:'2026-10-12T14:00:00Z'})
+cars.push({...cars[0],id:9502,lot_number:'72239476',vin:'TST00000072239476',status:'active',sale_date:'2026-10-12T19:00:00Z',current_bid:12000})
 let searchOutage = false, transientSearchFailures = 0
 createServer((req, res) => {
  const url = new URL(req.url, 'http://127.0.0.1'), p = url.searchParams
@@ -54,9 +61,10 @@ createServer((req, res) => {
  if (transientSearchFailures && p.get('year_from') === '2018' && p.get('year_to') === '2023') {
   transientSearchFailures--; return send({ error: 'one temporary gateway failure' }, 503)
  }
- const allowed = ['page', 'page_size', 'ordering', 'auction', 'lot_number', 'vin', 'make__name', 'model__name', 'year_from', 'year_to', 'fuel_type__name', 'item_type', 'has_images', 'makes', 'status']
+ const allowed = ['page', 'page_size', 'ordering', 'auction', 'lot_number', 'vin', 'make__name', 'model__name', 'year_from', 'year_to', 'fuel_type__name', 'item_type', 'has_images', 'makes', 'status', 'sale_date__lte']
  if ([...p.keys()].some(key => !allowed.includes(key))) return send({ error: 'unknown filter' }, 422)
  const items = cars.filter(car =>
+  (!p.get('sale_date__lte') || car.sale_date && Date.parse(car.sale_date) <= Date.parse(p.get('sale_date__lte'))) &&
   (!p.get('has_images') || car.images.length > 0) &&
   (!p.has('makes') || p.getAll('makes').at(-1).split(',').some(make => make.toLowerCase() === car.make.name.toLowerCase())) &&
   ['auction', 'lot_number', 'vin', 'item_type', 'status'].every(key => !p.get(key) || car[key] === p.get(key)) &&

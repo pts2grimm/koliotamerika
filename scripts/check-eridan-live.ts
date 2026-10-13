@@ -1,3 +1,4 @@
+import { isAuctionClosed } from '../src/lib/auction-lifecycle'
 import assert from 'node:assert/strict'
 import { createEridanProvider } from '../src/lib/auction-providers/eridan'
 import { createEridanTransport } from '../src/lib/auction-providers/eridan-transport'
@@ -27,7 +28,7 @@ try {
  let requests = 0, activeLots = 0, peakLots = 0, lotRequestMs = 0
  const request = createEridanTransport({ apiKey: process.env.ERIDAN_API_KEY, fetch: async (url, init) => {
   if (url.pathname.endsWith('/lots')) for (const key of url.searchParams.keys()) assert.ok(lotParameters.has(key), 'Undocumented catalogue query parameter')
-  if (url.pathname.endsWith('/lots')) assert.equal(url.searchParams.get('status'),'active','Every lot request must exclude historical events')
+  if (url.pathname.endsWith('/lots')) assert.ok(['active','sold'].includes(url.searchParams.get('status') || '') || Boolean(url.searchParams.get('lot_number') || url.searchParams.get('sale_date__lte')) && !url.searchParams.has('status'),'Only direct lot lookup may inspect a closed event')
   requests++
   const isLotSearch = url.pathname.endsWith('/lots'), started = performance.now()
   if (isLotSearch) { activeLots++; peakLots = Math.max(peakLots, activeLots) }
@@ -76,7 +77,7 @@ try {
  stage = 'reported-active-only'
  for(const lot of ['57397516','64492136']){
   const item=await provider.detail(lot,'1')
-  assert.ok(!item || item.auction_status==='active')
+  assert.ok(!item || item.auction_status === 'active' || isAuctionClosed(item))
   console.log('LIVE_REPORTED_ACTIVE_ONLY',{lot,found:Boolean(item),status:item?.auction_status,hasDate:Boolean(item?.auction_date)})
  }
  stage = 'reported-lot'
@@ -92,6 +93,20 @@ try {
  stage = 'reported-filter-query'
  const filtered = await provider.search(new URLSearchParams({ site: '1', size: '6', make: 'BMW', model: '3 SERIES', year_from: '2013', fuel: 'Gasoline' }))
  console.log('LIVE_FILTER_QUERY_OK', { items: filtered.items.length, hasNext: filtered.hasNext })
+
+ stage = 'condition-filter'
+ for(const status of ['Run & Drive','Starts','Enhanced Vehicles']) {
+  const filtered=await provider.search(new URLSearchParams({site:'1',size:'6',make:'BMW',vehicle_type:'Automobile',status}))
+  assert.ok(filtered.items.every(c=>status==='Enhanced Vehicles'?c.enhanced:c.status===status))
+  console.log('LIVE_CONDITION_OK',{condition:status,items:filtered.items.length,hasNext:filtered.hasNext})
+ }
+ stage = 'sold-archive'
+ const sold=await provider.search(new URLSearchParams({site:'1,2',size:'6',make:'BMW',vehicle_type:'Automobile',archive:'ended'}))
+ assert.ok(sold.items.every(c=>isAuctionClosed(c)&&c.current_bid===undefined&&c.buy_now===undefined))
+ console.log('LIVE_ARCHIVE_OK',{items:sold.items.length,sites:[...new Set(sold.items.map(c=>c.site))]})
+ stage = 'reported-sold-state'
+ const reportedState=await request('/lots',new URLSearchParams({lot_number:'72239476',auction:'copart',ordering:'-sale_date',page:'1',page_size:'10'})) as {items:{status:string;sale_date:string|null;current_bid:number|null;buy_now_price:number|null}[]}
+ console.log('LIVE_REPORTED_STATE',JSON.stringify({lot:'72239476',events:reportedState.items.map(c=>({status:c.status,sale_date:c.sale_date,current_bid:c.current_bid,buy_now_price:c.buy_now_price}))}))
  console.log('LIVE_ADAPTER_OK', { requests })
 } catch (error) {
  // Never print the error object, request headers, body, lot numbers, VINs or credentials.

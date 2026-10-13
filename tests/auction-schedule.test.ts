@@ -36,7 +36,7 @@ test('provider date aliases survive normalization when its primary field is empt
 test('an expired active Eridan schedule cannot claim the vehicle auction has ended', () => {
  const now=Date.parse('2026-10-13T12:00:00Z')
  const past=parseAuctionDate('2026-09-23T14:00:00Z')
- assert.equal(auctionSchedule(past,now,'active').countdown,'Очаква се актуална дата')
+ assert.equal(auctionSchedule(past,now,'active').countdown,'Очаква се резултат')
  assert.equal(auctionSchedule(past,now,'not_sold').state,'unknown')
  assert.equal(auctionSchedule(past,now,'sold').previousDate,true)
  assert.equal(auctionSchedule(null,now,'active').countdown,'Очаква се дата')

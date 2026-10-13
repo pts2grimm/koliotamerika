@@ -1,4 +1,5 @@
 import type { MetadataRoute } from 'next'
+import { auctionProviderName } from '@/lib/auctions'
 import { cms, siteURL } from '@/lib/data'
 import { headers } from 'next/headers'
 import { requestIsIndexable } from '@/lib/indexing-policy'
@@ -9,6 +10,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
  const payload = await cms(); const base = siteURL()
  const redirects = await payload.find({ collection: 'redirects', pagination: false, limit: 0, depth: 0 }); const redirectedPaths = new Set(redirects.docs.map(rule => rule.from))
  const output: MetadataRoute.Sitemap = ['/', '/kontakti', '/targove', '/kalkulator', '/blog'].map(path => ({ url: `${base}${path}`, changeFrequency: 'weekly', priority: path === '/' ? 1 : 0.8 }))
+ if (auctionProviderName() === 'eridan') output.push({ url: base + '/targove/arhiv', changeFrequency: 'daily', priority: 0.5 })
  const publicCars = await payload.count({ collection: 'cars', overrideAccess: false })
  if (publicCars.totalDocs) output.push({ url: base + '/avtomobili', changeFrequency: 'weekly', priority: 0.8 })
  for (const collection of ['pages', 'cars'] as const) {

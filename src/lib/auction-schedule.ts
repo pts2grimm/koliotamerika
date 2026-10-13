@@ -17,6 +17,7 @@ export function parseAuctionDate(value?: string): number | null {
 export function auctionSchedule(timestamp: number | null, now: number, auctionStatus?: string) {
  // An imported historical sale does not prove the lot has no newer auction.
  // is_future_sale is deliberately unused: real upcoming lots also set it to false.
+ if (auctionStatus === 'active' && timestamp !== null && timestamp <= now) return { state: 'unknown', countdown: 'Очаква се резултат', date: dateFormatter.format(timestamp), time: timeFormatter.format(timestamp), previousDate: true } as const
  if (auctionStatus && (auctionStatus !== 'active' || timestamp !== null && timestamp <= now)) {
   return { state: 'unknown', countdown: 'Очаква се актуална дата', date: timestamp === null ? '' : dateFormatter.format(timestamp), time: timestamp === null ? '' : timeFormatter.format(timestamp), previousDate: true } as const
  }
