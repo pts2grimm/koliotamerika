@@ -70,5 +70,17 @@ test('blog SEO, migration URLs, draft protection and timed release', async ({ pa
   await page.goto('/' + slug)
   await expect(page.locator('h1')).toHaveCount(1)
   await expect(page.locator('.article-body h2').first()).toHaveText('Какво означава Clean Title?')
+  const hero = page.locator('.editorial-image img')
+  await expect(hero).toHaveAttribute('alt', /Илюстрация на автомобил/)
+  await expect(hero).toHaveAttribute('src', /clean-title/)
+  await expect.poll(() => hero.evaluate(img => (img as HTMLImageElement).naturalWidth)).toBeGreaterThan(0)
+  await expect(page.locator('.editorial-caption')).toContainText('AI')
+  await expect(page.locator('meta[property="og:image"]')).toHaveAttribute('content', /images\/editorial\/clean-title\.png/)
+  const artworkGraph = (await page.locator('script[type="application/ld+json"]').allTextContents()).map(s => JSON.parse(s)).find(s => s['@graph'])['@graph']
+  expect(artworkGraph[0].image).toEqual([baseURL + '/images/editorial/clean-title.png'])
+  await page.goto('/blog')
+  const featuredImage = page.locator('.journal-featured a[href="/' + slug + '"] img')
+  await expect(featuredImage).toHaveAttribute('src', /clean-title/)
+  await expect.poll(() => featuredImage.evaluate(img => (img as HTMLImageElement).naturalWidth)).toBeGreaterThan(0)
  } finally { await visitor.dispose(); await admin.dispose() }
 })
