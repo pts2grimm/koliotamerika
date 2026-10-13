@@ -41,6 +41,7 @@ createServer((req, res) => {
   const models = p.get('make__name') === 'BMW' ? [{ id: 10, name: 'X5', make_id: 1 }, { id: 11, name: 'X3', make_id: 1 }] : p.get('make__name') === 'Ford' ? [{ id: 20, name: 'Mustang', make_id: 2 }] : p.get('make__name') === 'Honda' ? [{ id: 30, name: 'CBR600RR', make_id: 3 }] : p.get('make__name') === 'POLARIS' ? [{id:80,name:'SPORTSMAN 570',make_id:8}] : p.get('make__name') === 'CF MOTO' ? [{id:90,name:'UFORCE 1000',make_id:9}] : []
   return send({ items: models, count: models.length })
  }
+ if(url.pathname==='/lots'&&p.get('lot_number')==='64492136')return send({items:[{...cars[0],id:9100,lot_number:'64492136',vin:'TST00000064492136',name:'2013 BMW 3 SERIES',sale_date:null,status:'active'}],page:1,page_size:10,has_next:false})
  // A detail-only fixture proves streaming while the upstream lookup is slow.
  if (url.pathname === '/lots' && p.get('lot_number') === '79999001') {
   setTimeout(()=>send({ items: [{ ...cars[0], id: 99999, lot_number: '79999001', name: '2023 BMW X5 streaming fixture' }], page: 1, page_size: 10, has_next: false }), 2000)

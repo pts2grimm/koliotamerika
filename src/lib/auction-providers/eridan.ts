@@ -114,19 +114,15 @@ export function createEridanProvider(request: AuctionTransport): AuctionProvider
    return [type, String(match.value)]
   })) as Record<EridanRoadType, string>
  })().catch(error => { categories = undefined; throw error })
- const findLot = async (lot: string, site: string, active: boolean) => {
+ const findLot = async (lot: string, site: string) => {
   if (!/^\d{5,12}$/.test(lot) || !auctions[site]) throw new Error('Invalid lot')
   // A lot can have multiple sale events. Import time is not the auction date.
-  const params = new URLSearchParams({ lot_number: lot, auction: auctions[site], ordering: '-sale_date', page: '1', page_size: '10' })
-  if (active) params.set('status', 'active')
+  const params = new URLSearchParams({ lot_number: lot, auction: auctions[site], ordering: '-sale_date', page: '1', page_size: '10', status: 'active' })
   const data = lots(await request('/lots', params), 1)
-  return data.items.find(car => car.lot_id === Number(lot) && String(car.site) === site && (!active || car.auction_status === 'active'))
+  return data.items.find(car => car.lot_id === Number(lot) && String(car.site) === site && car.auction_status === 'active')
  }
- const detail = async (lot: string, site: string) => {
-  const current = await findLot(lot, site, true)
-  // Preserve old saved URLs, but retain lifecycle status so history cannot look current.
-  return current || await findLot(lot, site, false)
- }
+ // Never substitute a previous sale when the current active event is absent.
+ const detail = findLot
  return {
   name: 'eridan', detail,
   async search(input) {
@@ -233,18 +229,15 @@ export function createEridanProvider(request: AuctionTransport): AuctionProvider
   async lookup(query) {
    const q = query.trim().toUpperCase()
    if (/^[A-HJ-NPR-Z0-9]{17}$/.test(q)) {
-    for (const active of [true, false]) {
-     const params = new URLSearchParams({ vin: q, ordering: '-sale_date', page: '1', page_size: '10' })
-     if (active) params.set('status', 'active')
-     const data = lots(await request('/lots', params), 1)
-     const car = data.items.find(item => item.vin?.toUpperCase() === q && (!active || item.auction_status === 'active'))
-     if (car) return { lot: String(car.lot_id), site: String(car.site) }
-    }
+    const params = new URLSearchParams({ vin: q, status: 'active', ordering: '-sale_date', page: '1', page_size: '10' })
+    const data = lots(await request('/lots', params), 1)
+    const car = data.items.find(item => item.vin?.toUpperCase() === q && item.auction_status === 'active')
+    if (car) return { lot: String(car.lot_id), site: String(car.site) }
     throw new Error('VIN not found')
    }
    if (!/^\d{5,12}$/.test(q)) throw new Error('Invalid lot')
-   for (const active of [true, false]) for (const site of ['1', '2']) {
-    const car = await findLot(q, site, active)
+   for (const site of ['1', '2']) {
+    const car = await findLot(q, site)
     if (car) return { lot: String(car.lot_id), site }
    }
    throw new Error('Lot not found')

@@ -63,8 +63,8 @@ const cachedSearch=unstable_cache(async(_provider:string,params:string)=>{
  return {data,fetchedAt:Date.now()}
 },['auction-search-v7-active-road-atv-utv'],{revalidate:60})
 const cachedMakes=unstable_cache(async(_provider:string)=>coalesce(JSON.stringify(['makes',_provider]),()=>provider().makes()),['auction-makes-v6-road-atv-utv'],{revalidate:3600})
-const cachedCar=unstable_cache(async(_provider:string,lot:string,site:string)=>coalesce(JSON.stringify(['car',_provider,lot,site]),()=>provider().detail(lot,site)),['auction-car-v4-active-sale'],{revalidate:60})
-const cachedLookup=unstable_cache(async(_provider:string,q:string)=>coalesce(JSON.stringify(['lookup',_provider,q]),()=>provider().lookup(q)),['auction-lookup-v4-active-sale'],{revalidate:60})
+const cachedCar=unstable_cache(async(_provider:string,lot:string,site:string)=>coalesce(JSON.stringify(['car',_provider,lot,site]),()=>provider().detail(lot,site)),['auction-car-v5-active-only'],{revalidate:60})
+const cachedLookup=unstable_cache(async(_provider:string,q:string)=>coalesce(JSON.stringify(['lookup',_provider,q]),()=>provider().lookup(q)),['auction-lookup-v5-active-only'],{revalidate:60})
 export async function searchAuctions(params:string){
  const sorted=new URLSearchParams(params);sorted.sort()
  const name=auctionProviderName()
@@ -85,7 +85,7 @@ export async function auctionModels(make:string) {
 export const auctionCar=cache((lot:string,site:string)=>{
  const name=auctionProviderName()
  const snapshot=name==='eridan'?catalogueSnapshots.get(lot,site):undefined
- return snapshot?Promise.resolve(snapshot):cachedCar(name,lot,site)
+ return snapshot?.auction_status==='active'?Promise.resolve(snapshot):cachedCar(name,lot,site)
 })
 export const lookupAuction=(q:string)=>cachedLookup(auctionProviderName(),q)
 export function auctionImages(car:AuctionCar) {
