@@ -10,7 +10,7 @@ async function main(){
   if(path==='/lots') assert.ok(p.has('sale_date__gte')||p.get('sale_date__isnull')==='true')
   return transport(path,p)
  })
- for(const extra of [{},{seller_type:'insurance'},{seller_type:'dealer'},{status:'Run & Drive',model:'3 SERIES'}]){
+ for(const extra of ([{},{seller_type:'insurance'},{seller_type:'dealer'},{status:'Run & Drive',model:'3 SERIES'}] as Record<string,string>[])){
   const before=calls,started=Date.now()
   const result=await provider.search(new URLSearchParams({make:'BMW',site:'1,2',size:'12',...extra}))
   assert.ok(result.items.length>0)
