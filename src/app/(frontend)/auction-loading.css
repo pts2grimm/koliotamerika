@@ -20,7 +20,19 @@
 .skeleton-detail-photo { width:100%; aspect-ratio:4/3; }
 .skeleton-detail-lines { margin-top:28px; }
 .detail-summary > .loading-indicator { display:flex; margin-top:22px; }
-:root body .model-loading { color:var(--muted); font-size:12px; font-weight:400; }
+/* Replace the select chevron, without adding a row beneath the model field. */
+.model-field { position:relative; }
+:root body .model-field .model-loading { position:absolute; right:16px; bottom:19px; width:14px; height:14px; gap:0; pointer-events:none; color:var(--muted); }
+:root body :is(.finder,.auction-filters) .model-field:has(.model-loading) select { background-image:none; }
+.model-loading-text { position:absolute; width:1px; height:1px; padding:0; overflow:hidden; clip-path:inset(50%); white-space:nowrap; }
+/* Both labels contribute to the same grid cell, so neither state can resize the button. */
+.button.search-submit { transform:none; }
+.search-button-content { display:grid; gap:inherit; }
+.search-button-content > span { grid-area:1 / 1; display:inline-flex; align-items:center; justify-content:center; gap:inherit; }
+.search-button-content .loading-indicator { gap:inherit; }
+.search-button-loading { visibility:hidden; }
+.search-submit:disabled .search-button-idle { visibility:hidden; }
+.search-submit:disabled .search-button-loading { visibility:visible; }
 .model-loading .loading-spinner { width:14px; height:14px; }
 .auction-navigation-status { max-width:calc(100vw - 32px); white-space:normal; }
 :is(.auction-filters,.finder,.lot-search) button[type=submit]:disabled { cursor:wait; opacity:.85; }
