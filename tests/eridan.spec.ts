@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test'
+import { test, expect, type Page } from '@playwright/test'
 
 test.beforeEach(async ({ page }) => {
  await page.route('https://cs.copart.com/test-gallery-*.jpg', route => route.fulfill({ path: 'public/images/hero.png', contentType: 'image/png' }))
@@ -633,6 +633,21 @@ for(const width of [1280,390]){
  })
 }
 
+// Capture DOM mutations before navigation starts. Evaluating the old document
+// from a held document-request callback deadlocks Playwright's navigation context.
+async function observePending(page:Page, selector:string, key:string) {
+ await page.evaluate(({selector,key})=>{
+  sessionStorage.removeItem(key)
+  new MutationObserver(()=>{
+   const region=document.querySelector(selector)
+   const status=region?.querySelector('[role=status]')
+   if(region?.getAttribute('aria-busy')==='true' && status){
+    const control=region.querySelector('button[type=submit],select[name=sort]')
+    sessionStorage.setItem(key,JSON.stringify({text:status.textContent,disabled:control?.hasAttribute('disabled'),busy:'true'}))
+   }
+  }).observe(document.body,{subtree:true,childList:true,attributes:true})
+ },{selector,key})
+}
 for(const width of [1280,390]){
  test('filter submission and model loading show progress at width '+width,async({page})=>{
   await page.setViewportSize({width,height:900})
@@ -648,24 +663,14 @@ for(const width of [1280,390]){
   await expect(form.locator('[name=model]')).toBeDisabled()
   await expect(form.locator('[name=model]')).toBeEnabled()
   await expect(form.locator('.model-loading')).toHaveCount(0)
-  let pendingSnapshot:{text:string|null;disabled:boolean;busy:string|null}|undefined
+  await observePending(page,'.auction-filters','filter-pending')
   await page.route('**/targove?*',async route=>{
-   if(route.request().isNavigationRequest()){
-    // Locators wait for document navigation; sample the still-visible old page
-    // directly while its outgoing request is deliberately held.
-    await new Promise(resolve=>setTimeout(resolve,150))
-    pendingSnapshot=await page.evaluate(()=>{
-     const form=document.querySelector('.auction-filters')!
-     const button=form.querySelector<HTMLButtonElement>('button[type=submit]')!
-     return {text:button.textContent,disabled:button.disabled,busy:form.getAttribute('aria-busy')}
-    })
-    await new Promise(resolve=>setTimeout(resolve,500))
-   }
+   if(route.request().isNavigationRequest())await new Promise(resolve=>setTimeout(resolve,650))
    await route.continue()
   })
   await form.getByRole('button',{name:'Намери автомобил'}).click()
-  expect(pendingSnapshot).toEqual({text:'Търсим…',disabled:true,busy:'true'})
   await expect(page.locator('.auction-card:visible')).toHaveCount(24)
+  expect(await page.evaluate(()=>JSON.parse(sessionStorage.getItem('filter-pending')||'null'))).toEqual({text:'Търсим…',disabled:true,busy:'true'})
   await expect(page.getByRole('status').filter({hasText:'Търсим…'})).toHaveCount(0)
   await page.goBack()
   await expect(page.locator('.auction-card:visible')).toHaveCount(1)
@@ -688,28 +693,21 @@ for(const width of [1280,390]){
 }
 test('sorting and lot lookup report progress then remove it on completion',async({page})=>{
  await page.goto('/targove?make=Ford')
- const snapshots:{text:string|null;disabled:boolean}[]=[]
+ await observePending(page,'.auction-sort','sort-pending')
  await page.route('**/targove?*',async route=>{
-  if(route.request().isNavigationRequest()){
-   await new Promise(resolve=>setTimeout(resolve,150))
-   snapshots.push(await page.evaluate(()=>{
-    const sorting=document.querySelector('.auction-sort[aria-busy=true]')
-    const form=document.querySelector('.lot-search[aria-busy=true]')
-    return {text:(sorting||form)?.querySelector('[role=status]')?.textContent||null,disabled:Boolean((sorting?.querySelector('select')||form?.querySelector('button'))?.hasAttribute('disabled'))}
-   }))
-   await new Promise(resolve=>setTimeout(resolve,500))
-  }
+  if(route.request().isNavigationRequest())await new Promise(resolve=>setTimeout(resolve,650))
   await route.continue()
  })
  await page.getByRole('combobox',{name:'Подреди по'}).selectOption('auction_soon')
  await expect(page).toHaveURL(/sort=auction_soon$/)
- expect(snapshots[0]).toEqual({text:'Подреждаме резултатите…',disabled:true})
  await expect(page.locator('.auction-sort select')).toBeEnabled()
+ expect(await page.evaluate(()=>JSON.parse(sessionStorage.getItem('sort-pending')||'null'))).toEqual({text:'Подреждаме резултатите…',disabled:true,busy:'true'})
+ await observePending(page,'.lot-search','lot-pending')
  const form=page.getByRole('form',{name:'Търсене по номер'})
  await form.locator('[name=q]').fill('70000000')
  await form.getByRole('button',{name:'Намери',exact:true}).click()
  await expect(page).toHaveURL(/targove\/kola\?lot=70000000&site=1/)
- expect(snapshots[1]).toEqual({text:'Търсим…',disabled:true})
  await expect(page.locator('.detail-summary h1')).toContainText('BMW X5')
+ expect(await page.evaluate(()=>JSON.parse(sessionStorage.getItem('lot-pending')||'null'))).toEqual({text:'Търсим…',disabled:true,busy:'true'})
  await expect(page.getByRole('status').filter({hasText:'Търсим…'})).toHaveCount(0)
 })
