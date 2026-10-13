@@ -154,16 +154,105 @@ test('access and rate errors pause later requests, do not retry and never expose
   assert.equal(calls, 2)
  }
 })
-test('transport enforces a per-process budget without automatic retries or secret-bearing network errors', async () => {
- let calls = 0, time = 1000000
- const request = createEridanTransport({ apiKey: 'test-key', now: () => time, fetch: async () => {
+test('normal searches remain available after more than 20 requests in the same minute', async () => {
+ let calls = 0
+ const request = createEridanTransport({ apiKey: 'test-key', now: () => 1000000, fetch: async () => {
   calls++; return { ok: true, status: 200, json: async () => ({}) }
  } })
- for (let i = 0; i < 20; i++) await request('/lots', new URLSearchParams())
- await assert.rejects(() => request('/lots', new URLSearchParams()), /budget/); assert.equal(calls, 20)
- time += 60001; await request('/lots', new URLSearchParams()); assert.equal(calls, 21)
- const fail = createEridanTransport({ apiKey: 'test-key', fetch: async () => { throw new Error('private header content') } })
+ for (let i = 0; i < 40; i++) await request(i % 2 ? '/lots' : '/models', new URLSearchParams())
+ assert.equal(calls, 40)
+})
+
+test('one shared concurrency limit includes directories, searches and response bodies', async () => {
+ let active = 0, peak = 0
+ const request = createEridanTransport({ apiKey: 'test-key', fetch: async () => {
+  active++; peak = Math.max(peak, active)
+  return { ok: true, status: 200, json: async () => {
+   await new Promise(resolve => setTimeout(resolve, 5))
+   active--; return {}
+  } }
+ } })
+ await Promise.all(Array.from({ length: 12 }, (_, i) => request(i % 2 ? '/lots' : '/makes', new URLSearchParams())))
+ assert.equal(peak, 2); assert.equal(active, 0)
+})
+
+test('a temporary gateway error retries once with the identical query and deadline', async () => {
+ for (const status of [502, 503, 504]) {
+  const seen: { url: string; signal: AbortSignal | null | undefined }[] = []
+  let canceled = 0
+  const request = createEridanTransport({ apiKey: 'test-key', fetch: async (url, init) => {
+   seen.push({ url: url.href, signal: init.signal })
+   if (seen.length === 1) return { ok: false, status, json: async () => ({}), body: { cancel: async () => { canceled++ } } }
+   return { ok: true, status: 200, json: async () => ({ recovered: true }) }
+  } })
+  assert.deepEqual(await request('/lots', new URLSearchParams('auction=copart&make__name=BMW')), { recovered: true })
+  assert.equal(seen.length, 2); assert.equal(seen[0].url, seen[1].url)
+  assert.equal(seen[0].signal, seen[1].signal); assert.equal(canceled, 1)
+ }
+})
+
+test('persistent failures have at most one retry and keep secrets out of errors', async () => {
+ for (const status of [503, 422, 500]) {
+  let calls = 0
+  const request = createEridanTransport({ apiKey: 'test-key', fetch: async () => {
+   calls++; return { ok: false, status, json: async () => { throw new Error('private response') } }
+  } })
+  await assert.rejects(() => request('/lots', new URLSearchParams()), new RegExp('^Error: Auction provider HTTP ' + status + '$'))
+  assert.equal(calls, status === 503 ? 2 : 1)
+ }
+ let calls = 0
+ const fail = createEridanTransport({ apiKey: 'test-key', fetch: async () => { calls++; throw new Error('private header content') } })
  await assert.rejects(() => fail('/lots', new URLSearchParams()), error => error instanceof Error && error.message === 'Eridan connection failed')
+ assert.equal(calls, 2)
+})
+
+test('Retry-After seconds and HTTP dates control the real rate-limit pause', async () => {
+ for (const header of ['120', new Date(1120000).toUTCString()]) {
+  let time = 1000000, calls = 0
+  const request = createEridanTransport({ apiKey: 'test-key', now: () => time, fetch: async () => {
+   calls++
+   return calls === 1
+    ? { ok: false, status: 429, headers: { get: () => header }, json: async () => ({}) }
+    : { ok: true, status: 200, json: async () => ({}) }
+  } })
+  await assert.rejects(() => request('/lots', new URLSearchParams()), /HTTP 429/)
+  time += 60001
+  await assert.rejects(() => request('/lots', new URLSearchParams()), /temporarily paused/)
+  assert.equal(calls, 1)
+  time += 60000
+  await request('/lots', new URLSearchParams())
+  assert.equal(calls, 2)
+ }
+})
+
+test('queued requests recheck an upstream pause before contacting Eridan', async () => {
+ let calls = 0
+ const request = createEridanTransport({ apiKey: 'test-key', fetch: async () => {
+  calls++
+  await new Promise(resolve => setTimeout(resolve, 5))
+  return { ok: false, status: 429, json: async () => ({}) }
+ } })
+ const results = await Promise.allSettled(Array.from({ length: 8 }, () => request('/lots', new URLSearchParams())))
+ assert.equal(calls, 2)
+ assert.ok(results.every(result => result.status === 'rejected'))
+})
+
+test('timed out queue entries never fetch later and release capacity for recovery', async () => {
+ let calls = 0, slow = true
+ const request = createEridanTransport({ apiKey: 'test-key', timeoutMs: 30, fetch: async (_, init) => {
+  calls++
+  if (slow) await new Promise((_, reject) => {
+   const timer = setTimeout(() => reject(new Error('test safeguard')), 200)
+   init.signal!.addEventListener('abort', () => { clearTimeout(timer); reject(new Error('private timeout')) }, { once: true })
+  })
+  return { ok: true, status: 200, json: async () => ({}) }
+ } })
+ const results = await Promise.allSettled(Array.from({ length: 5 }, () => request('/lots', new URLSearchParams())))
+ assert.ok(results.every(result => result.status === 'rejected' && /timed out/.test(result.reason.message)))
+ const before = calls
+ slow = false
+ await request('/lots', new URLSearchParams())
+ assert.equal(calls, before + 1)
 })
 
 test('fuel aliases from both auctions merge before pagination, without duplicates, skips or invented totals', async () => {
