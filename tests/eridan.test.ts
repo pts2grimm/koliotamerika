@@ -589,9 +589,9 @@ test('highlight programs remain distinct and enhanced never implies a running en
 })
 
 test('condition and seller filtering scan beyond nonmatching API pages before mixed pagination', async () => {
- const rows=Array.from({length:240},(_,i)=>({...row,id:1000-i,lot_number:String(71000000+i),
-  auction:i%2?'iaai':'copart',highlights:i<200?['ENGINE START PROGRAM']:['RUNS AND DRIVES'],
-  seller:i<200?'Other company':'Example Insurance'}))
+ const rows=Array.from({length:2040},(_,i)=>({...row,id:10000-i,lot_number:String(71000000+i),
+  auction:i%2?'iaai':'copart',highlights:i<2000?['ENGINE START PROGRAM']:['RUNS AND DRIVES'],
+  seller:i<2000?'Other company':'Example Insurance'}))
  const {provider,calls}=fixture((_,p)=>{
   assert.equal(p.get('status'),'active')
   assert.equal(p.has('highlights'),false); assert.equal(p.has('seller'),false)
@@ -807,4 +807,36 @@ test('combined powersports scope never queries cars and merges both auctions bef
  assert.deepEqual(new Set(all.map(c=>c.vehicle_type)),new Set(['Motorcycle','ATVUTV']))
  assert.deepEqual(new Set(all.map(c=>c.site)),new Set([1,2]))
  assert.ok(calls.filter(c=>c.path==='/lots').every(c=>!c.params.has('vehicle_type')))
+})
+
+test('seller selection needs no model when thousands of leading rows have empty sellers',async()=>{
+ const rows=[
+  ...Array.from({length:2500},(_,i)=>({...row,id:10000+i,lot_number:String(94000000+i),seller:''})),
+  ...Array.from({length:70},(_,i)=>({...row,id:1000+i,lot_number:String(93000000+i),seller:'Example Company'})),
+  ...Array.from({length:3500},(_,i)=>({...row,id:20000+i,lot_number:String(95000000+i),auction:'iaai',seller:i%2?'':'   '})),
+ ]
+ const {provider,calls}=fixture((path,p)=>{
+  assert.equal(path,'/lots')
+  assert.equal(p.has('model__name')||p.has('model_ids'),false)
+  assert.equal(p.has('seller_type')||p.has('seller'),false)
+  const items=rows.filter(r=>r.auction===p.get('auction')&&p.get('sale_date__isnull')!=='true').sort((a,b)=>b.id-a.id)
+  const page=Number(p.get('page')),size=Number(p.get('page_size'))
+  return envelope(items.slice((page-1)*size,page*size),page,page*size<items.length,size)
+ })
+ const query={make:'BMW',vehicle_type:'Automobile',site:'1,2',seller_type:'insurance',size:'12'}
+ const found=[]
+ for(let page=1;page<=3;page++){
+  const before=calls.length
+  const result=await provider.search(new URLSearchParams({...query,page:String(page)}))
+  assert.equal(result.items.length,page===3?22:24)
+  assert.equal(result.hasNext,page<3)
+  assert.ok(calls.length-before<=11)
+  found.push(...result.items)
+ }
+ assert.equal(new Set(found.map(c=>c.id)).size,70)
+ assert.ok(found.every(c=>c.seller_type==='insurance'&&c.seller==='Example Company'))
+ const privateCars=await provider.search(new URLSearchParams({...query,seller_type:'dealer'}))
+ assert.equal(privateCars.items.length,24)
+ assert.ok(privateCars.items.every(c=>c.seller_type==='dealer'&&!c.seller))
+ assert.deepEqual(new Set(privateCars.items.map(c=>c.site)),new Set([1,2]))
 })
