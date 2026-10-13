@@ -33,7 +33,7 @@ test('Eridan keeps auction lot identity instead of internal record id; nullable 
  assert.equal(car.id, '1:70000001'); assert.equal(car.lot_id, 70000001)
  assert.equal(car.current_bid, 0); assert.equal(car.make, 'BMW'); assert.equal(car.model, 'X5')
  assert.equal(car.damage_pr, 'Front End'); assert.equal(car.status, 'Run & Drive')
- assert.equal(car.seller_type, undefined); assert.equal(car.odometer_unit, 'unknown')
+ assert.equal(car.seller_type, car.seller ? 'insurance' : 'dealer'); assert.equal(car.odometer_unit, 'unknown')
  assert.equal(normalizeEridanCar({ ...row, auction: 'iaai' })?.id, '2:70000001')
  assert.equal(normalizeEridanCar({ ...row, auction: 'unknown' }), undefined)
  assert.equal(normalizeEridanCar({ ...row, lot_number: undefined }), undefined)
@@ -42,9 +42,9 @@ test('Eridan keeps auction lot identity instead of internal record id; nullable 
  assert.equal(normalizeEridanCar({ ...row, current_bid: -1 })?.current_bid, undefined)
  assert.equal(normalizeEridanCar({ ...row, currency: 'UNKNOWN' })?.current_bid, undefined)
 })
-test('Eridan does not confuse auction status with mechanical condition or infer seller category', () => {
+test('Eridan separates lifecycle and mechanical status from the configured seller convention', () => {
  const car = normalizeEridanCar({ ...row, status: 'sold', highlights: [] })!
- assert.equal(car.status, undefined); assert.equal(car.seller_type, undefined)
+ assert.equal(car.status, undefined); assert.equal(car.seller_type, car.seller ? 'insurance' : 'dealer')
  assert.equal(normalizeEridanCar({ ...row, highlights: ['Engine Start Program'] })?.status, 'Starts')
 })
 test('Eridan only passes HTTPS images without embedded credentials, preserves order and limits image count', () => {
@@ -70,7 +70,7 @@ test('single auction query is scoped, with no unsupported parameters leaked to E
  await assert.rejects(() => provider.search(new URLSearchParams('site=3')), /Invalid auction/)
 })
 test('unsupported conditions/seller categories/cylinder filters fail explicitly before any paid request', async () => {
- for (const [key, value] of [['status', "Can't test"], ['seller_type', 'insurance'], ['cylinders', '6']]) {
+ for (const [key, value] of [['status', "Can't test"], ['seller_type', 'unknown'], ['cylinders', '6']]) {
   const { provider, calls } = fixture()
   await assert.rejects(() => provider.search(new URLSearchParams({ [key]: value })), UnsupportedEridanFilterError)
   assert.equal(calls.length, 0)
@@ -287,10 +287,10 @@ test('hybrid search includes both hybrid labels; electric search does not includ
   return envelope([], Number(params.get('page')), false, Number(params.get('page_size')))
  })
  await provider.search(new URLSearchParams('fuel=Hybrid&vehicle_type=Automobile'))
- assert.deepEqual(calls, ['HYBRID ENGINE', 'ELECTRIC AND GAS HYBRID', 'Hybrid'])
+ assert.deepEqual(calls, ['HYBRID ENGINE', 'HYBRID ENGINE', 'ELECTRIC AND GAS HYBRID', 'ELECTRIC AND GAS HYBRID', 'Hybrid', 'Hybrid'])
  calls.length = 0
  await provider.search(new URLSearchParams('fuel=Electric&vehicle_type=Automobile'))
- assert.deepEqual(calls, ['Electric', 'ELECTRIC VEHICLE'])
+ assert.deepEqual(calls, ['Electric', 'Electric', 'ELECTRIC VEHICLE', 'ELECTRIC VEHICLE'])
 })
 
 
@@ -380,7 +380,7 @@ test('independent catalogue streams overlap with bounded concurrency and preserv
   return envelope([{...row,id,lot_number:String(73000000+id),item_type:motorcycle?'VEHTYPE_M':'VEHTYPE_V',model:{id:1,name:motorcycle?'S 1000':'X5'}}])
  })
  const result=await provider.search(new URLSearchParams('site=1&fuel=Gasoline'))
- assert.equal(peak,2);assert.equal(calls,6);assert.equal(active,0)
+ assert.equal(peak,2);assert.equal(calls,12);assert.equal(active,0)
  assert.deepEqual(result.items.map(car=>car.lot_id),[73000050,73000040])
 })
 test('failed parallel stream rejects the search and stops scheduling remaining streams', async () => {
@@ -442,7 +442,7 @@ test('dense non-road motorcycle rows use one bounded larger page per auction',as
   return envelope(all.slice((page-1)*size,page*size),page,page*size<all.length,size)
  })
  const data=await provider.search(new URLSearchParams('site=1,2&size=12'))
- assert.equal(calls,6)
+ assert.equal(calls,12)
  assert.equal(data.items.length,24)
  assert.deepEqual(data.items.map(c=>c.site),Array.from({length:24},(_,i)=>i%2+1))
  assert.ok(data.items.every(c=>c.model!=='WAVERUNNER'))
@@ -466,8 +466,8 @@ test('fuel choices are auction-scoped and padded aliases do not multiply Copart 
   const data=await provider.search(new URLSearchParams({make:'BMW',model:'3 SERIES',year_from:'2013',fuel:'Gasoline',site}))
   assert.deepEqual(data.items.map(c=>c.site),site.split(',').map(Number))
  }
- assert.equal(calls.filter(c=>c.path==='/lots').length,8)
- assert.equal(calls.length,13)
+ assert.equal(calls.filter(c=>c.path==='/lots').length,16)
+ assert.equal(calls.length,21)
 })
 test('a fuel absent from one auction does not block valid results from the other',async()=>{
  const provider=createEridanProvider(async(path,params)=>{
@@ -492,7 +492,7 @@ test('the user-provided JSON maps sale_date, auction, amounts, nested names and 
  assert.equal(car.odometer, 56683); assert.equal(car.odometer_unit, 'unknown')
  assert.equal(car.damage_pr, 'SIDE'); assert.equal(car.damage_sec, undefined)
  assert.equal(car.document_old, 'SALVAGE CERTIFICATE UT')
- assert.equal(car.seller, undefined); assert.equal(car.seller_type, undefined)
+ assert.equal(car.seller, undefined); assert.equal(car.seller_type, car.seller ? 'insurance' : 'dealer')
  assert.equal(car.vehicle_type, undefined) // VEHTYPE_R is not an allowed road-car category.
  assert.deepEqual(car.link_img_hd, []); assert.deepEqual(car.link_img_small, [userLot.thumb_url])
  const schedule = auctionSchedule(parseAuctionDate(car.auction_date), Date.parse('2026-10-13T12:00:00Z'), car.auction_status)
@@ -565,11 +565,11 @@ test('ATV and UTV share the verified ATV category, while Utility trucks, RVs and
  assert.ok(data.items.every(car=>car.vehicle_type==='ATVUTV'))
  assert.ok(calls.filter(call=>call.path==='/lots').every(call=>call.params.get('item_type')==='VEHTYPE_A'))
 })
-test('seller is preserved when populated, omitted when empty, and never inferred as an insurer', () => {
+test('seller text is preserved and the explicit site category follows trimmed seller presence', () => {
  assert.equal(normalizeEridanCar({...row,seller:'  Example Insurance Company  '})?.seller,'Example Insurance Company')
  assert.equal(normalizeEridanCar({...row,seller:'  '})?.seller,undefined)
  assert.equal(normalizeEridanCar({...row,seller:null})?.seller,undefined)
- assert.equal(normalizeEridanCar({...row,seller:'Example Insurance Company'})?.seller_type,undefined)
+ assert.equal(normalizeEridanCar({...row,seller:'Example Insurance Company'})?.seller_type,'insurance')
 })
 
 test('highlight programs remain distinct and enhanced never implies a running engine', () => {
@@ -658,4 +658,53 @@ test('archive VIN and lot lookup can resolve expired unsold events without mixin
   assert.ok(calls.every(c=>!c.params.has('status')))
   await assert.rejects(()=>provider.lookup(query),/not found/)
  }
+})
+
+test('seller classification treats blanks as private and any populated name as insurance by site convention',()=>{
+ for(const seller of ['', '   ', null, undefined]) {
+  const car=normalizeEridanCar({...row,seller})!
+  assert.equal(car.seller_type,'dealer')
+  assert.equal(car.seller_type_source,'seller_presence')
+  assert.equal(car.seller,undefined)
+ }
+ for(const seller of ['Acme Insurance','Named dealer',' Private seller ']) {
+  const car=normalizeEridanCar({...row,seller})!
+  assert.equal(car.seller_type,'insurance')
+  assert.equal(car.seller_type_source,'seller_presence')
+  assert.equal(car.seller,seller.trim())
+ }
+})
+
+test('server date scopes skip dense expired imports but retain and paginate undated cars from both auctions',async()=>{
+ const data=[
+  ...Array.from({length:650},(_,i)=>({...row,id:10000+i,lot_number:String(88000000+i),sale_date:'2026-09-01T12:00:00Z'})),
+  ...Array.from({length:40},(_,i)=>({...row,id:100+i,lot_number:String(87000000+i),auction:i%2?'iaai':'copart',sale_date:i%3===0?null:row.sale_date,seller:i%2?'Company':' '})),
+ ]
+ const queries:URLSearchParams[]=[]
+ const provider=createEridanProvider(async(path,p)=>{
+  if(path==='/item_types')return [{value:'VEHTYPE_V',label:'Vehicle'},{value:'VEHTYPE_M',label:'Motorcycle'},{value:'VEHTYPE_A',label:'ATV'}]
+  queries.push(new URLSearchParams(p))
+  assert.ok(p.has('sale_date__gte')!==p.has('sale_date__isnull'))
+  assert.equal(p.get('status'),'active')
+  const matches=data.filter(c=>c.auction===p.get('auction')&&c.item_type===p.get('item_type')&&
+   (p.has('sale_date__gte')?c.sale_date&&Date.parse(c.sale_date)>=Date.parse(p.get('sale_date__gte')!):c.sale_date===null)).sort((a,b)=>b.id-a.id)
+  const page=Number(p.get('page')),size=Number(p.get('page_size'))
+  return envelope(matches.slice((page-1)*size,page*size),page,page*size<matches.length,size)
+ })
+ const filter={make:'BMW',site:'1,2',size:'12',vehicle_type:'Automobile'}
+ const first=await provider.search(new URLSearchParams(filter)),second=await provider.search(new URLSearchParams({...filter,page:'2'}))
+ assert.deepEqual([first.items.length,second.items.length],[24,16])
+ assert.deepEqual([first.hasNext,second.hasNext],[true,false])
+ const all=[...first.items,...second.items]
+ assert.equal(new Set(all.map(c=>c.id)).size,40)
+ assert.equal(all.filter(c=>!c.auction_date).length,14)
+ assert.ok(all.every(c=>!c.auction_date||Date.parse(c.auction_date)>Date.now()))
+ assert.equal(queries.length,8)
+ const privateCars=await provider.search(new URLSearchParams({...filter,seller_type:'dealer'}))
+ assert.equal(privateCars.items.length,20)
+ assert.ok(privateCars.items.every(c=>c.seller_type==='dealer'&&!c.seller))
+ const insuranceCars=await provider.search(new URLSearchParams({...filter,seller_type:'insurance'}))
+ assert.equal(insuranceCars.items.length,20)
+ assert.ok(insuranceCars.items.every(c=>c.seller_type==='insurance'&&c.seller==='Company'))
+ assert.ok(queries.every(p=>!p.has('seller_type')))
 })

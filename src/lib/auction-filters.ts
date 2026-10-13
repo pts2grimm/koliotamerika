@@ -4,11 +4,12 @@ export type AuctionQuery = Record<string, string | string[] | undefined>
 export function readAuctionFilters(input: AuctionQuery) {
   const filters: Record<string, string> = {}
   for (const key of auctionFilterKeys) {
-    const value = typeof input[key] === 'string' ? input[key].trim() : ''
+    const raw = Array.isArray(input[key]) ? input[key].at(-1) : input[key]
+    const value = typeof raw === 'string' ? raw.trim() : ''
     if (value && value.length <= 100) filters[key] = value
   }
   if (!filters.make) delete filters.model
-  if (filters.site === '1,2') delete filters.site
+  if (filters.site === '1,2' || filters.site === '2,1') delete filters.site
   return filters
 }
 
@@ -27,7 +28,18 @@ export function auctionFilterLabel(key: string, value: string) {
 
 export function auctionResultsURL(filters: Record<string, string>, page = 1, basePath = '/targove') {
   const params = new URLSearchParams()
-  for (const key of auctionFilterKeys) if (filters[key]) params.set(key, filters[key])
+  const clean = readAuctionFilters(filters)
+  for (const key of auctionFilterKeys) if (clean[key]) params.set(key, clean[key])
   if (page > 1) params.set('pagenum', String(page))
   return params.size ? `${basePath}?${params}` : basePath
+}
+
+// A submission replaces the query: no stale lot search/page, empty values or duplicate keys.
+export function auctionFormURL(data: FormData, basePath = '/targove') {
+  const filters: Record<string, string> = {}
+  for (const key of auctionFilterKeys) {
+    const value = data.getAll(key).at(-1)
+    if (typeof value === 'string') filters[key] = value
+  }
+  return auctionResultsURL(filters, 1, basePath)
 }
