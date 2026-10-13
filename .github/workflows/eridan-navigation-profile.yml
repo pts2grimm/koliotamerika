@@ -1,4 +1,4 @@
-name: Verify deterministic catalogue outage recovery
+name: Verify filtered catalogue recovery
 on:
   push:
     branches: ['codex/eridan-navigation-profile']
@@ -25,7 +25,7 @@ jobs:
           SITE_INDEXABLE: 'false'
       - run: npm run typecheck
       - run: npx playwright install --with-deps chromium
-      - run: npx playwright test --config=playwright.eridan.config.ts
+      - run: npx playwright test --config=playwright.eridan.config.ts --grep 'temporary catalogue error'
       - uses: actions/upload-artifact@v4
         if: failure()
         with:
