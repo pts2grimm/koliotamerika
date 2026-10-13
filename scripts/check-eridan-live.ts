@@ -11,10 +11,22 @@ try {
  const schemaResponse = await fetch('https://catalog.eridan.software/api/openapi.json', { redirect: 'error', signal: AbortSignal.timeout(15000) })
  assert.equal(schemaResponse.status, 200)
  const schema = await schemaResponse.json()
- console.log('LIVE_OPENAPI', { version: schema.info?.version, lotParameters: schema.paths?.['/lots']?.get?.parameters?.map((p: { name?: string }) => p.name) })
+ type Parameter = { name?: string; in?: string; $ref?: string }
+ type Operation = { parameters?: Parameter[]; get?: { parameters?: Parameter[] } }
+ const lotPath = Object.keys(schema.paths || {}).find(path => path.endsWith('/lots') || path.endsWith('/lots/'))
+ assert.ok(lotPath, 'Missing lots operation in OpenAPI')
+ const operation = schema.paths[lotPath] as Operation
+ const parameters = [...(operation.parameters || []), ...(operation.get?.parameters || [])].map(parameter => {
+  if (!parameter.$ref?.startsWith('#/')) return parameter
+  return parameter.$ref.slice(2).split('/').reduce((value, key) => value?.[key], schema) as Parameter
+ })
+ const lotParameters = new Set(parameters.filter(p => p?.in === 'query' && p.name).map(p => p.name!))
+ assert.ok(lotParameters.size > 0, 'Missing documented catalogue query parameters')
+ console.log('LIVE_OPENAPI', { version: schema.info?.version, lotParameters: [...lotParameters] })
  stage = 'directories'
  let requests = 0, activeLots = 0, peakLots = 0, lotRequestMs = 0
  const request = createEridanTransport({ apiKey: process.env.ERIDAN_API_KEY, fetch: async (url, init) => {
+  if (url.pathname.endsWith('/lots')) for (const key of url.searchParams.keys()) assert.ok(lotParameters.has(key), 'Undocumented catalogue query parameter')
   requests++
   const isLotSearch = url.pathname.endsWith('/lots'), started = performance.now()
   if (isLotSearch) { activeLots++; peakLots = Math.max(peakLots, activeLots) }
