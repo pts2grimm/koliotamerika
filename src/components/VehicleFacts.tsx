@@ -17,6 +17,7 @@ export function AuctionFacts({ car }: { car: AuctionCar }) {
  return <Facts title="Информация за автомобила" rows={[
   ['VIN код', car.vin], ['Lot ID', car.lot_id], ['Щат', car.state], ['Местоположение', car.location],
   ['Състояние', car.status ? <DetailTooltip {...statusHint(car.status)} /> : undefined],
+  ['Обозначение на аукциона', car.enhanced ? <DetailTooltip label="Enhanced Vehicles" text="Това обозначение не потвърждава, че автомобилът пали или се движи. Провери техническото състояние отделно." tone="neutral" /> : undefined],
   ['Документ', car.document_old ? <DetailTooltip {...documentHint(car.document_old)} /> : undefined],
   ['Продавач', car.seller], ['Тип продавач', car.seller_type ? <DetailTooltip {...sellerHint(car.seller_type)} /> : undefined],
  ]} />

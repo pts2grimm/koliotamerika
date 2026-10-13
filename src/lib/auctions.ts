@@ -61,9 +61,9 @@ function provider(){const name=auctionProviderName();if(name==='eridan')return c
 const cachedSearch=unstable_cache(async(_provider:string,params:string)=>{
  const data=await coalesce(JSON.stringify(['search',_provider,params]),()=>provider().search(new URLSearchParams(params)))
  return {data,fetchedAt:Date.now()}
-},['auction-search-v7-active-road-atv-utv'],{revalidate:60})
+},['auction-search-v8-highlight-seller-scan'],{revalidate:60})
 const cachedMakes=unstable_cache(async(_provider:string)=>coalesce(JSON.stringify(['makes',_provider]),()=>provider().makes()),['auction-makes-v6-road-atv-utv'],{revalidate:3600})
-const cachedCar=unstable_cache(async(_provider:string,lot:string,site:string)=>coalesce(JSON.stringify(['car',_provider,lot,site]),()=>provider().detail(lot,site)),['auction-car-v5-active-only'],{revalidate:60})
+const cachedCar=unstable_cache(async(_provider:string,lot:string,site:string)=>coalesce(JSON.stringify(['car',_provider,lot,site]),()=>provider().detail(lot,site)),['auction-car-v6-sold-enhanced-buy-now'],{revalidate:60})
 const cachedLookup=unstable_cache(async(_provider:string,q:string)=>coalesce(JSON.stringify(['lookup',_provider,q]),()=>provider().lookup(q)),['auction-lookup-v5-active-only'],{revalidate:60})
 export async function searchAuctions(params:string){
  const sorted=new URLSearchParams(params);sorted.sort()

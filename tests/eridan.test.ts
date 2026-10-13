@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import { createEridanProvider, normalizeEridanCar, UnsupportedEridanFilterError } from '../src/lib/auction-providers/eridan'
+import { createEridanProvider, normalizeEridanCar, UnsupportedEridanFilterError, EridanSearchLimitError } from '../src/lib/auction-providers/eridan'
 import { createEridanTransport } from '../src/lib/auction-providers/eridan-transport'
 import { isEridanRoadModel } from '../src/lib/auction-providers/eridan-scope'
 import userLot from './fixtures/eridan-user-lot.json'
@@ -69,8 +69,8 @@ test('single auction query is scoped, with no unsupported parameters leaked to E
  assert.equal(params.get('auction'), 'iaai'); assert.equal(params.get('page_size'), '13'); assert.equal(params.get('made_up'), null)
  await assert.rejects(() => provider.search(new URLSearchParams('site=3')), /Invalid auction/)
 })
-test('unsupported mechanical/seller/cylinder filters fail explicitly before any paid request', async () => {
- for (const [key, value] of [['status', 'Run & Drive'], ['seller_type', 'insurance'], ['cylinders', '6']]) {
+test('unsupported conditions/seller categories/cylinder filters fail explicitly before any paid request', async () => {
+ for (const [key, value] of [['status', "Can't test"], ['seller_type', 'insurance'], ['cylinders', '6']]) {
   const { provider, calls } = fixture()
   await assert.rejects(() => provider.search(new URLSearchParams({ [key]: value })), UnsupportedEridanFilterError)
   assert.equal(calls.length, 0)
@@ -517,11 +517,12 @@ test('detail prefers the active sale to recently reimported history and never fa
  assert.equal(errors,1)
 })
 
-test('historical-only details are unavailable and never trigger an unfiltered fallback', async () => {
+test('an unsold historical event does not become an available current listing', async () => {
  const {provider,calls}=fixture((_,params)=>envelope(params.get('status')==='active'?[]:[{...row,status:'not_sold',sale_date:'2026-09-23T14:00:00Z'}]))
  assert.equal(await provider.detail('70000001','1'),undefined)
- assert.equal(calls.length,1)
+ assert.equal(calls.length,2)
  assert.equal(calls[0].params.get('status'),'active')
+ assert.equal(calls[1].params.get('status'),null)
  const ignored=fixture(()=>envelope([{...row,status:'not_sold'}]))
  assert.equal(await ignored.provider.detail('70000001','1'),undefined)
 })
@@ -572,4 +573,80 @@ test('seller is preserved when populated, omitted when empty, and never inferred
  assert.equal(normalizeEridanCar({...row,seller:'  '})?.seller,undefined)
  assert.equal(normalizeEridanCar({...row,seller:null})?.seller,undefined)
  assert.equal(normalizeEridanCar({...row,seller:'Example Insurance Company'})?.seller_type,undefined)
+})
+
+test('highlight programs remain distinct and enhanced never implies a running engine', () => {
+ for(const [highlights,expected] of [
+  [['AUTOCHECK','RUNS AND DRIVES','CERT-D','IV'],'Run & Drive'],
+  [['ENGINE START PROGRAM','AUTOCHECK','CERT-S','IV'],'Starts'],
+  [['ENHANCED VEHICLES','CERT-E','IV'],undefined],
+ ] as [string[],string|undefined][]) assert.equal(normalizeEridanCar({...row,highlights})?.status,expected)
+ const enhanced=normalizeEridanCar({...row,highlights:['ENHANCED VEHICLES','RUNS AND DRIVES']})!
+ assert.equal(enhanced.enhanced,true); assert.equal(enhanced.status,'Run & Drive')
+ assert.equal(normalizeEridanCar({...row,highlights:['CERT-E','IV']})?.enhanced,false)
+ for(const buy_now_price of [null,0,-1,'', 'invalid']) assert.equal(normalizeEridanCar({...row,buy_now_price})?.buy_now,undefined)
+ assert.equal(normalizeEridanCar({...row,buy_now_price:12345,currency:'CAD'})?.buy_now,12345)
+ assert.equal(normalizeEridanCar({...row,status:'sold'})?.buy_now,undefined)
+})
+
+test('condition and seller filtering scan beyond nonmatching API pages before mixed pagination', async () => {
+ const rows=Array.from({length:240},(_,i)=>({...row,id:1000-i,lot_number:String(71000000+i),
+  auction:i%2?'iaai':'copart',highlights:i<200?['ENGINE START PROGRAM']:['RUNS AND DRIVES'],
+  seller:i<200?'Other company':'Example Insurance'}))
+ const {provider,calls}=fixture((_,p)=>{
+  assert.equal(p.get('status'),'active')
+  assert.equal(p.has('highlights'),false); assert.equal(p.has('seller'),false)
+  const all=rows.filter(r=>r.auction===p.get('auction'))
+  const page=Number(p.get('page')),size=Number(p.get('page_size'))
+  return envelope(all.slice((page-1)*size,page*size),page,page*size<all.length,size)
+ })
+ const query={site:'1,2',size:'6',make:'BMW',vehicle_type:'Automobile',status:'Run & Drive',seller:'example'}
+ const first=await provider.search(new URLSearchParams(query))
+ const second=await provider.search(new URLSearchParams({...query,page:'2'}))
+ assert.equal(first.items.length,12); assert.equal(first.hasNext,true)
+ assert.equal(second.items.length,12)
+ assert.ok([...first.items,...second.items].every(c=>c.status==='Run & Drive'&&c.seller==='Example Insurance'))
+ assert.equal(new Set([...first.items,...second.items].map(c=>c.id)).size,24)
+ assert.deepEqual(first.items.map(c=>c.site),Array.from({length:12},(_,i)=>i%2+1))
+ assert.ok(calls.some(c=>c.params.get('page')==='2'))
+})
+
+test('enhanced filter is independent of mechanical condition and missing seller never matches', async()=>{
+ const {provider}=fixture(()=>envelope([
+  {...row,id:43,lot_number:'70000002',highlights:['ENHANCED VEHICLES','CERT-E'],seller:''},
+  {...row,id:44,lot_number:'70000003',highlights:['ENGINE START PROGRAM'],seller:'Example'},
+  row]))
+ const enhanced=await provider.search(new URLSearchParams({site:'1',vehicle_type:'Automobile',status:'Enhanced Vehicles'}))
+ assert.deepEqual(enhanced.items.map(c=>c.lot_id),[70000002])
+ assert.equal(enhanced.items[0].status,undefined)
+ const starts=await provider.search(new URLSearchParams({site:'1',vehicle_type:'Automobile',status:'Starts'}))
+ assert.deepEqual(starts.items.map(c=>c.lot_id),[70000003])
+ const combined=await provider.search(new URLSearchParams({site:'1',vehicle_type:'Automobile',status:'Enhanced Vehicles',seller:'Example'}))
+ assert.equal(combined.items.length,0)
+})
+
+test('exhausting the scan budget reports a limit instead of empty or partial results',async()=>{
+ const {provider,calls}=fixture((_,p)=>envelope([{...row,id:Number(p.get('page')),highlights:['ENGINE START PROGRAM']}],Number(p.get('page')),true,100))
+ await assert.rejects(()=>provider.search(new URLSearchParams({site:'1',vehicle_type:'Automobile',status:'Run & Drive'})),EridanSearchLimitError)
+ assert.equal(calls.filter(c=>c.path==='/lots').length,16)
+})
+
+test('sold archive rejects active and unsold rows and suppresses purchase prices',async()=>{
+ const {provider,calls}=fixture(()=>envelope([
+  {...row,id:80,lot_number:'70000080',status:'sold'},row,
+  {...row,id:81,lot_number:'70000081',status:'not_sold'}]))
+ const archive=await provider.search(new URLSearchParams({site:'1',vehicle_type:'Automobile',archive:'sold'}))
+ assert.deepEqual(archive.items.map(c=>c.lot_id),[70000080])
+ assert.equal(archive.items[0].current_bid,undefined); assert.equal(archive.items[0].buy_now,undefined)
+ assert.ok(calls.filter(c=>c.path==='/lots').every(c=>c.params.get('status')==='sold'))
+})
+
+test('saved sold lots have a closed detail while a newer active event takes precedence',async()=>{
+ const sold=fixture((_,p)=>envelope(p.get('status')==='active'?[]:[{...row,status:'sold'}]))
+ assert.equal((await sold.provider.detail('70000001','1'))?.auction_status,'sold')
+ const active=fixture(()=>envelope([row]))
+ assert.equal((await active.provider.detail('70000001','1'))?.auction_status,'active')
+ assert.equal(active.calls.length,1)
+ const unsold=fixture((_,p)=>envelope(p.get('status')==='active'?[]:[{...row,status:'not_sold'},{...row,status:'sold'}]))
+ assert.equal(await unsold.provider.detail('70000001','1'),undefined)
 })

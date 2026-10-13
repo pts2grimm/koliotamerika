@@ -44,9 +44,10 @@ export function normalizeEridanCar(value: unknown): AuctionCar | undefined {
   id: site + ':' + lot, lot_id: lot, site, title: text(raw.name) || [year || '', make, model].filter(Boolean).join(' '),
   make, model, year, vehicle_type: raw.item_type === 'VEHTYPE_V' ? 'Automobile' : raw.item_type === 'VEHTYPE_M' ? 'Motorcycle' : raw.item_type === 'VEHTYPE_A' ? 'ATVUTV' : undefined, vin: text(raw.vin), odometer: number(raw.odometer), odometer_unit: unit,
   currency, current_bid: knownCurrency && active ? number(raw.current_bid) : undefined,
-  buy_now: knownCurrency && active ? number(raw.buy_now_price) : undefined, price_new: knownCurrency ? number(raw.retail_value) : undefined,
+  buy_now: knownCurrency && active && Number(raw.buy_now_price) > 0 ? number(raw.buy_now_price) : undefined, price_new: knownCurrency ? number(raw.retail_value) : undefined,
   location: [text(raw.city), text(raw.state)].filter(Boolean).join(', ') || text(raw.yard),
   state: text(raw.state), auction_date: text(raw.sale_date), auction_status: text(raw.status), status: mechanicalStatus(raw),
+  enhanced: Array.isArray(raw.highlights) && raw.highlights.some(value => typeof value === 'string' && /^enhanced vehicles$/i.test(value.trim())),
   damage_pr: name(raw.primary_damage), damage_sec: name(raw.secondary_damage),
   document_old: [text(raw.title_type), text(raw.title_state)].filter(Boolean).join(' ') || undefined,
   fuel: Object.entries(fuelGroups).find(([, names]) => names.includes(text(raw.fuel)?.toLowerCase() || ''))?.[0] || text(raw.fuel), transmission: text(raw.transmission), engine: text(raw.engine), drive: text(raw.drive),
@@ -58,8 +59,14 @@ export class UnsupportedEridanFilterError extends Error {
  constructor(readonly filters: string[]) { super('Eridan does not document these filters: ' + filters.join(', ')) }
 }
 export function unsupportedEridanFilters(input: URLSearchParams) {
- // These cannot be reproduced by filtering just one result page: that loses matching cars and breaks pagination.
- return ['status', 'seller_type', 'cylinders'].filter(key => Boolean(input.get(key)?.trim()))
+ // Seller classification is absent. Mechanical highlights are scanned across API pages below.
+ const unsupported = ['seller_type', 'cylinders'].filter(key => Boolean(input.get(key)?.trim()))
+ const condition = input.get('status')?.trim()
+ if (condition && !['Run & Drive', 'Starts', 'Stationary', 'Enhanced Vehicles'].includes(condition)) unsupported.push('status')
+ return unsupported
+}
+export class EridanSearchLimitError extends Error {
+ constructor() { super('Eridan search scan limit reached; narrow the filters') }
 }
 function lots(raw: unknown, expectedPage: number) {
  const data = record(raw)
@@ -121,18 +128,31 @@ export function createEridanProvider(request: AuctionTransport): AuctionProvider
   const data = lots(await request('/lots', params), 1)
   return data.items.find(car => car.lot_id === Number(lot) && String(car.site) === site && car.auction_status === 'active')
  }
- // Never substitute a previous sale when the current active event is absent.
- const detail = findLot
+ // Active sales always win. Only old direct links may resolve a sold event;
+ // historical unsold records never become an available current listing.
+ const detail = async (lot: string, site: string) => {
+  const active = await findLot(lot, site)
+  if (active) return active
+  const params = new URLSearchParams({lot_number: lot, auction: auctions[site], ordering: '-sale_date', page: '1', page_size: '10'})
+  const data = lots(await request('/lots', params), 1)
+  const latest = data.items.find(car => car.lot_id === Number(lot) && String(car.site) === site)
+  return latest?.auction_status === 'sold' ? latest : undefined
+ }
  return {
   name: 'eridan', detail,
   async search(input) {
    const unsupported = unsupportedEridanFilters(input)
    if (unsupported.length) throw new UnsupportedEridanFilterError(unsupported)
    const valid = validSearchParams(input)
+   const lifecycle = input.get('archive') === 'sold' ? 'sold' : 'active'
+   const condition = valid.get('status'), seller = input.get('seller')?.trim().toLowerCase()
+   if (seller && (seller.length < 2 || seller.length > 100)) throw new UnsupportedEridanFilterError(['seller'])
+   const needsScan = Boolean(condition || seller)
+   const scanDeadline = Date.now() + 12000
    const sites = [...new Set((input.get('site') || '1').split(','))]
    if (!sites.length || sites.some(site => !auctions[site])) throw new Error('Invalid auction')
    const page = Number(valid.get('page')), size = Number(valid.get('size')) * sites.length
-   const params = new URLSearchParams({ page: String(page), page_size: String(size), ordering: '-id', status: 'active' })
+   const params = new URLSearchParams({ page: String(page), page_size: String(size), ordering: '-id', status: lifecycle })
    for (const [from, to] of [['make', 'make__name'], ['model', 'model__name'], ['year_from', 'year_from'], ['year_to', 'year_to']]) {
     const value = valid.get(from); if (value) params.set(to, value)
    }
@@ -156,7 +176,7 @@ export function createEridanProvider(request: AuctionTransport): AuctionProvider
     if (![...fuelsBySite.values()].some(fuels => fuels.length)) throw new UnsupportedEridanFilterError(['fuel'])
    }
    const needed = page * size + 1
-   if (needed > 10000) throw new Error('Eridan search window exceeded; narrow the filters')
+   if (needed > 10000) throw new EridanSearchLimitError()
    const merged = new Map<string, { car: AuctionCar; order: number }>()
    let calls = 0
    const make = valid.get('make')
@@ -166,7 +186,7 @@ export function createEridanProvider(request: AuctionTransport): AuctionProvider
      const seen = new Set<number>()
      let streamPage = 1
      while (stream.size < needed) {
-      if (++calls > 16) throw new Error('Eridan search request budget reached; narrow the filters')
+      if (++calls > 16 || needsScan && Date.now() > scanDeadline) throw new EridanSearchLimitError()
       const query = new URLSearchParams(params)
       query.set('auction', auctions[site])
       query.set('item_type', codes[type])
@@ -176,7 +196,7 @@ export function createEridanProvider(request: AuctionTransport): AuctionProvider
       query.set('page', String(streamPage))
       // Motorcycle feeds include misclassified marine/utility rows. Read a bounded
       // larger page to avoid spending multiple requests to fill a small UI page.
-      query.set('page_size', String(type === 'Motorcycle' && !make ? Math.max(100, needed) : needed))
+      query.set('page_size', String(needsScan || type === 'Motorcycle' && !make ? Math.max(100, needed) : needed))
       const response = record(await request('/lots', query))
       const data = lots(response, streamPage)
       const rawItems = response.items as unknown[]
@@ -186,7 +206,10 @@ export function createEridanProvider(request: AuctionTransport): AuctionProvider
        if (order === undefined) throw new Error('Invalid Eridan sort identity')
        seen.add(order)
        // Defend against misclassified upstream rows; fill the stream before slicing.
-       if (car.auction_status !== 'active' || String(car.site) !== site || raw.item_type !== codes[type] || !isEridanRoadMake(car.make, type) || !isEridanRoadModel(car.model, car.make) || !car.link_img_hd?.length) continue
+       if (car.auction_status !== lifecycle || String(car.site) !== site || raw.item_type !== codes[type] || !isEridanRoadMake(car.make, type) || !isEridanRoadModel(car.model, car.make) || !car.link_img_hd?.length) continue
+       // Filter before filling/paginating the stream, not after slicing one API page.
+       if (condition === 'Enhanced Vehicles' ? !car.enhanced : condition && car.status !== condition) continue
+       if (seller && !car.seller?.toLowerCase().includes(seller)) continue
        if (!stream.has(car.id) || stream.get(car.id)!.order < order) stream.set(car.id, { car, order })
       }
       if (!data.hasNext) break

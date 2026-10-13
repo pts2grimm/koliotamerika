@@ -1,4 +1,4 @@
-export const auctionFilterKeys = ['make', 'model', 'year_from', 'year_to', 'status', 'site', 'fuel', 'seller_type', 'vehicle_type'] as const
+export const auctionFilterKeys = ['make', 'model', 'year_from', 'year_to', 'status', 'site', 'fuel', 'seller_type', 'seller', 'vehicle_type'] as const
 export type AuctionQuery = Record<string, string | string[] | undefined>
 
 export function readAuctionFilters(input: AuctionQuery) {
@@ -17,7 +17,7 @@ export function auctionFilterLabel(key: string, value: string) {
     vehicle_type: { Automobile: 'Автомобили', Motorcycle: 'Мотоциклети', ATVUTV: 'ATV и UTV' },
     site: { '1': 'Copart', '2': 'IAAI' },
     fuel: { Gasoline: 'Бензин', Diesel: 'Дизел', Hybrid: 'Хибрид', Electric: 'Електрически' },
-    status: { 'Run & Drive': 'Движи се', Starts: 'Запалва', Stationary: 'Не се движи', "Can't test": 'Не е тестван' },
+    status: { 'Run & Drive': 'Движи се', Starts: 'Запалва', Stationary: 'Не се движи', 'Enhanced Vehicles': 'Enhanced Vehicles', "Can't test": 'Не е тестван' },
     seller_type: { insurance: 'Застраховател', dealer: 'Частно лице' },
   }
   if (key === 'year_from') return `От ${value} г.`
@@ -25,9 +25,9 @@ export function auctionFilterLabel(key: string, value: string) {
   return labels[key]?.[value] || value
 }
 
-export function auctionResultsURL(filters: Record<string, string>, page = 1) {
+export function auctionResultsURL(filters: Record<string, string>, page = 1, basePath = '/targove') {
   const params = new URLSearchParams()
   for (const key of auctionFilterKeys) if (filters[key]) params.set(key, filters[key])
   if (page > 1) params.set('pagenum', String(page))
-  return params.size ? `/targove?${params}` : '/targove'
+  return params.size ? `${basePath}?${params}` : basePath
 }
