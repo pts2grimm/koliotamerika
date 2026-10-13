@@ -1,3 +1,4 @@
+import { sectionFilters } from '@/lib/auction-sections'
 import type { Metadata } from 'next'
 import { AuctionCatalogue } from '@/components/AuctionCatalogue'
 import { isPreview } from '@/lib/preview'
@@ -6,7 +7,7 @@ import { auctionResultsURL, readAuctionFilters, type AuctionQuery } from '@/lib/
 type Props = { searchParams: Promise<AuctionQuery> }
 export async function generateMetadata({searchParams}: Props): Promise<Metadata> {
  const input = await searchParams
- const filters = readAuctionFilters(input)
+ const filters = sectionFilters(input,'cars')
  const page = Math.max(1, Math.min(10000, Math.floor(Number(input.pagenum) || 1)))
  const indexable = !isPreview() && process.env.SITE_INDEXABLE === 'true'
  return {

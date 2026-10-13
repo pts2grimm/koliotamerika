@@ -43,3 +43,11 @@ export function isEridanRoadModel(model: string, make = '') {
   !/^(?:unknown|unk|other|n\/a|none|not specified|[?*.-]+)$/i.test(value) &&
   !/\b(?:boat|marine|outboard|waverunner|wave runner|jet ski|jetski|seadoo|sea doo|snowmobile|mower|tractor|trailer|forklift|excavator)\b/i.test(value)
 }
+
+// Powersports is a catalogue scope, not an upstream item_type.
+export const eridanFilterTypes = [...eridanRoadTypes, 'Powersports']
+export function eridanTypesForFilter(value?: string): EridanRoadType[] {
+ if (!value) return eridanRoadTypes
+ if (value === 'Powersports') return ['Motorcycle', 'ATVUTV']
+ return eridanRoadTypes.includes(value as EridanRoadType) ? [value as EridanRoadType] : []
+}
