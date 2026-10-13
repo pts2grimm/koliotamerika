@@ -45,7 +45,7 @@ const roots: Record<string, string[]> = {
  SUZUKI: ['GRAND VITARA','VITARA','SX4','KIZASHI','AERIO','FORENZA','RENO','XL7','XL-7'],
  SAAB: ['9-3','9-5','9-7X','9-4X'], HUMMER: ['H1','H2','H3','H3T'],
 }
-const normalize = (v:string) => v.trim().toUpperCase().replace(/[._-]+/g,' ').replace(/\s+/g,' ')
+const normalize = (v:string) => v.trim().toUpperCase().replace(/[._/()-]+/g,' ').replace(/\s+/g,' ')
 const compact = (v:string) => normalize(v).replace(/[^A-Z0-9]/g,'')
 function rootMatch(value:string, root:string) {
  const a=normalize(value),b=normalize(root)
@@ -58,6 +58,7 @@ export function modelFamily(make:string, model:string):string {
   value=value.replace(/^BMW /,'')
   const sport=value.match(/^(?:[1-8] SERIES )?(M[2-8])(?=$|\s)/)
   if(sport)return sport[1]
+  if(/^[1-8]$/.test(value))return value+' SERIES'
   const series=value.match(/^([1-8]) SERIES\b/) || value.match(/^ACTIVEHYBRID ([1-8])\b/) || value.match(/^M?([1-8])\d{2}(?=$|[A-Z\s])/)
   if(series)return series[1]+' SERIES'
   const suv=value.match(/^(X[1-7]|Z[1348]|I[34578]|IX|XM)(?=$|\s)/)
@@ -93,11 +94,16 @@ export function modelFamily(make:string, model:string):string {
   }
   if(/^(?:RS |S )?E TRON/.test(value))return /GT/.test(value)?'E-TRON GT':'E-TRON'
  }
+ if(brand==='PORSCHE')value=value.replace(/^CAYENNEGTS\b/,'CAYENNE GTS').replace(/^PANAMERA4S\b/,'PANAMERA 4S')
  if(brand==='VOLKSWAGEN'){
+  if(/^ATLAS CROS(?:S)?(?=$|\s)/.test(value))return 'ATLAS CROSS SPORT'
   if(/^(?:E GOLF|GTI|R32|CITY GOLF|GOLF)\b/.test(value))return 'GOLF'
   if(/^NEW BEETLE\b/.test(value))value=value.replace(/^NEW /,'')
  }
  if(brand==='TOYOTA'){
+  if(/^COROLLA (?:CR|CRS)(?=$|\s)/.test(value))return 'COROLLA CROSS'
+  if(/^CAMRY SOL(?:A)?(?=$|\s)/.test(value))return 'CAMRY SOLARA'
+  if(/^GRAND HIGH(?=$|\s)/.test(value))return 'GRAND HIGHLANDER'
   value=value.replace(/^RAV[ -]?4\b/,'RAV4').replace(/^4 RUNNER\b/,'4RUNNER').replace(/^GR86\b/,'GR 86')
   if(/^LAND ?CRUIS(?:ER|R)?\b/.test(value))value=value.replace(/^LAND ?CRUIS(?:ER|R)?\b/,'LAND CRUISER')
  }
