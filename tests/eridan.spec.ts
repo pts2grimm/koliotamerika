@@ -394,14 +394,14 @@ test('sold archive stays separate, retains filters and opens a closed listing wi
  await expect(page.getByRole('link',{name:/Запитване за този автомобил/})).toHaveCount(0)
  await expect(page.locator('.auction-schedule')).toHaveCount(0)
  await expect(page.getByRole('button',{name:'Премахване на обявата',exact:true})).toBeDisabled()
- await expect(page.locator('.vehicle-facts')).toContainText('TST00000086000001')
+ await expect(page.locator('.vehicle-facts').filter({hasText:'Информация за автомобила'})).toContainText('TST00000086000001')
  const calls=(await (await request.get('http://127.0.0.1:3199/test-requests')).json()).requests
  expect(calls.some((r:{params:Record<string,string>})=>Boolean(r.params.sale_date__lte)&&!r.params.status)).toBe(true)
 })
 
 test('archive VIN search opens a sold listing and keeps the active search separate',async({page})=>{
  await page.goto('/targove/arhiv?q=TST00000086000001')
- await expect(page).toHaveURL(/targove\\/kola\\?lot=86000001&site=1/)
+ await expect(page).toHaveURL('http://localhost:3100/targove/kola?lot=86000001&site=1')
  await expect(page.getByRole('status').filter({hasText:/^Продаден$/})).toBeVisible()
  await page.goto('/targove?q=TST00000086000001')
  await expect(page.locator('.lot-search')).toBeVisible()
