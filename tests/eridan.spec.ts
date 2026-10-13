@@ -267,3 +267,29 @@ test('a temporary catalogue error can recover with the same filters using the re
  expect(await page.locator('.auction-card .car-badge').allTextContents()).toEqual(Array(10).fill('IAAI'))
  await expect(page.locator('.empty-state')).toHaveCount(0)
 })
+
+test('a single upstream 503 recovers on the first navigation without a browser refresh', async ({ page, request }) => {
+ await request.post('http://127.0.0.1:3199/test-transient-search')
+ const before = (await (await request.get('http://127.0.0.1:3199/test-requests')).json()).requests.length
+ await page.goto('/targove?make=BMW&model=X5&site=1&year_from=2018&year_to=2023')
+ await expect(page.locator('.auction-card')).toHaveCount(10)
+ await expect(page.locator('.empty-state')).toHaveCount(0)
+ const calls = (await (await request.get('http://127.0.0.1:3199/test-requests')).json()).requests.slice(before)
+ const retried = calls.filter((call: {path: string; params: Record<string,string>}) => call.path === '/lots' && call.params.year_from === '2018' && call.params.item_type === 'VEHTYPE_V')
+ expect(retried).toHaveLength(2)
+ expect(retried[0].params).toEqual(retried[1].params)
+})
+
+test('successive uncached searches keep both auctions available past the former shared budget', async ({ page, request }) => {
+ test.setTimeout(90000)
+ const before = (await (await request.get('http://127.0.0.1:3199/test-requests')).json()).requests.length
+ for (let year = 1990; year < 2002; year++) {
+  await page.goto('/targove?make=BMW&model=X5&year_from=' + year)
+  await expect(page.locator('.auction-card')).toHaveCount(24)
+  const badges = await page.locator('.auction-card .car-badge').allTextContents()
+  expect(badges.filter(text => text === 'COPART')).toHaveLength(12)
+  expect(badges.filter(text => text === 'IAAI')).toHaveLength(12)
+ }
+ const after = (await (await request.get('http://127.0.0.1:3199/test-requests')).json()).requests.length
+ expect(after - before).toBeGreaterThan(20)
+})

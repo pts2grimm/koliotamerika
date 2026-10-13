@@ -48,7 +48,7 @@ const eridanRequest:AuctionTransport=async(path,params)=>{
  }catch(error){
   // Log only known operational categories, never response bodies, keys, VINs or query values.
   const message=error instanceof Error?error.message:''
-  const reason=message==='Eridan local request budget reached'?'local_budget':
+  const reason=message==='Eridan request timed out'?'timeout':
    message==='Eridan connection failed'?'connection':
    message==='Eridan is temporarily paused after an access or rate limit error'?'paused':
    /^Auction provider HTTP \d{3}$/.test(message)?message.replace('Auction provider HTTP ','http_'):'invalid_response'
