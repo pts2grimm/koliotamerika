@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import { auctionFormURL, auctionResultsURL, readAuctionFilters } from '../src/lib/auction-filters'
+import { auctionFormURL, auctionResultsURL, readAuctionFilters, auctionFilterLabel } from '../src/lib/auction-filters'
 test('filter submission preserves literal values once and removes empty fields, defaults and stale page/search',()=>{
  const data=new FormData()
  for(const [key,value] of Object.entries({make:'BMW',model:'3 SERIES',year_from:'',year_to:'',site:'1,2',status:'Run & Drive',fuel:'',seller:'',seller_type:'insurance',pagenum:'8',q:'57397516'}))data.append(key,value)
@@ -28,4 +28,16 @@ test('sort survives filters and pagination, resets the page on change and reject
  for(const [key,value] of Object.entries({...filters,sort:'year_desc',pagenum:'3'}))form.append(key,value)
  assert.equal(auctionFormURL(form),'/targove?make=BMW&sort=year_desc')
  assert.equal(auctionResultsURL({make:'BMW',sort:'unknown'}),'/targove?make=BMW')
+})
+
+test('cylinders replace duplicated values, survive sorting/pagination and can be cleared',()=>{
+ const form=new FormData()
+ form.append('cylinders','4');form.append('cylinders','6');form.append('make','BMW');form.append('sort','auction_soon')
+ assert.equal(auctionFormURL(form),'/targove?make=BMW&cylinders=6&sort=auction_soon')
+ assert.equal(auctionResultsURL(readAuctionFilters({cylinders:['4',' 6 '],sort:'year_desc'}),2,'/targove/motori-atv/arhiv'),'/targove/motori-atv/arhiv?cylinders=6&sort=year_desc&pagenum=2')
+ assert.equal(auctionFilterLabel('cylinders','6'),'6 цилиндъра')
+ assert.equal(auctionFilterLabel('cylinders','1'),'1 цилиндър')
+ for(const cylinders of ['', '0','17','six','6.5','6e0'])assert.deepEqual(readAuctionFilters({cylinders}),{})
+ form.set('cylinders','')
+ assert.equal(auctionFormURL(form),'/targove?make=BMW&sort=auction_soon')
 })

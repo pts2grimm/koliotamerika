@@ -1,6 +1,7 @@
 'use client'
 
 import { SiteLink as Link } from '@/components/SiteLink'
+import { cylinderOptions } from '@/lib/auction-cylinders'
 import { useState } from 'react'
 import { useDocumentNavigation } from '@/lib/use-document-navigation'
 import { LoadingIndicator } from './LoadingIndicator'
@@ -21,7 +22,7 @@ export function AuctionFilters({ makes, initial, modelsOnDemand = false, unavail
   const years = Array.from({ length: latestYear - 1900 + 1 }, (_, index) => String(latestYear - index))
   const [yearFrom, setYearFrom] = useState(initial.year_from || '')
   const [yearTo, setYearTo] = useState(initial.year_to || '')
-  const advancedCount = ['status', 'fuel', 'seller_type', 'seller'].filter(key => initial[key]).length + (initial.site && initial.site !== '1,2' ? 1 : 0)
+  const advancedCount = ['status', 'fuel', 'seller_type', 'seller', 'cylinders'].filter(key => initial[key]).length + (initial.site && initial.site !== '1,2' ? 1 : 0)
 
   return <FilterPanel hint={section === 'powersports' ? 'Открий мотор или ATV' : undefined} count={Object.keys(initial).filter(key => key !== 'sort').length}><form key={resetCount} className="auction-filters" aria-busy={pending} action={basePath} onSubmit={event => {
     event.preventDefault()
@@ -37,11 +38,12 @@ export function AuctionFilters({ makes, initial, modelsOnDemand = false, unavail
       <label className="filter-year"><span>Година до</span><select aria-label="Година до" name="year_to" value={yearTo} onChange={event => setYearTo(event.target.value)}><option value="">Всички</option>{years.map(year => <option key={year} value={year} disabled={Boolean(yearFrom) && Number(year) < Number(yearFrom)}>{year}</option>)}</select></label>
     </div>
     <details className="filter-advanced" open={advancedCount > 0 ? true : undefined}>
-      <summary><span><strong>Още филтри{advancedCount > 0 && <span className="filter-count">{advancedCount}</span>}</strong><small>Аукцион, състояние, гориво и продавач</small></span><ChevronDown size={18} /></summary>
+      <summary><span><strong>Още филтри{advancedCount > 0 && <span className="filter-count">{advancedCount}</span>}</strong><small>{eridan ? 'Аукцион, състояние, гориво, цилиндри и продавач' : 'Аукцион, състояние, гориво и продавач'}</small></span><ChevronDown size={18} /></summary>
       <div className="filter-secondary">
         <label>Аукцион<select aria-label="Аукцион" name="site" defaultValue={initial.site || '1,2'}><option value="1,2">Copart и IAAI</option><option value="1">Copart</option><option value="2">IAAI</option></select></label>
         <label>Състояние<select disabled={unavailableFilters.includes('status')} aria-describedby={unavailableFilters.includes('status') ? 'auction-filter-availability' : undefined} name="status" defaultValue={initial.status || ''}><option value="">Всички</option><option value="Run & Drive">Движи се (Run & Drive)</option><option value="Starts">Запалва (Starts)</option><option value="Stationary">Не се движи (Stationary)</option>{eridan ? <option value="Enhanced Vehicles">Enhanced Vehicles</option> : <option value="Can't test">Не е тестван</option>}</select></label>
         <label>Гориво<select name="fuel" defaultValue={initial.fuel || ''}><option value="">Всички</option><option value="Gasoline">Бензин</option><option value="Diesel">Дизел</option><option value="Hybrid">Хибрид</option><option value="Electric">Електрически</option></select></label>
+        {eridan && <label>Цилиндри<select name="cylinders" defaultValue={initial.cylinders || ''}><option value="">Всички</option>{cylinderOptions.map(value => <option key={value} value={value}>{value}</option>)}</select></label>}
         <label>Продавач<select disabled={unavailableFilters.includes('seller_type')} name="seller_type" defaultValue={initial.seller_type || ''}><option value="">Всички</option><option value="insurance">Застраховател</option><option value="dealer">Частно лице</option></select></label>
 
       </div>
