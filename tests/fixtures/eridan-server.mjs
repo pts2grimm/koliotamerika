@@ -18,12 +18,12 @@ cars.push({ ...cars[0], id: 5000, vin: 'SEA00000000000001', lot_number: '8300000
 cars.push({ ...cars[0], id: 6000, vin: 'WBA00000000000099', lot_number: '84000000', images: [], name: '2022 BMW X5 incomplete gallery' })
 // Backfilled historical sale has a newer ingestion ID than the active event.
 cars.push({ ...cars[0], id: 9000, status: 'not_sold', sale_date: '2026-09-23T14:00:00Z', current_bid: 9000 })
-cars.push({ ...cars[0], id: 9001, lot_number: '57397516', name: '2020 PORSCHE MACAN S', make: {id:7,name:'PORSCHE'}, model: {id:70,name:'MACAN'}, status:'not_sold', sale_date:'2026-09-23T14:00:00Z', current_bid:5400 })
-cars.push({ ...cars[0], id:8501, lot_number:'85000001', item_type:'VEHTYPE_A', make:{id:8,name:'POLARIS'}, model:{id:80,name:'SPORTSMAN 570',make_id:8}, name:'2022 Polaris Sportsman 570', seller:'Example ATV Seller' })
-cars.push({ ...cars[0], id:8502, lot_number:'85000002', auction:'iaai', item_type:'VEHTYPE_A', make:{id:9,name:'CF MOTO'}, model:{id:90,name:'UFORCE 1000',make_id:9}, name:'2022 CF MOTO UFORCE 1000', seller:'' })
-cars.push({ ...cars[0], id:8503, lot_number:'85000003', item_type:'VEHTYPE_U', make:{id:10,name:'FREIGHTLINER'}, model:{id:100,name:'CASCADIA',make_id:10}, name:'Freightliner Cascadia truck' })
-cars.push({ ...cars[0], id:8504, lot_number:'85000004', item_type:'VEHTYPE_S', make:{id:8,name:'POLARIS'}, model:{id:81,name:'RMK',make_id:8}, name:'Polaris RMK snowmobile' })
-cars.push({ ...cars[0], id:8505, lot_number:'85000005', item_type:'VEHTYPE_R', make:{id:2,name:'Ford'}, model:{id:21,name:'F550',make_id:2}, name:'Four Winds RV' })
+cars.push({ ...cars[0], id: 9001, lot_number: '57397516', vin: 'TST00000057397516', name: '2020 PORSCHE MACAN S', make: {id:7,name:'PORSCHE'}, model: {id:70,name:'MACAN'}, status:'not_sold', sale_date:'2026-09-23T14:00:00Z', current_bid:5400 })
+cars.push({ ...cars[0], id:8501, lot_number: '85000001', vin: 'TST00000085000001', item_type:'VEHTYPE_A', make:{id:8,name:'POLARIS'}, model:{id:80,name:'SPORTSMAN 570',make_id:8}, name:'2022 Polaris Sportsman 570', seller:'Example ATV Seller' })
+cars.push({ ...cars[0], id:8502, lot_number: '85000002', vin: 'TST00000085000002', auction:'iaai', item_type:'VEHTYPE_A', make:{id:9,name:'CF MOTO'}, model:{id:90,name:'UFORCE 1000',make_id:9}, name:'2022 CF MOTO UFORCE 1000', seller:'' })
+cars.push({ ...cars[0], id:8503, lot_number: '85000003', vin: 'TST00000085000003', item_type:'VEHTYPE_U', make:{id:10,name:'FREIGHTLINER'}, model:{id:100,name:'CASCADIA',make_id:10}, name:'Freightliner Cascadia truck' })
+cars.push({ ...cars[0], id:8504, lot_number: '85000004', vin: 'TST00000085000004', item_type:'VEHTYPE_S', make:{id:8,name:'POLARIS'}, model:{id:81,name:'RMK',make_id:8}, name:'Polaris RMK snowmobile' })
+cars.push({ ...cars[0], id:8505, lot_number: '85000005', vin: 'TST00000085000005', item_type:'VEHTYPE_R', make:{id:2,name:'Ford'}, model:{id:21,name:'F550',make_id:2}, name:'Four Winds RV' })
 let searchOutage = false, transientSearchFailures = 0
 createServer((req, res) => {
  const url = new URL(req.url, 'http://127.0.0.1'), p = url.searchParams
@@ -65,7 +65,7 @@ createServer((req, res) => {
   (!p.get('year_from') || car.year >= Number(p.get('year_from'))) &&
   (!p.get('year_to') || car.year <= Number(p.get('year_to')))
  )
- items.sort((a, b) => b.id - a.id)
+ items.sort((a, b) => p.get('ordering') === '-sale_date' ? Date.parse(b.sale_date) - Date.parse(a.sale_date) || b.id - a.id : b.id - a.id)
  const page = Number(p.get('page') || 1), size = Number(p.get('page_size') || 24)
  send({ items: items.slice((page - 1) * size, page * size), page, page_size: size, has_next: page * size < items.length })
 }).listen(3199, '127.0.0.1')
