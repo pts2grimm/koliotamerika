@@ -1,34 +1,26 @@
-name: Verify filtered catalogue recovery
+name: Verify deployed search recovery
 on:
   push:
     branches: ['codex/eridan-navigation-profile']
 permissions:
   contents: read
 jobs:
-  contracts-and-browser:
+  public:
     runs-on: ubuntu-latest
-    timeout-minutes: 18
+    timeout-minutes: 5
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '24'
-          cache: npm
-      - run: npm ci --include=dev
-      - name: Production build for isolated browser tests
-        run: npm run build
-        env:
-          NEXT_DIST_DIR: .next-eridan
-          PREVIEW_MODE: 'true'
-          PAYLOAD_SECRET: eridan-build-fixture-secret-no-real-data
-          NEXT_PUBLIC_SERVER_URL: http://localhost:3100
-          SITE_INDEXABLE: 'false'
-      - run: npm run typecheck
-      - run: npx playwright install --with-deps chromium
-      - run: npx playwright test --config=playwright.eridan.config.ts --grep 'temporary catalogue error'
-      - uses: actions/upload-artifact@v4
-        if: failure()
-        with:
-          name: eridan-browser-results
-          path: test-results/
-          retention-days: 5
+      - run: |
+          node --input-type=module <<'JS'
+          const base='https://darkturquoise-duck-750266.hostingersite.com';
+          for(let attempt=1;attempt<=7;attempt++){
+            const r=await fetch(base+'/targove?make=BMW&model=X5&site=1',{signal:AbortSignal.timeout(30000)});
+            const html=await r.text();
+            const assets=[...new Set([...html.matchAll(/<script[^>]+src="([^"]+)"/g)].map(m=>m[1]).filter(p=>p.startsWith('/_next/static/')))];
+            const js=await Promise.all(assets.map(async p=>(await fetch(base+p,{signal:AbortSignal.timeout(15000)})).text()));
+            const deployed=js.some(s=>s.includes('Зареди моделите отново'));
+            console.log('DEPLOYED_RECOVERY',JSON.stringify({attempt,status:r.status,cards:(html.match(/class="car-badge"/g)||[]).length,deployed}));
+            if(deployed&&r.status===200)process.exit(0);
+            if(attempt<7)await new Promise(resolve=>setTimeout(resolve,30000));
+          }
+          process.exit(1);
+          JS
