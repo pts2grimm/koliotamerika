@@ -281,8 +281,12 @@ test('a single upstream 503 recovers on the first navigation without a browser r
  await expect(page.locator('.empty-state')).toHaveCount(0)
  const calls = (await (await request.get('http://127.0.0.1:3199/test-requests')).json()).requests.slice(before)
  const retried = calls.filter((call: {path: string; params: Record<string,string>}) => call.path === '/lots' && call.params.year_from === '2018' && call.params.item_type === 'VEHTYPE_V')
- expect(retried).toHaveLength(2)
- expect(retried[0].params).toEqual(retried[1].params)
+ expect(retried).toHaveLength(3)
+ const dated = retried.filter((call: {params: Record<string,string>}) => Boolean(call.params.sale_date__gte))
+ const undated = retried.filter((call: {params: Record<string,string>}) => call.params.sale_date__isnull === 'true')
+ expect(dated).toHaveLength(2)
+ expect(undated).toHaveLength(1)
+ expect(dated[0].params).toEqual(dated[1].params)
 })
 
 test('successive uncached searches keep both auctions available past the former shared budget', async ({ page, request }) => {
