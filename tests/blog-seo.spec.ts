@@ -29,8 +29,16 @@ test('blog SEO, migration URLs, draft protection and timed release', async ({ pa
   const graph = schemas.map(s => JSON.parse(s)).find(s => s['@graph'])['@graph']
   expect(graph[0]['@type']).toBe('BlogPosting')
   expect(graph[0].datePublished).toContain('2025-10-07')
-  expect(graph[0].dateModified).toBeUndefined()
-  await expect(page.locator('time')).toHaveCount(1)
+  // This seeded article receives the content-review update after the archive import.
+  // Its original publication date stays intact; the review has a separate visible date.
+  const articleTimes = page.locator('.article-meta time')
+  await expect(articleTimes).toHaveCount(2)
+  expect(graph[0].datePublished).toBe(await articleTimes.first().getAttribute('datetime'))
+  const reviewedAt = await articleTimes.last().getAttribute('datetime')
+  expect(reviewedAt).toBeTruthy()
+  expect(graph[0].dateModified).toBe(reviewedAt)
+  expect(new Date(reviewedAt!).getTime()).toBeGreaterThan(new Date(graph[0].datePublished).getTime())
+  await expect(page.locator('.article-body h2').first()).toHaveText('Какво сравняваш при избор на платформа')
   for (const width of [320, 390, 1440]) {
    await page.setViewportSize({ width, height: 900 })
    for (const theme of ['light', 'dark']) {
@@ -70,5 +78,17 @@ test('blog SEO, migration URLs, draft protection and timed release', async ({ pa
   await page.goto('/' + slug)
   await expect(page.locator('h1')).toHaveCount(1)
   await expect(page.locator('.article-body h2').first()).toHaveText('Какво означава Clean Title?')
+  const hero = page.locator('.editorial-image img')
+  await expect(hero).toHaveAttribute('alt', /Илюстрация на автомобил/)
+  await expect(hero).toHaveAttribute('src', /clean-title/)
+  await expect.poll(() => hero.evaluate(img => (img as HTMLImageElement).naturalWidth)).toBeGreaterThan(0)
+  await expect(page.locator('.editorial-caption')).toContainText('AI')
+  await expect(page.locator('meta[property="og:image"]')).toHaveAttribute('content', /images\/editorial\/clean-title\.png/)
+  const artworkGraph = (await page.locator('script[type="application/ld+json"]').allTextContents()).map(s => JSON.parse(s)).find(s => s['@graph'])['@graph']
+  expect(artworkGraph[0].image).toEqual([baseURL + '/images/editorial/clean-title.png'])
+  await page.goto('/blog')
+  const featuredImage = page.locator('.journal-featured a[href="/' + slug + '"] img')
+  await expect(featuredImage).toHaveAttribute('src', /clean-title/)
+  await expect.poll(() => featuredImage.evaluate(img => (img as HTMLImageElement).naturalWidth)).toBeGreaterThan(0)
  } finally { await visitor.dispose(); await admin.dispose() }
 })
