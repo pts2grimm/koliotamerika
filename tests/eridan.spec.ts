@@ -515,7 +515,7 @@ for(const width of [1280,390]){
    if(width<900)await page.getByRole('button',{name:/^Филтри/}).click()
    const form=page.getByRole('form',{name:'Филтри за автомобили'})
    await form.getByLabel('Година от',{exact:true}).selectOption('2023')
-   await expect(form.getByLabel('Година до',{exact:true}).locator('option[value="2022"]')).toBeDisabled()
+   await expect(form.getByLabel('Година до',{exact:true}).locator('option[value="2022"]')).toHaveJSProperty('disabled', true)
    await form.getByLabel('Година до',{exact:true}).selectOption('2024')
    await form.getByRole('button',{name:'Намери автомобил'}).click()
    await expect(page).toHaveURL(/year_from=2023&year_to=2024&sort=auction_soon$/)

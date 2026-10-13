@@ -34,7 +34,7 @@ test('auction filters validate years, preserve pagination and remove dependent m
  await page.goto('/targove?make=BMW&model=X5')
  const filters = page.getByRole('form', { name: 'Филтри за автомобили' })
  await filters.getByLabel('Година от', { exact: true }).selectOption('2024')
- await expect(filters.getByLabel('Година до', { exact: true }).locator('option[value="2022"]')).toBeDisabled()
+ await expect(filters.getByLabel('Година до', { exact: true }).locator('option[value="2022"]')).toHaveJSProperty('disabled', true)
  await filters.getByLabel('Година от', { exact: true }).selectOption('2022')
  await filters.getByLabel('Година до', { exact: true }).selectOption('2024')
  await filters.locator('summary').click()
