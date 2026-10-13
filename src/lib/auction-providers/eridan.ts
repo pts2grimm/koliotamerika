@@ -1,3 +1,4 @@
+import { groupModelDirectory } from './model-families'
 import { isAuctionClosed } from '../auction-lifecycle'
 import type { AuctionCar, AuctionProvider, AuctionTransport } from './types'
 import { record, validSearchParams } from './normalize'
@@ -113,6 +114,14 @@ export function createEridanProvider(request: AuctionTransport): AuctionProvider
   if (found.size < first.count) throw new Error('Incomplete Eridan directory')
   return [...found.values()]
  }
+ const modelGroups = new Map<string, Promise<Map<string, number[]>>>()
+ const groupsFor = (make: string) => {
+  const key = make.trim().toUpperCase()
+  if (!modelGroups.has(key)) modelGroups.set(key, directory('/models', { make__name: make }).then(rows =>
+   groupModelDirectory(make, rows.map(row => ({ id: Number(row.id), name: String(row.name) })))
+  ).catch(error => { modelGroups.delete(key); throw error }))
+  return modelGroups.get(key)!
+ }
  let categories: Promise<Record<EridanRoadType, string>> | undefined
  const categoryCodes = () => categories ||= (async () => {
   const raw = await request('/item_types', new URLSearchParams())
@@ -157,8 +166,19 @@ export function createEridanProvider(request: AuctionTransport): AuctionProvider
    if (!sites.length || sites.some(site => !auctions[site])) throw new Error('Invalid auction')
    const page = Number(valid.get('page')), size = Number(valid.get('size')) * sites.length
    const params = new URLSearchParams({ page: String(page), page_size: String(size), ordering: '-id', ...(archive ? {sale_date__lte: new Date().toISOString()} : {status: 'active'}) })
-   for (const [from, to] of [['make', 'make__name'], ['model', 'model__name'], ['year_from', 'year_from'], ['year_to', 'year_to']]) {
+   for (const [from, to] of [['make', 'make__name'], ['year_from', 'year_from'], ['year_to', 'year_to']]) {
     const value = valid.get(from); if (value) params.set(to, value)
+   }
+   const selectedModel = valid.get('model'), selectedMake = valid.get('make')
+   if (selectedModel) {
+    const groups = selectedMake ? await groupsFor(selectedMake) : undefined
+    const ids = groups?.get(selectedModel.toUpperCase())
+    if (ids?.length) {
+     // A single documented OR query expands the family before provider pagination.
+     // Never send model__name alongside model_ids: that would intersect away its variants.
+     if (ids.length > 1000) throw new EridanSearchLimitError()
+     params.set('model_ids', ids.join(','))
+    } else params.set('model__name', selectedModel) // Preserve old specific-model URLs.
    }
    const selectedType = valid.get('vehicle_type')
    if (selectedType && !eridanRoadTypes.includes(selectedType as EridanRoadType)) throw new UnsupportedEridanFilterError(['vehicle_type'])
@@ -257,8 +277,7 @@ export function createEridanProvider(request: AuctionTransport): AuctionProvider
   async models(make: string) {
    if (!make.trim() || make.length > 100) throw new Error('Invalid make')
    if (!isEridanRoadMake(make)) return []
-   const models = await directory('/models', { make__name: make })
-   return [...new Set(models.filter(model => Boolean(name(model)) && isEridanRoadModel(String(model.name), make)).map(model => String(model.name)))].sort((a, b) => a.localeCompare(b, undefined, { numeric: true }))
+   return [...(await groupsFor(make)).keys()].sort((a, b) => a.localeCompare(b, undefined, { numeric: true }))
   },
   async lookup(query, lifecycle = 'active') {
    const q = query.trim().toUpperCase()

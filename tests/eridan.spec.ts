@@ -80,7 +80,7 @@ test('model choices load per make, ignore late responses and allow typing when t
  expect((await request.get('/api/auction-models?make=BMW&make=Ford')).status()).toBe(400)
  const models = await request.get('/api/auction-models?make=BMW')
  expect(models.status()).toBe(200)
- expect(await models.json()).toEqual({ models: ['X3', 'X5'] })
+ expect(await models.json()).toEqual({ models: ['3 SERIES', '4 SERIES', 'X3', 'X5'] })
 })
 
 
@@ -454,3 +454,39 @@ test('BMW-only search skips dense expired imports while keeping undated listings
   await expect(page).toHaveURL('http://localhost:3100/targove')
  } finally {await request.post('http://127.0.0.1:3199/test-expired-backfill?enabled=false')}
 })
+
+for(const width of [1280,390]){
+ test('grouped BMW selector includes all variants across auctions at width '+width,async({page,request})=>{
+  await request.post('http://127.0.0.1:3199/test-model-families?enabled=true')
+  try{
+   await page.setViewportSize({width,height:900})
+   await page.goto('/targove?make=BMW')
+   if(width<900)await page.getByRole('button',{name:/^Филтри/}).click()
+   const form=page.getByRole('form',{name:'Филтри за автомобили'})
+   const model=form.locator('select[name=model]')
+   await expect(model.locator('option[value="3 SERIES"]')).toHaveCount(1)
+   await expect(model.locator('option[value="328I"]')).toHaveCount(0)
+   await expect(model.locator('option[value="M340I"]')).toHaveCount(0)
+   await model.selectOption('3 SERIES')
+   await form.getByRole('button',{name:'Намери автомобил'}).click()
+   await expect(page.locator('.auction-card')).toHaveCount(24)
+   expect(new URL(page.url()).searchParams.get('model')).toBe('3 SERIES')
+   await expect(page.locator('.auction-card').filter({hasText:'BMW 4 SERIES'})).toHaveCount(0)
+   const first=await page.locator('.auction-card-link').evaluateAll(links=>links.map(link=>link.getAttribute('href')))
+   await page.getByRole('link',{name:'Следваща',exact:true}).click()
+   await expect(page.locator('.auction-card')).toHaveCount(8)
+   const second=await page.locator('.auction-card-link').evaluateAll(links=>links.map(link=>link.getAttribute('href')))
+   expect(new Set([...first,...second]).size).toBe(32)
+   expect([...first,...second].some(href=>href?.includes('site=1'))).toBe(true)
+   expect([...first,...second].some(href=>href?.includes('site=2'))).toBe(true)
+   await page.goto('/targove?make=BMW&model=328I')
+   await expect(page.locator('.auction-card')).toHaveCount(8)
+   await expect(page.locator('.auction-card').first()).toContainText('BMW 328I')
+   await page.locator('.auction-card-link').first().click()
+   await expect(page.getByRole('heading',{level:1})).toContainText('BMW 328I')
+   await page.goto('/targove?make=BMW&model=3+SERIES')
+   await page.getByRole('link',{name:'Премахни филтър: BMW'}).click()
+   await expect(page).toHaveURL('http://localhost:3100/targove')
+  }finally{await request.post('http://127.0.0.1:3199/test-model-families?enabled=false')}
+ })
+}

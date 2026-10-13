@@ -44,7 +44,7 @@ const eridanReferences=unstable_cache(async(path:string,params:string)=>coalesce
 const eridanRequest:AuctionTransport=async(path,params)=>{
  const start=Date.now()
  try{
-  return await (path==='/item_types'||path==='/fuel_types'?eridanReferences(path,params.toString()):coalesce(JSON.stringify(['eridan-request',path,[...params].sort()]),()=>eridanTransport(path,params)))
+  return await (path==='/item_types'||path==='/fuel_types'||path==='/models'?eridanReferences(path,params.toString()):coalesce(JSON.stringify(['eridan-request',path,[...params].sort()]),()=>eridanTransport(path,params)))
  }catch(error){
   // Log only known operational categories, never response bodies, keys, VINs or query values.
   const message=error instanceof Error?error.message:''
@@ -61,7 +61,7 @@ function provider(){const name=auctionProviderName();if(name==='eridan')return c
 const cachedSearch=unstable_cache(async(_provider:string,params:string)=>{
  const data=await coalesce(JSON.stringify(['search',_provider,params]),()=>provider().search(new URLSearchParams(params)))
  return {data,fetchedAt:Date.now()}
-},['auction-search-v10-date-scopes-sellers'],{revalidate:60})
+},['auction-search-v11-model-families'],{revalidate:60})
 const cachedMakes=unstable_cache(async(_provider:string)=>coalesce(JSON.stringify(['makes',_provider]),()=>provider().makes()),['auction-makes-v6-road-atv-utv'],{revalidate:3600})
 const cachedCar=unstable_cache(async(_provider:string,lot:string,site:string)=>coalesce(JSON.stringify(['car',_provider,lot,site]),()=>provider().detail(lot,site)),['auction-car-v8-seller-category'],{revalidate:60})
 const cachedLookup=unstable_cache(async(_provider:string,q:string,lifecycle:'active'|'sold')=>coalesce(JSON.stringify(['lookup',_provider,q,lifecycle]),()=>provider().lookup(q,lifecycle)),['auction-lookup-v6-active-or-archive'],{revalidate:60})
@@ -73,7 +73,7 @@ export async function searchAuctions(params:string){
  return result.data
 }
 export const auctionMakes=()=>cachedMakes(auctionProviderName())
-const cachedModels=unstable_cache(async(_provider:string,make:string)=>coalesce(JSON.stringify(['models',_provider,make]),async()=>{const adapter=provider();return adapter.models?adapter.models(make):(await adapter.makes())[make]||[]}),['auction-models-v3-road-atv-utv'],{revalidate:3600})
+const cachedModels=unstable_cache(async(_provider:string,make:string)=>coalesce(JSON.stringify(['models',_provider,make]),async()=>{const adapter=provider();return adapter.models?adapter.models(make):(await adapter.makes())[make]||[]}),['auction-models-v4-families'],{revalidate:3600})
 export async function auctionModels(make:string) {
  if(!make.trim()||make.length>100)throw new Error('Invalid make')
  const makes=await auctionMakes()

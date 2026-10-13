@@ -32,13 +32,17 @@ cars[6].seller = ''
 cars.push({...cars[0],id:9500,lot_number:'86000001',vin:'TST00000086000001',status:'sold',sale_date:'2026-10-12T14:00:00Z',buy_now_price:15000})
 cars.push({...cars[0],id:9501,lot_number:'86000002',vin:'TST00000086000002',auction:'iaai',status:'sold',sale_date:'2026-10-12T14:00:00Z'})
 cars.push({...cars[0],id:9502,lot_number:'72239476',vin:'TST00000072239476',status:'active',sale_date:'2026-10-12T19:00:00Z',current_bid:12000})
-let searchOutage = false, transientSearchFailures = 0, expiredBackfill = false
+let searchOutage = false, transientSearchFailures = 0, expiredBackfill = false, familyExamples = false
 const backfill = Array.from({length:600},(_,i)=>({...cars[0], id:20000+i, lot_number:String(88000000+i), sale_date:'2026-09-01T12:00:00Z'}))
 const undated = [0,1].map(i=>({...cars[0],id:30000+i,lot_number:String(89000000+i),auction:i?'iaai':'copart',sale_date:null,seller:i?'Named company':' '}))
+const familyModels=[{id:101,name:'3 SERIES',make_id:1},{id:102,name:'328I',make_id:1},{id:103,name:'330',make_id:1},{id:104,name:'M340I',make_id:1},{id:105,name:'4 SERIES',make_id:1}]
+const familyCars=Array.from({length:32},(_,i)=>({...cars[0],id:40000+i,lot_number:String(93000000+i),auction:i%2?'iaai':'copart',model:familyModels[i%4],name:'2023 BMW '+familyModels[i%4].name,year:2023}))
+familyCars.push({...cars[0],id:41000,lot_number:'94000000',model:familyModels[4],name:'2023 BMW 4 SERIES',year:2023})
 createServer((req, res) => {
  const url = new URL(req.url, 'http://127.0.0.1'), p = url.searchParams
  const send = (data, status = 200) => { res.writeHead(status, { 'Content-Type': 'application/json' }); res.end(JSON.stringify(data)) }
  if (url.pathname === '/') return send({ ok: true })
+ if (url.pathname === '/test-model-families' && req.method === 'POST') { familyExamples = p.get('enabled') === 'true'; return send({ok:true}) }
  if (url.pathname === '/test-expired-backfill' && req.method === 'POST') { expiredBackfill = p.get('enabled') === 'true'; return send({ok:true}) }
  if (url.pathname === '/test-requests') return send({ requests })
  if (url.pathname === '/test-search-outage' && req.method === 'POST') { searchOutage = p.get('enabled') === 'true'; return send({ok:true}) }
@@ -49,7 +53,7 @@ createServer((req, res) => {
  if (url.pathname === '/fuel_types') return send(['GAS', 'DIESEL', 'ELECTRIC', 'HYBRID ENGINE'])
  if (url.pathname === '/makes') return send({ items: [{ id: 1, name: 'BMW' }, { id: 2, name: 'Ford' }, { id: 3, name: 'Honda' }, { id: 4, name: 'CATERPILLAR' }, { id: 5, name: 'SEA RAY' }, { id: 6, name: '*' }, {id:8,name:'POLARIS'}, {id:9,name:'CF MOTO'}], count: 8 })
  if (url.pathname === '/models') {
-  const models = p.get('make__name') === 'BMW' ? [{ id: 10, name: 'X5', make_id: 1 }, { id: 11, name: 'X3', make_id: 1 }] : p.get('make__name') === 'Ford' ? [{ id: 20, name: 'Mustang', make_id: 2 }] : p.get('make__name') === 'Honda' ? [{ id: 30, name: 'CBR600RR', make_id: 3 }] : p.get('make__name') === 'POLARIS' ? [{id:80,name:'SPORTSMAN 570',make_id:8}] : p.get('make__name') === 'CF MOTO' ? [{id:90,name:'UFORCE 1000',make_id:9}] : []
+  const models = p.get('make__name') === 'BMW' ? [{ id: 10, name: 'X5', make_id: 1 }, { id: 11, name: 'X3', make_id: 1 }, ...familyModels] : p.get('make__name') === 'Ford' ? [{ id: 20, name: 'Mustang', make_id: 2 }] : p.get('make__name') === 'Honda' ? [{ id: 30, name: 'CBR600RR', make_id: 3 }] : p.get('make__name') === 'POLARIS' ? [{id:80,name:'SPORTSMAN 570',make_id:8}] : p.get('make__name') === 'CF MOTO' ? [{id:90,name:'UFORCE 1000',make_id:9}] : []
   return send({ items: models, count: models.length })
  }
  if(url.pathname==='/lots'&&p.get('lot_number')==='64492136')return send({items:[{...cars[0],id:9100,lot_number:'64492136',vin:'TST00000064492136',name:'2013 BMW 3 SERIES',sale_date:null,status:'active'}],page:1,page_size:10,has_next:false})
@@ -65,9 +69,9 @@ createServer((req, res) => {
  if (transientSearchFailures && p.get('year_from') === '2018' && p.get('year_to') === '2023') {
   transientSearchFailures--; return send({ error: 'one temporary gateway failure' }, 503)
  }
- const allowed = ['page', 'page_size', 'ordering', 'auction', 'lot_number', 'vin', 'make__name', 'model__name', 'year_from', 'year_to', 'fuel_type__name', 'item_type', 'has_images', 'makes', 'status', 'sale_date__lte', 'sale_date__gte', 'sale_date__isnull']
+ const allowed = ['page', 'page_size', 'ordering', 'auction', 'lot_number', 'vin', 'make__name', 'model__name', 'model_ids', 'year_from', 'year_to', 'fuel_type__name', 'item_type', 'has_images', 'makes', 'status', 'sale_date__lte', 'sale_date__gte', 'sale_date__isnull']
  if ([...p.keys()].some(key => !allowed.includes(key))) return send({ error: 'unknown filter' }, 422)
- const items = [...cars,...(expiredBackfill ? [...backfill,...undated] : [])].filter(car =>
+ const items = [...cars,...(familyExamples ? familyCars : []),...(expiredBackfill ? [...backfill,...undated] : [])].filter(car =>
   (!p.get('sale_date__gte') || car.sale_date && Date.parse(car.sale_date) >= Date.parse(p.get('sale_date__gte'))) &&
   (p.get('sale_date__isnull') !== 'true' || car.sale_date == null) &&
   (!p.get('sale_date__lte') || car.sale_date && Date.parse(car.sale_date) <= Date.parse(p.get('sale_date__lte'))) &&
@@ -75,6 +79,7 @@ createServer((req, res) => {
   (!p.has('makes') || p.getAll('makes').at(-1).split(',').some(make => make.toLowerCase() === car.make.name.toLowerCase())) &&
   ['auction', 'lot_number', 'vin', 'item_type', 'status'].every(key => !p.get(key) || car[key] === p.get(key)) &&
   (!p.get('make__name') || car.make.name === p.get('make__name')) &&
+  (!p.get('model_ids') || p.get('model_ids').split(',').map(Number).includes(car.model.id)) &&
   (!p.get('model__name') || car.model.name === p.get('model__name')) &&
   (!p.get('fuel_type__name') || car.fuel === p.get('fuel_type__name')) &&
   (!p.get('year_from') || car.year >= Number(p.get('year_from'))) &&

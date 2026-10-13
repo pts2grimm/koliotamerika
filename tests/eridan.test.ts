@@ -23,6 +23,7 @@ function fixture(answer?: (path: string, params: URLSearchParams) => unknown) {
  const request: AuctionTransport = async (path, params) => {
   calls.push({ path, params: new URLSearchParams(params) })
   if (path === '/item_types') return [{ value: 'VEHTYPE_V', label: 'Vehicle' }, { value: 'VEHTYPE_M', label: 'Motorcycle' }, { value: 'VEHTYPE_A', label: 'ATV' }]
+  if (path === '/models' && !answer) return {items:[{id:10,name:'X5',make_id:1}],count:1}
   if (path === '/fuel_types') return ['GAS', 'DIESEL', 'HYBRID ENGINE', 'ELECTRIC']
   return answer ? answer(path, params) : envelope([row], Number(params.get('page') || 1), false)
  }
@@ -55,7 +56,7 @@ test('Eridan translates filters, keeps 24 results for both auctions, and never i
  const { provider, calls } = fixture()
  const data = await provider.search(new URLSearchParams({ make: 'BMW', model: 'X5', year_from: '2020', year_to: '2024', site: '1,2', vehicle_type: 'Automobile', size: '12', page: '2' }))
  const query = calls.find(call => call.path === '/lots')!.params
- assert.equal(query.get('make__name'), 'BMW'); assert.equal(query.get('model__name'), 'X5')
+ assert.equal(query.get('make__name'), 'BMW'); assert.equal(query.get('model_ids'), '10'); assert.equal(query.get('model__name'), null)
  assert.equal(query.get('status'), 'active'); assert.equal(query.get('year_from'), '2020'); assert.equal(query.get('year_to'), '2024')
  assert.equal(query.get('item_type'), 'VEHTYPE_V')
  assert.equal(query.get('page_size'), '49'); assert.equal(query.get('page'), '1'); assert.equal(query.get('auction'), 'copart')
@@ -453,6 +454,7 @@ test('fuel choices are auction-scoped and padded aliases do not multiply Copart 
  const provider=createEridanProvider(async(path,params)=>{
   calls.push({path,params:new URLSearchParams(params)})
   if(path==='/item_types')return [{value:'VEHTYPE_V',label:'Vehicle'},{value:'VEHTYPE_M',label:'Motorcycle'},{value:'VEHTYPE_A',label:'ATV'}]
+  if(path==='/models')return {items:[{id:10,name:'3 SERIES',make_id:1}],count:1}
   if(path==='/fuel_types'){
    assert.ok(['copart','iaai'].includes(params.get('auction')!))
    return params.get('auction')==='copart'?['Gas','GAS','GAS                           ']:['Gasoline','Gasoline ']
@@ -467,7 +469,7 @@ test('fuel choices are auction-scoped and padded aliases do not multiply Copart 
   assert.deepEqual(data.items.map(c=>c.site),site.split(',').map(Number))
  }
  assert.equal(calls.filter(c=>c.path==='/lots').length,16)
- assert.equal(calls.length,21)
+ assert.equal(calls.length,22)
 })
 test('a fuel absent from one auction does not block valid results from the other',async()=>{
  const provider=createEridanProvider(async(path,params)=>{
@@ -707,4 +709,30 @@ test('server date scopes skip dense expired imports but retain and paginate unda
  assert.equal(insuranceCars.items.length,20)
  assert.ok(insuranceCars.items.every(c=>c.seller_type==='insurance'&&c.seller==='Company'))
  assert.ok(queries.every(p=>!p.has('seller_type')))
+})
+
+test('model families expand through documented model_ids before mixed pagination and preserve exact legacy selections',async()=>{
+ const directory=[{id:11,name:'3 SERIES'},{id:12,name:'328I'},{id:13,name:'330'},{id:14,name:'M340I'},{id:15,name:'4 SERIES'},{id:16,name:'X3'}]
+ const cars=Array.from({length:40},(_,i)=>({...row,id:1000+i,lot_number:String(91000000+i),auction:i%2?'iaai':'copart',model:directory[i%4]}))
+ cars.push({...row,id:2000,lot_number:'92000000',auction:'copart',model:directory[4]})
+ const queries:URLSearchParams[]=[]
+ const provider=createEridanProvider(async(path,p)=>{
+  if(path==='/models')return {items:directory,count:directory.length}
+  if(path==='/item_types')return [{value:'VEHTYPE_V',label:'Vehicle'},{value:'VEHTYPE_M',label:'Motorcycle'},{value:'VEHTYPE_A',label:'ATV'}]
+  queries.push(new URLSearchParams(p))
+  const ids=p.get('model_ids')?.split(',').map(Number)
+  const items=cars.filter(car=>car.auction===p.get('auction')&&car.item_type===p.get('item_type')&&p.get('sale_date__isnull')!=='true'&&(!ids||ids.includes(car.model.id))&&(!p.get('model__name')||car.model.name===p.get('model__name'))).sort((a,b)=>b.id-a.id)
+  const page=Number(p.get('page')),size=Number(p.get('page_size'))
+  return envelope(items.slice((page-1)*size,page*size),page,page*size<items.length,size)
+ })
+ assert.deepEqual(await provider.models!('BMW'),['3 SERIES','4 SERIES','X3'])
+ const search=(page:number)=>provider.search(new URLSearchParams({make:'BMW',model:'3 SERIES',site:'1,2',page:String(page)}))
+ const first=await search(1),second=await search(2)
+ assert.equal(first.items.length,24);assert.equal(second.items.length,16)
+ assert.equal(new Set([...first.items,...second.items].map(c=>c.id)).size,40)
+ assert.deepEqual(new Set(first.items.map(c=>c.site)),new Set([1,2]))
+ assert.ok(queries.every(p=>p.get('model_ids')==='11,12,13,14'&&!p.has('model__name')))
+ const old=await provider.search(new URLSearchParams({make:'BMW',model:'328I',site:'1,2'}))
+ assert.ok(old.items.length>0);assert.ok(old.items.every(c=>c.model==='328I'))
+ assert.equal(queries.at(-1)!.get('model__name'),'328I')
 })
