@@ -13,6 +13,12 @@ async function main(){
   console.log('CATEGORY_SCHEMA',JSON.stringify({path,parameters:pars}))
  }
  const request=createEridanTransport({apiKey:process.env.ERIDAN_API_KEY,fetch})
-
+ for(const [make,item_type] of [['BMW','VEHTYPE_V'],['BMW','VEHTYPE_M'],['HONDA','VEHTYPE_V'],['HONDA','VEHTYPE_M'],['HONDA','VEHTYPE_A']]){
+  for(const scope of ['upcoming','undated']){
+   const params=new URLSearchParams({make__name:make,item_type,status:'active',has_images:'true',page_size:'1000',ordering:'id',...(scope==='upcoming'?{sale_date__gte:new Date().toISOString()}:{sale_date__isnull:'true'})})
+   const started=Date.now(), data=await request('/lots',params) as {items:Record<string,any>[];has_next:boolean;page_size:number}
+   console.log('CATEGORY_PAGE',JSON.stringify({make,item_type,scope,items:data.items.length,pageSize:data.page_size,hasNext:data.has_next,models:new Set(data.items.map(r=>r.model?.id)).size,wrongType:data.items.some(r=>r.item_type!==item_type),ms:Date.now()-started}))
+  }
+ }
 }
 main().catch(()=>{console.error('CATEGORY_CHECK_FAILED');process.exitCode=1})
