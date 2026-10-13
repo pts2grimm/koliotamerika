@@ -19,6 +19,8 @@ async function main(){
  const result=await provider.search(new URLSearchParams({make:'BMW',vehicle_type:'Automobile',site:'1,2',cylinders:'6',size:'6'}))
  assert.ok(result.items.length>0,'No live six-cylinder BMW results')
  assert.ok(result.items.every(car=>car.cylinders===6),'Cylinder mismatch')
+ assert.ok(result.items.some(car=>car.site===1),'Missing Copart results')
+ assert.ok(result.items.some(car=>car.site===2),'Missing IAAI results')
  console.log('CYLINDER_CHECK',JSON.stringify({count:result.items.length,copart:result.items.filter(car=>car.site===1).length,iaai:result.items.filter(car=>car.site===2).length,hasNext:result.hasNext,requests,ms:Date.now()-started}))
 }
 main().catch(()=>{console.error('Cylinder contract check failed; inspect the API contract and bounded scan.');process.exitCode=1})

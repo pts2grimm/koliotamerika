@@ -1,4 +1,4 @@
-import { cylinderCount } from '../auction-cylinders'
+import { cylinderCount, providerCylinderCount } from '../auction-cylinders'
 import { canonicalEridanMake, eridanMakeAliases, eridanMakeParams, sameEridanMake } from './make-aliases'
 import { auctionSort } from '../auction-sorting'
 import { groupModelDirectory } from './model-families'
@@ -55,7 +55,7 @@ export function normalizeEridanCar(value: unknown): AuctionCar | undefined {
   enhanced: Array.isArray(raw.highlights) && raw.highlights.some(value => typeof value === 'string' && /^enhanced vehicles$/i.test(value.trim())),
   damage_pr: name(raw.primary_damage), damage_sec: name(raw.secondary_damage),
   document_old: [text(raw.title_type), text(raw.title_state)].filter(Boolean).join(' ') || undefined,
-  fuel: Object.entries(fuelGroups).find(([, names]) => names.includes(text(raw.fuel)?.toLowerCase() || ''))?.[0] || text(raw.fuel), transmission: text(raw.transmission), engine: text(raw.engine), cylinders: cylinderCount(raw.cylinders), drive: text(raw.drive),
+  fuel: Object.entries(fuelGroups).find(([, names]) => names.includes(text(raw.fuel)?.toLowerCase() || ''))?.[0] || text(raw.fuel), transmission: text(raw.transmission), engine: text(raw.engine), cylinders: providerCylinderCount(raw.cylinders), drive: text(raw.drive),
   seller: text(raw.seller), seller_type: text(raw.seller) ? 'insurance' : 'dealer', seller_type_source: 'seller_presence', link_img_hd: imageURLs(raw.images), link_img_small: imageURLs([raw.thumb_url]),
  }
 }

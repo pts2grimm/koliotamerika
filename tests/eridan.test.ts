@@ -842,11 +842,11 @@ test('seller selection needs no model when thousands of leading rows have empty 
 })
 
 test('cylinders uses only a valid explicit provider field, never engine text',()=>{
- for(const value of [6,'6',' 6 ','06'])assert.equal(normalizeEridanCar({...row,cylinders:value})?.cylinders,6)
- for(const value of [null,undefined,'',0,'0','unknown',6.5,'6e0',true,17])assert.equal(normalizeEridanCar({...row,engine:'V8',cylinders:value})?.cylinders,undefined)
+ for(const value of [6,'6',' 6 ','06','6 Cyl',' 6 CYL ','6 cyl'])assert.equal(normalizeEridanCar({...row,cylinders:value})?.cylinders,6)
+ for(const value of [null,undefined,'',0,'0','unknown',6.5,'6e0',true,17,'0 Cyl','17 Cyl','V6','6 cylinders extra','6.5 Cyl','4-6 Cyl'])assert.equal(normalizeEridanCar({...row,engine:'V8',cylinders:value})?.cylinders,undefined)
 })
 test('cylinder filtering fills mixed-auction pages before slicing and preserves sort/condition/seller filters',async()=>{
- const data=Array.from({length:90},(_,i)=>({...row,id:5000+i,lot_number:String(98000000+i),auction:i%2?'iaai':'copart',cylinders:i%3===0?(i%2?6:' 6 '):i%3===1?'4':null}))
+ const data=Array.from({length:90},(_,i)=>({...row,id:5000+i,lot_number:String(98000000+i),auction:i%2?'iaai':'copart',cylinders:i%3===0?(i%2?'6 Cyl':' 6 '):i%3===1?'4':null}))
  const {provider,calls}=fixture((path,p)=>{
   assert.equal(path,'/lots')
   assert.equal(p.has('cylinders'),false)
@@ -870,7 +870,7 @@ test('cylinder-only searches need no make/model and work in powersports and arch
  for(const [type,code,make,model] of [['Automobile','VEHTYPE_V','BMW','X5'],['Motorcycle','VEHTYPE_M','Honda','CBR600RR'],['ATVUTV','VEHTYPE_A','POLARIS','SPORTSMAN 570']]){
   for(const archive of ['', 'ended']){
    const {provider}=fixture((path,p)=>envelope(p.get('sale_date__isnull')==='true'?[]:[
-    {...row,item_type:code,make:{id:1,name:make},model:{id:10,name:model},cylinders:'4',...(archive?{status:'sold',sale_date:'2020-01-01T00:00:00Z'}:{})},
+    {...row,item_type:code,make:{id:1,name:make},model:{id:10,name:model},cylinders:'4 Cyl',...(archive?{status:'sold',sale_date:'2020-01-01T00:00:00Z'}:{})},
     {...row,id:43,lot_number:'70000002',item_type:code,make:{id:1,name:make},model:{id:10,name:model},cylinders:null,engine:'4 CYL',...(archive?{status:'sold',sale_date:'2020-01-01T00:00:00Z'}:{})}
    ],Number(p.get('page'))))
    const result=await provider.search(new URLSearchParams({vehicle_type:type,site:'1',cylinders:'4',archive}))
