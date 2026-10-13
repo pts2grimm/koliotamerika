@@ -12,7 +12,8 @@ export function AuctionSort({ initial, basePath, archive }: { initial: Record<st
    <select name="sort" value={initial.sort || ''} disabled={pending} onChange={event => {
     navigate(auctionResultsURL({ ...initial, sort: event.target.value }, 1, basePath))
    }}>
-    {auctionSortOptions.map(option => <option key={option.value} value={option.value}>{archive && option.value === 'auction_soon' ? 'Дата на търга: по-стари първо' : archive && option.value === 'auction_late' ? 'Дата на търга: последни първо' : option.label}</option>)}
+    <option value="" disabled hidden>Избери подредба</option>
+    {auctionSortOptions.filter(option => option.value !== '').map(option => <option key={option.value} value={option.value}>{archive && option.value === 'auction_soon' ? 'Дата на търга: по-стари първо' : archive && option.value === 'auction_late' ? 'Дата на търга: последни първо' : option.label}</option>)}
    </select>
   </label>
   {pending && <LoadingIndicator>Подреждаме резултатите…</LoadingIndicator>}
