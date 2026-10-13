@@ -5,7 +5,7 @@ const cars = Array.from({ length: 30 }, (_, i) => ({
  id: 1000 + i, lot_number: String(70000000 + i), auction: i < 15 ? 'copart' : 'iaai',
  make: { id: 1, name: 'BMW' }, model: { id: 10, name: 'X5', make_id: 1 },
  year: 2022 + i % 3, name: (2022 + i % 3) + ' BMW X5',
- cylinders: i < 27 ? (i % 2 ? 6 : '6') : '8',
+ cylinders: i < 15 ? '6' : i < 27 ? '6 Cyl' : '8 Cyl',
  vin: 'WBA' + String(i).padStart(14, '0'), fuel: 'GAS', currency: 'USD',
  item_type: 'VEHTYPE_V', title_type: 'Certificate of Title', title_state: 'GA',
  seller: 'Test Seller', state: 'GA', city: 'Macon', engine: '3.0L', transmission: 'Automatic', drive: 'AWD',
@@ -21,7 +21,7 @@ cars.push({ ...cars[0], id: 6000, vin: 'WBA00000000000099', lot_number: '8400000
 cars.push({ ...cars[0], id: 9000, status: 'not_sold', sale_date: '2026-09-23T14:00:00Z', current_bid: 9000 })
 cars.push({ ...cars[0], id: 9001, lot_number: '57397516', vin: 'TST00000057397516', name: '2020 PORSCHE MACAN S', make: {id:7,name:'PORSCHE'}, model: {id:70,name:'MACAN'}, status:'not_sold', sale_date:'2026-09-23T14:00:00Z', current_bid:5400 })
 cars.push({ ...cars[0], id:8501, cylinders:'1', lot_number: '85000001', vin: 'TST00000085000001', item_type:'VEHTYPE_A', make:{id:8,name:'POLARIS'}, model:{id:80,name:'SPORTSMAN 570',make_id:8}, name:'2022 Polaris Sportsman 570', seller:'Example ATV Seller' })
-cars.push({ ...cars[0], id:8502, cylinders:'2', lot_number: '85000002', vin: 'TST00000085000002', auction:'iaai', item_type:'VEHTYPE_A', make:{id:9,name:'CF MOTO'}, model:{id:90,name:'UFORCE 1000',make_id:9}, name:'2022 CF MOTO UFORCE 1000', seller:'' })
+cars.push({ ...cars[0], id:8502, cylinders:'2 Cyl', lot_number: '85000002', vin: 'TST00000085000002', auction:'iaai', item_type:'VEHTYPE_A', make:{id:9,name:'CF MOTO'}, model:{id:90,name:'UFORCE 1000',make_id:9}, name:'2022 CF MOTO UFORCE 1000', seller:'' })
 cars.push({ ...cars[0], id:8503, lot_number: '85000003', vin: 'TST00000085000003', item_type:'VEHTYPE_U', make:{id:10,name:'FREIGHTLINER'}, model:{id:100,name:'CASCADIA',make_id:10}, name:'Freightliner Cascadia truck' })
 cars.push({ ...cars[0], id:8504, lot_number: '85000004', vin: 'TST00000085000004', item_type:'VEHTYPE_S', make:{id:8,name:'POLARIS'}, model:{id:81,name:'RMK',make_id:8}, name:'Polaris RMK snowmobile' })
 cars.push({ ...cars[0], id:8505, lot_number: '85000005', vin: 'TST00000085000005', item_type:'VEHTYPE_R', make:{id:2,name:'Ford'}, model:{id:21,name:'F550',make_id:2}, name:'Four Winds RV' })

@@ -804,3 +804,39 @@ for(const width of [1280,390]){
   await expect(page.getByRole('form',{name:'Филтри за мотори и ATV'}).getByLabel('Цилиндри',{exact:true})).toHaveValue('1')
  })
 }
+
+for(const width of [1280,390]){
+ test('detail hints retain semantic colours and work with pointer and keyboard at width '+width,async({page})=>{
+  await page.setViewportSize({width,height:900})
+  await page.goto('/targove/kola?lot=70000006&site=1')
+  const hints=[
+   {label:'Run & Drive',tone:'good',text:'Това не е гаранция'},
+   {label:'Certificate of Title GA',tone:'good',text:'Това не удостоверява'},
+   {label:'Частно лице',tone:'warn',text:'без посочено име'},
+  ]
+  for(const theme of ['light','dark']){
+   await page.evaluate(value=>document.documentElement.dataset.theme=value,theme)
+   for(const hint of hints){
+    const trigger=page.getByRole('button',{name:'Пояснение: '+hint.label,exact:true})
+    await expect(trigger).toHaveClass(new RegExp('hint-'+hint.tone))
+    await trigger.click()
+    const tip=page.getByRole('tooltip')
+    await expect(tip).toContainText(hint.text)
+    expect(await tip.evaluate(el=>{const r=el.getBoundingClientRect();return r.left>=0&&r.right<=innerWidth})).toBe(true)
+    await page.keyboard.press('Escape')
+    await expect(tip).toHaveCount(0)
+   }
+  }
+  const run=page.getByRole('button',{name:'Пояснение: Run & Drive',exact:true})
+  await run.blur()
+  await run.focus()
+  await expect(page.getByRole('tooltip')).toContainText('Това не е гаранция')
+  await page.keyboard.press('Escape')
+  await page.goto('/targove/kola?lot=70000001&site=1')
+  const price=page.locator('.detail-summary .auction-buy-now')
+  await expect(price).toBeVisible()
+  await expect(price).toContainText('Купи сега (Buy Now)')
+  await expect(price.locator('strong')).toHaveCSS('font-size','34px')
+  expect(await price.evaluate(el=>{const r=el.getBoundingClientRect();return r.right<=innerWidth})).toBe(true)
+ })
+}
