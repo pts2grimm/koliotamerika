@@ -1,0 +1,20 @@
+name: Eridan BMW condition counts
+on:
+  push:
+    branches: ['codex/eridan-bmw-condition-counts']
+permissions:
+  contents: read
+jobs:
+  aggregate-check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci --include=dev
+      - run: node --import tsx scripts/check-eridan-bmw-counts.ts
+        env:
+          ERIDAN_API_KEY: ${{ secrets.ERIDAN_API_KEY }}
