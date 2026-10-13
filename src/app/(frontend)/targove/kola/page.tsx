@@ -15,7 +15,8 @@ export async function generateMetadata({searchParams}:{searchParams:Promise<{lot
 export default async function AuctionDetail({searchParams}:{searchParams:Promise<{lot?:string;site?:string}>}){
  const {lot='',site='1'}=await searchParams
  if(!/^\d{1,12}$/.test(lot)||!['1','2'].includes(site))return <section className="container empty-state"><h1>Избери автомобил от търговете.</h1><Link className="button button-dark" href="/targove">Към търговете</Link></section>
- let car;try{car=await auctionCar(lot,site)}catch{}
+ let car, failed=false;try{car=await auctionCar(lot,site)}catch{failed=true}
+ if(!car&&!failed&&auctionProviderName()==='eridan')return <section className="container empty-state"><h1>Няма активно участие в данните на доставчика.</h1><p>За този лот Eridan не предоставя текуща продажба. В каталога показваме само активни участия.</p><Link className="button button-dark" href="/targove">Към търговете</Link>{site==='1'&&<p><a href={`https://www.copart.com/lot/${lot}`} target="_blank" rel="noopener noreferrer">Провери актуалната обява в Copart</a></p>}</section>
  if(!car)return <section className="container empty-state"><h1>Автомобилът не е достъпен.</h1><p>Търгът може да е приключил или доставчикът временно да не отговаря.</p><Link className="button button-dark" href="/targove">Към търговете</Link></section>
  const images=auctionImages(car).map((src,index)=>({src,alt:`${car.title} — снимка ${index+1}`}))
  const shareText=`${car.title}\n${site==='1'?'Copart':'IAAI'} · Лот ${lot}\nЩети: ${car.damage_pr||'Не са посочени'}${car.current_bid!=null?`\nТекущ залог: ${auctionCurrency(car.current_bid,car.currency)}`:''}`

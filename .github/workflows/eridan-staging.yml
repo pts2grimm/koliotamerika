@@ -1,7 +1,7 @@
 name: Eridan staging verification
 on:
   push:
-    branches: ['eridan-staging', 'codex/eridan-catalogue-reliability', 'codex/eridan-auction-dates']
+    branches: ['eridan-staging', 'codex/eridan-catalogue-reliability', 'codex/eridan-auction-dates', 'codex/eridan-active-only']
 permissions:
   contents: read
 jobs:

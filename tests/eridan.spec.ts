@@ -308,16 +308,22 @@ test('recently imported historical records cannot replace active catalogue dates
  expect(searches.every((call:{params:Record<string,string>})=>call.params.status==='active')).toBe(true)
 })
 
-test('a historical-only saved lot clearly marks the previous date and links to Copart without a stale current bid', async ({ page }) => {
+test('a historical-only saved lot shows no current listing and never fetches history', async ({ page, request }) => {
+ const before=(await (await request.get('http://127.0.0.1:3199/test-requests')).json()).requests.length
  await page.goto('/targove/kola?lot=57397516&site=1')
- await expect(page.locator('.detail-summary h1')).toHaveText('2020 PORSCHE MACAN S')
- const schedule=page.locator('.detail-summary > .auction-schedule')
- await expect(schedule.locator('.auction-countdown')).toHaveText('Очаква се актуална дата')
- await expect(schedule).toContainText('Предишна дата от доставчика')
- await expect(schedule).toContainText('23.09.2026')
- await expect(schedule).not.toContainText('Посоченият час е минал')
+ await expect(page.getByRole('heading',{level:1})).toHaveText('Няма активно участие в данните на доставчика.')
+ await expect(page.locator('.car-detail')).toHaveCount(0)
  await expect(page.getByRole('link',{name:'Провери актуалната обява в Copart'})).toHaveAttribute('href','https://www.copart.com/lot/57397516')
- await expect(page.locator('.detail-summary .detail-price')).toHaveCount(0)
+ const calls=(await (await request.get('http://127.0.0.1:3199/test-requests')).json()).requests.slice(before).filter((call:{path:string;params:Record<string,string>})=>call.path==='/lots'&&call.params.lot_number==='57397516')
+ expect(calls.length).toBeGreaterThan(0)
+ expect(calls.every((call:{params:Record<string,string>})=>call.params.status==='active')).toBe(true)
+})
+
+test('an active listing with no date stays accessible without inventing a countdown', async ({ page }) => {
+ await page.goto('/targove/kola?lot=64492136&site=1')
+ await expect(page.locator('.detail-summary h1')).toHaveText('2013 BMW 3 SERIES')
+ await expect(page.locator('.detail-summary > .auction-schedule .auction-countdown')).toHaveText('Очаква се дата')
+ await expect(page.locator('.detail-summary > .auction-schedule time')).toHaveCount(0)
 })
 
 test('ATV and UTV are included in both-auction results and seller data is rendered without invented values', async ({ page }) => {

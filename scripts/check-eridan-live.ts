@@ -27,6 +27,7 @@ try {
  let requests = 0, activeLots = 0, peakLots = 0, lotRequestMs = 0
  const request = createEridanTransport({ apiKey: process.env.ERIDAN_API_KEY, fetch: async (url, init) => {
   if (url.pathname.endsWith('/lots')) for (const key of url.searchParams.keys()) assert.ok(lotParameters.has(key), 'Undocumented catalogue query parameter')
+  if (url.pathname.endsWith('/lots')) assert.equal(url.searchParams.get('status'),'active','Every lot request must exclude historical events')
   requests++
   const isLotSearch = url.pathname.endsWith('/lots'), started = performance.now()
   if (isLotSearch) { activeLots++; peakLots = Math.max(peakLots, activeLots) }
@@ -72,6 +73,12 @@ try {
  assert.ok(defaultCatalogue.items.every(car=>['Automobile','Motorcycle','ATVUTV'].includes(car.vehicle_type || '') && car.auction_status==='active'))
  assert.deepEqual([...new Set(defaultCatalogue.items.map(car=>String(car.site)))].sort(), ['1','2'])
  console.log('LIVE_DEFAULT_CATALOGUE_OK',{items:defaultCatalogue.items.length,requests:requests-beforeDefault,elapsedMs:Math.round(performance.now()-defaultStart),types:[...new Set(defaultCatalogue.items.map(car=>car.vehicle_type))]})
+ stage = 'reported-active-only'
+ for(const lot of ['57397516','64492136']){
+  const item=await provider.detail(lot,'1')
+  assert.ok(!item || item.auction_status==='active')
+  console.log('LIVE_REPORTED_ACTIVE_ONLY',{lot,found:Boolean(item),status:item?.auction_status,hasDate:Boolean(item?.auction_date)})
+ }
  stage = 'reported-lot'
  const reported = await provider.detail('66579406', '1')
  console.log('REPORTED_LOT_BID', { found: Boolean(reported), currentBid: reported?.current_bid ?? null, currency: reported?.currency })

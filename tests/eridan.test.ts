@@ -517,18 +517,33 @@ test('detail prefers the active sale to recently reimported history and never fa
  assert.equal(errors,1)
 })
 
-test('saved historical lots remain available with lifecycle status and without stale live prices', async () => {
- const {provider,calls}=fixture((_,params)=>envelope(params.get('status')==='active'?[]:[{...row,status:'not_sold',sale_date:'2026-09-23T14:00:00Z',current_bid:5000,buy_now_price:7000}]))
- const car=(await provider.detail('70000001','1'))!
- assert.equal(calls.length,2); assert.equal(calls[1].params.has('status'),false)
- assert.equal(car.auction_status,'not_sold'); assert.equal(car.status,'Run & Drive')
- assert.equal(car.current_bid,undefined); assert.equal(car.buy_now,undefined)
- const schedule=auctionSchedule(parseAuctionDate(car.auction_date),Date.parse('2026-10-13T12:00:00Z'),car.auction_status)
- assert.equal(schedule.state,'unknown'); assert.equal(schedule.previousDate,true)
- assert.equal(schedule.countdown,'Очаква се актуална дата')
+test('historical-only details are unavailable and never trigger an unfiltered fallback', async () => {
+ const {provider,calls}=fixture((_,params)=>envelope(params.get('status')==='active'?[]:[{...row,status:'not_sold',sale_date:'2026-09-23T14:00:00Z'}]))
+ assert.equal(await provider.detail('70000001','1'),undefined)
+ assert.equal(calls.length,1)
+ assert.equal(calls[0].params.get('status'),'active')
+ const ignored=fixture(()=>envelope([{...row,status:'not_sold'}]))
+ assert.equal(await ignored.provider.detail('70000001','1'),undefined)
 })
 
-test('VIN lookup prefers the active event and numeric lookup checks both active auctions before history', async () => {
+test('historical-only VIN and lot searches reject even if upstream ignores the active filter', async () => {
+ for(const query of [row.vin,'70000001']){
+  const {provider,calls}=fixture(()=>envelope([{...row,status:'not_sold'},{...row,status:'sold'}]))
+  await assert.rejects(()=>provider.lookup(query),/not found/)
+  assert.equal(calls.length,query===row.vin?1:2)
+  assert.ok(calls.every(call=>call.params.get('status')==='active'))
+ }
+})
+
+test('an active event without a supplied sale date remains available', async () => {
+ const {provider}=fixture(()=>envelope([{...row,sale_date:null,status:'active'}]))
+ const car=await provider.detail('70000001','1')
+ assert.equal(car?.auction_status,'active')
+ assert.equal(car?.auction_date,undefined)
+ assert.deepEqual(await provider.lookup(row.vin),{lot:'70000001',site:'1'})
+})
+
+test('VIN and numeric lookup resolve only active events across both auctions', async () => {
  const vin=fixture((_,params)=>envelope(params.get('status')==='active'?[{...row,lot_number:'70000002'}]:[row]))
  assert.deepEqual(await vin.provider.lookup(row.vin),{lot:'70000002',site:'1'})
  assert.equal(vin.calls[0].params.get('status'),'active')
