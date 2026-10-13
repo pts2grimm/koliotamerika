@@ -1,3 +1,2 @@
-export default function Loading() {
- return <section className="container page-heading" role="status"><p>Зареждаме търговете за мотори и ATV…</p></section>
-}
+import { AuctionCatalogueLoading } from '@/components/AuctionCatalogueLoading'
+export default function Loading() { return <AuctionCatalogueLoading powersports /> }

@@ -1,7 +1,8 @@
+import { AuctionSearchForm } from './AuctionSearchForm'
 import { canonicalEridanMake } from '@/lib/auction-providers/make-aliases'
 import { SiteLink as Link } from '@/components/SiteLink'
 import { redirect, notFound } from 'next/navigation'
-import { Heart, Search, X } from 'lucide-react'
+import { Heart, X } from 'lucide-react'
 import { auctionMakes, searchAuctions, lookupAuction, auctionProviderName } from '@/lib/auctions'
 import { auctionFilterLabel, auctionResultsURL, readAuctionFilters, type AuctionQuery } from '@/lib/auction-filters'
 import { siteURL } from '@/lib/data'
@@ -68,7 +69,7 @@ export async function AuctionCatalogue({ searchParams, archive = false, section 
         <nav className="archive-navigation" aria-label="Категории търгове"><Link className="button button-outline" aria-current={!moto ? 'page' : undefined} href={auctionSectionPath('cars',archive)}>Коли</Link><Link className="button button-outline" aria-current={moto ? 'page' : undefined} href={auctionSectionPath('powersports',archive)}>Мотори и ATV</Link></nav>
         <nav className="archive-navigation" aria-label="Активни и архивни автомобили"><Link className="text-link" aria-current={!archive ? 'page' : undefined} href={auctionSectionPath(section)}>Активни търгове</Link><Link className="text-link" aria-current={archive ? 'page' : undefined} href={auctionSectionPath(section,true)}>Архив</Link></nav>
       </>}
-      <form className="lot-search" action={basePath} aria-label="Търсене по номер"><label>Имаш номер на лот или VIN?<input name="q" maxLength={17} placeholder="Въведи номер на лот или VIN" defaultValue={typeof input.q === 'string' ? input.q : ''} /></label><button className="button button-outline" type="submit"><Search size={17} />Намери</button></form>
+      <AuctionSearchForm className="lot-search" action={basePath} label="Търсене по номер" buttonLabel="Намери" outlined><label>Имаш номер на лот или VIN?<input name="q" maxLength={17} placeholder="Въведи номер на лот или VIN" defaultValue={typeof input.q === 'string' ? input.q : ''} /></label></AuctionSearchForm>
       {lookupError && <p className="form-error" role="alert">{lookupError}</p>}
       <div className="auction-browse-layout"><AuctionFilters section={section} basePath={basePath} key={JSON.stringify(initial)} makes={makes} initial={initial} modelsOnDemand={auctionProviderName() === 'eridan'} eridan={auctionProviderName() === 'eridan'} unavailableFilters={[]} />
       <div className="auction-results"><div className="results-count"><span>{data ? data.total !== null ? <><strong>{data.total.toLocaleString('bg-BG')}</strong> резултата</> : moto ? 'Намерени мотори и ATV' : 'Намерени автомобили' : 'Данните временно не са достъпни.'}</span><span>{archive ? 'Търгове с минала дата. Резултатът е посочен, когато е потвърден.' : 'Текущите залози не включват разходите за внос.'}</span></div>

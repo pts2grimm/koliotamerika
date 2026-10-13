@@ -1,15 +1,14 @@
 'use client'
-import NextLink, { useLinkStatus } from 'next/link'
+import NextLink from 'next/link'
 import { useEffect, useRef, useState, type ComponentProps } from 'react'
-import { createPortal } from 'react-dom'
+import { useDocumentNavigation } from '@/lib/use-document-navigation'
+import { AuctionLinkPending } from './AuctionLinkPending'
 import { createAuctionPrefetchBudget } from '@/lib/auction-prefetch'
 
 const budget=createAuctionPrefetchBudget()
-function Pending() {
- const {pending}=useLinkStatus()
- return pending?createPortal(<span className="auction-navigation-status" role="status">Отваряме автомобила…</span>,document.body):null
-}
+
 export function AuctionLink(props:ComponentProps<typeof NextLink>) {
+ const { pending, navigate } = useDocumentNavigation()
  const [armed,setArmed]=useState(false)
  const timer=useRef<ReturnType<typeof setTimeout>|undefined>(undefined)
  const cancel=()=>{clearTimeout(timer.current);setArmed(false)}
@@ -30,9 +29,9 @@ export function AuctionLink(props:ComponentProps<typeof NextLink>) {
    // Full-route prefetch can outlive fresh auction data in Next's client cache.
    // Old prepared routes get a fresh document request instead of reusing that payload.
    if(!cancelled&&budget.expired(props.href)&&typeof props.href==='string'){
-    event.preventDefault();window.location.assign(props.href)
+    event.preventDefault();navigate(props.href)
    }
   }}>
-  {props.children}<Pending/>
+  {props.children}<AuctionLinkPending detail documentPending={pending}/>
  </NextLink>
 }

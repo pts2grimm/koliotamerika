@@ -1,6 +1,7 @@
 'use client'
 import { privateTrackingPath } from '@/lib/integration-config'
 import NextLink from 'next/link'
+import { AuctionLinkPending } from './AuctionLinkPending'
 import { AuctionLink } from './AuctionLink'
 import { auctionPrefetchKey } from '@/lib/auction-prefetch'
 import type { ComponentProps } from 'react'
@@ -16,5 +17,5 @@ export function SiteLink(props: ComponentProps<typeof NextLink>) {
  }} />
  if(auctionPrefetchKey(props.href))return <AuctionLink {...props}/>
  const usesAuctions = pathname === '/' || pathname === '/targove' || pathname?.startsWith('/targove/')
- return <NextLink {...props} prefetch={usesAuctions ? false : props.prefetch} />
+ return <NextLink {...props} prefetch={usesAuctions ? false : props.prefetch}>{props.children}{pathname?.startsWith('/targove') && <AuctionLinkPending />}</NextLink>
 }
