@@ -36,16 +36,17 @@ export function normalizeEridanCar(value: unknown): AuctionCar | undefined {
  if (!lotText || !/^\d{5,12}$/.test(lotText) || !Number.isSafeInteger(lot) || !lot || !site) return undefined
  const make = name(raw.make) || '', model = name(raw.model) || name(raw.series) || '', year = number(raw.year) || 0
  const currency = text(raw.currency)?.toUpperCase()
+ const active = raw.status === 'active'
  const knownCurrency = currency && ['USD', 'CAD', 'EUR', 'BGN'].includes(currency)
  // The current documented response does not specify odometer units. Do not assume US == miles.
  const unit = raw.odometer_unit === 'mi' || raw.odometer_unit === 'km' ? raw.odometer_unit : 'unknown'
  return {
   id: site + ':' + lot, lot_id: lot, site, title: text(raw.name) || [year || '', make, model].filter(Boolean).join(' '),
   make, model, year, vehicle_type: raw.item_type === 'VEHTYPE_V' ? 'Automobile' : raw.item_type === 'VEHTYPE_M' ? 'Motorcycle' : undefined, vin: text(raw.vin), odometer: number(raw.odometer), odometer_unit: unit,
-  currency, current_bid: knownCurrency ? number(raw.current_bid) : undefined,
-  buy_now: knownCurrency ? number(raw.buy_now_price) : undefined, price_new: knownCurrency ? number(raw.retail_value) : undefined,
+  currency, current_bid: knownCurrency && active ? number(raw.current_bid) : undefined,
+  buy_now: knownCurrency && active ? number(raw.buy_now_price) : undefined, price_new: knownCurrency ? number(raw.retail_value) : undefined,
   location: [text(raw.city), text(raw.state)].filter(Boolean).join(', ') || text(raw.yard),
-  state: text(raw.state), auction_date: text(raw.sale_date), status: mechanicalStatus(raw),
+  state: text(raw.state), auction_date: text(raw.sale_date), auction_status: text(raw.status), status: mechanicalStatus(raw),
   damage_pr: name(raw.primary_damage), damage_sec: name(raw.secondary_damage),
   document_old: [text(raw.title_type), text(raw.title_state)].filter(Boolean).join(' ') || undefined,
   fuel: Object.entries(fuelGroups).find(([, names]) => names.includes(text(raw.fuel)?.toLowerCase() || ''))?.[0] || text(raw.fuel), transmission: text(raw.transmission), engine: text(raw.engine), drive: text(raw.drive),
@@ -113,11 +114,18 @@ export function createEridanProvider(request: AuctionTransport): AuctionProvider
    return [type, String(match.value)]
   })) as Record<EridanRoadType, string>
  })().catch(error => { categories = undefined; throw error })
- const detail = async (lot: string, site: string) => {
+ const findLot = async (lot: string, site: string, active: boolean) => {
   if (!/^\d{5,12}$/.test(lot) || !auctions[site]) throw new Error('Invalid lot')
-  const params = new URLSearchParams({ lot_number: lot, auction: auctions[site], ordering: '-updated_at', page: '1', page_size: '10' })
+  // A lot can have multiple sale events. Import time is not the auction date.
+  const params = new URLSearchParams({ lot_number: lot, auction: auctions[site], ordering: '-sale_date', page: '1', page_size: '10' })
+  if (active) params.set('status', 'active')
   const data = lots(await request('/lots', params), 1)
-  return data.items.find(car => car.lot_id === Number(lot) && String(car.site) === site)
+  return data.items.find(car => car.lot_id === Number(lot) && String(car.site) === site && (!active || car.auction_status === 'active'))
+ }
+ const detail = async (lot: string, site: string) => {
+  const current = await findLot(lot, site, true)
+  // Preserve old saved URLs, but retain lifecycle status so history cannot look current.
+  return current || await findLot(lot, site, false)
  }
  return {
   name: 'eridan', detail,
@@ -128,7 +136,7 @@ export function createEridanProvider(request: AuctionTransport): AuctionProvider
    const sites = [...new Set((input.get('site') || '1').split(','))]
    if (!sites.length || sites.some(site => !auctions[site])) throw new Error('Invalid auction')
    const page = Number(valid.get('page')), size = Number(valid.get('size')) * sites.length
-   const params = new URLSearchParams({ page: String(page), page_size: String(size), ordering: '-id' })
+   const params = new URLSearchParams({ page: String(page), page_size: String(size), ordering: '-id', status: 'active' })
    for (const [from, to] of [['make', 'make__name'], ['model', 'model__name'], ['year_from', 'year_from'], ['year_to', 'year_to']]) {
     const value = valid.get(from); if (value) params.set(to, value)
    }
@@ -182,7 +190,7 @@ export function createEridanProvider(request: AuctionTransport): AuctionProvider
        if (order === undefined) throw new Error('Invalid Eridan sort identity')
        seen.add(order)
        // Defend against misclassified upstream rows; fill the stream before slicing.
-       if (String(car.site) !== site || raw.item_type !== codes[type] || !isEridanRoadMake(car.make, type) || !isEridanRoadModel(car.model, car.make) || !car.link_img_hd?.length) continue
+       if (car.auction_status !== 'active' || String(car.site) !== site || raw.item_type !== codes[type] || !isEridanRoadMake(car.make, type) || !isEridanRoadModel(car.model, car.make) || !car.link_img_hd?.length) continue
        if (!stream.has(car.id) || stream.get(car.id)!.order < order) stream.set(car.id, { car, order })
       }
       if (!data.hasNext) break
@@ -225,14 +233,18 @@ export function createEridanProvider(request: AuctionTransport): AuctionProvider
   async lookup(query) {
    const q = query.trim().toUpperCase()
    if (/^[A-HJ-NPR-Z0-9]{17}$/.test(q)) {
-    const data = lots(await request('/lots', new URLSearchParams({ vin: q, ordering: '-updated_at', page: '1', page_size: '10' })), 1)
-    const car = data.items.find(item => item.vin?.toUpperCase() === q)
-    if (car) return { lot: String(car.lot_id), site: String(car.site) }
+    for (const active of [true, false]) {
+     const params = new URLSearchParams({ vin: q, ordering: '-sale_date', page: '1', page_size: '10' })
+     if (active) params.set('status', 'active')
+     const data = lots(await request('/lots', params), 1)
+     const car = data.items.find(item => item.vin?.toUpperCase() === q && (!active || item.auction_status === 'active'))
+     if (car) return { lot: String(car.lot_id), site: String(car.site) }
+    }
     throw new Error('VIN not found')
    }
    if (!/^\d{5,12}$/.test(q)) throw new Error('Invalid lot')
-   for (const site of ['1', '2']) {
-    const car = await detail(q, site)
+   for (const active of [true, false]) for (const site of ['1', '2']) {
+    const car = await findLot(q, site, active)
     if (car) return { lot: String(car.lot_id), site }
    }
    throw new Error('Lot not found')

@@ -16,6 +16,9 @@ cars.push({ ...cars[0], id: 3000, vin: 'JH200000000000001', lot_number: '8100000
 cars.push({ ...cars[0], id: 4000, vin: 'CAT00000000000001', lot_number: '82000000', item_type: 'VEHTYPE_E', make: { id: 4, name: 'CATERPILLAR' }, model: { id: 40, name: 'D6', make_id: 4 }, name: 'Caterpillar excavator' })
 cars.push({ ...cars[0], id: 5000, vin: 'SEA00000000000001', lot_number: '83000000', item_type: 'VEHTYPE_M', make: { id: 5, name: 'SEA RAY' }, model: { id: 50, name: 'BOAT', make_id: 5 }, name: 'Sea Ray boat' })
 cars.push({ ...cars[0], id: 6000, vin: 'WBA00000000000099', lot_number: '84000000', images: [], name: '2022 BMW X5 incomplete gallery' })
+// Backfilled historical sale has a newer ingestion ID than the active event.
+cars.push({ ...cars[0], id: 9000, status: 'not_sold', sale_date: '2026-09-23T14:00:00Z', current_bid: 9000 })
+cars.push({ ...cars[0], id: 9001, lot_number: '57397516', name: '2020 PORSCHE MACAN S', make: {id:7,name:'PORSCHE'}, model: {id:70,name:'MACAN'}, status:'not_sold', sale_date:'2026-09-23T14:00:00Z', current_bid:5400 })
 let searchOutage = false, transientSearchFailures = 0
 createServer((req, res) => {
  const url = new URL(req.url, 'http://127.0.0.1'), p = url.searchParams
@@ -45,12 +48,12 @@ createServer((req, res) => {
  if (transientSearchFailures && p.get('year_from') === '2018' && p.get('year_to') === '2023') {
   transientSearchFailures--; return send({ error: 'one temporary gateway failure' }, 503)
  }
- const allowed = ['page', 'page_size', 'ordering', 'auction', 'lot_number', 'vin', 'make__name', 'model__name', 'year_from', 'year_to', 'fuel_type__name', 'item_type', 'has_images', 'makes']
+ const allowed = ['page', 'page_size', 'ordering', 'auction', 'lot_number', 'vin', 'make__name', 'model__name', 'year_from', 'year_to', 'fuel_type__name', 'item_type', 'has_images', 'makes', 'status']
  if ([...p.keys()].some(key => !allowed.includes(key))) return send({ error: 'unknown filter' }, 422)
  const items = cars.filter(car =>
   (!p.get('has_images') || car.images.length > 0) &&
   (!p.has('makes') || p.getAll('makes').at(-1).split(',').some(make => make.toLowerCase() === car.make.name.toLowerCase())) &&
-  ['auction', 'lot_number', 'vin', 'item_type'].every(key => !p.get(key) || car[key] === p.get(key)) &&
+  ['auction', 'lot_number', 'vin', 'item_type', 'status'].every(key => !p.get(key) || car[key] === p.get(key)) &&
   (!p.get('make__name') || car.make.name === p.get('make__name')) &&
   (!p.get('model__name') || car.model.name === p.get('model__name')) &&
   (!p.get('fuel_type__name') || car.fuel === p.get('fuel_type__name')) &&

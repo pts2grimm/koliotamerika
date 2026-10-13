@@ -3,6 +3,8 @@ import { test } from 'node:test'
 import { createEridanProvider, normalizeEridanCar, UnsupportedEridanFilterError } from '../src/lib/auction-providers/eridan'
 import { createEridanTransport } from '../src/lib/auction-providers/eridan-transport'
 import { isEridanRoadModel } from '../src/lib/auction-providers/eridan-scope'
+import userLot from './fixtures/eridan-user-lot.json'
+import { auctionSchedule, parseAuctionDate } from '../src/lib/auction-schedule'
 import { mileage } from '../src/lib/vehicle-details'
 import type { AuctionTransport } from '../src/lib/auction-providers/types'
 
@@ -54,7 +56,7 @@ test('Eridan translates filters, keeps 24 results for both auctions, and never i
  const data = await provider.search(new URLSearchParams({ make: 'BMW', model: 'X5', year_from: '2020', year_to: '2024', site: '1,2', vehicle_type: 'Automobile', size: '12', page: '2' }))
  const query = calls.find(call => call.path === '/lots')!.params
  assert.equal(query.get('make__name'), 'BMW'); assert.equal(query.get('model__name'), 'X5')
- assert.equal(query.get('year_from'), '2020'); assert.equal(query.get('year_to'), '2024')
+ assert.equal(query.get('status'), 'active'); assert.equal(query.get('year_from'), '2020'); assert.equal(query.get('year_to'), '2024')
  assert.equal(query.get('item_type'), 'VEHTYPE_V')
  assert.equal(query.get('page_size'), '49'); assert.equal(query.get('page'), '1'); assert.equal(query.get('auction'), 'copart')
  assert.ok(calls.some(call=>call.params.get('auction')==='iaai'))
@@ -83,7 +85,7 @@ test('detail resolves old public lot/site URLs using lot_number, never /lots/{in
  const car = await provider.detail('70000001', '1')
  assert.equal(car?.id, '1:70000001')
  assert.equal(calls.length, 1); assert.equal(calls[0].path, '/lots')
- assert.equal(calls[0].params.get('lot_number'), '70000001'); assert.equal(calls[0].params.get('auction'), 'copart')
+ assert.equal(calls[0].params.get('status'), 'active'); assert.equal(calls[0].params.get('ordering'), '-sale_date'); assert.equal(calls[0].params.get('lot_number'), '70000001'); assert.equal(calls[0].params.get('auction'), 'copart')
  const wrong = fixture(() => envelope([{ ...row, lot_number: '70000002' }]))
  assert.equal(await wrong.provider.detail('70000001', '1'), undefined)
 })
@@ -476,4 +478,60 @@ test('a fuel absent from one auction does not block valid results from the other
  const data=await provider.search(new URLSearchParams('site=1,2&fuel=Gasoline&vehicle_type=Automobile'))
  assert.deepEqual(data.items.map(c=>c.site),[1])
  await assert.rejects(()=>provider.search(new URLSearchParams('site=2&fuel=Gasoline')),UnsupportedEridanFilterError)
+})
+
+test('the user-provided JSON maps sale_date, auction, amounts, nested names and nulls without invented data', () => {
+ const car = normalizeEridanCar(userLot)!
+ assert.equal(car.id, '1:68880346'); assert.equal(car.lot_id, 68880346)
+ assert.equal(car.auction_date, '2026-10-16T18:00:00Z'); assert.equal(car.auction_status, 'active')
+ assert.equal(car.status, 'Run & Drive'); assert.equal(car.fuel, 'Gasoline')
+ assert.equal(car.make, 'FORD'); assert.equal(car.model, 'F550')
+ assert.equal(car.current_bid, undefined); assert.equal(car.buy_now, 7500)
+ assert.equal(car.price_new, 28872); assert.equal(car.currency, 'USD')
+ assert.equal(car.odometer, 56683); assert.equal(car.odometer_unit, 'unknown')
+ assert.equal(car.damage_pr, 'SIDE'); assert.equal(car.damage_sec, undefined)
+ assert.equal(car.document_old, 'SALVAGE CERTIFICATE UT')
+ assert.equal(car.seller, undefined); assert.equal(car.seller_type, undefined)
+ assert.equal(car.vehicle_type, undefined) // VEHTYPE_R is not an allowed road-car category.
+ assert.deepEqual(car.link_img_hd, []); assert.deepEqual(car.link_img_small, [userLot.thumb_url])
+ const schedule = auctionSchedule(parseAuctionDate(car.auction_date), Date.parse('2026-10-13T12:00:00Z'), car.auction_status)
+ assert.equal(userLot.is_future_sale, false)
+ assert.equal(schedule.state, 'upcoming'); assert.equal(schedule.time, '21:00')
+})
+
+test('history is excluded from every catalogue stream, even if upstream ignores the active filter', async () => {
+ const {provider,calls}=fixture(() => envelope([{...row,id:99,lot_number:'70000099',status:'not_sold'},row,userLot]))
+ const data=await provider.search(new URLSearchParams({site:'1',make:'BMW'}))
+ assert.deepEqual(data.items.map(car=>car.id), ['1:70000001'])
+ assert.ok(calls.filter(call=>call.path==='/lots').every(call=>call.params.get('status')==='active'))
+})
+
+test('detail prefers the active sale to recently reimported history and never falls back after an API error', async () => {
+ const {provider,calls}=fixture((_,params)=>envelope(params.get('status')==='active'?[{...row,sale_date:'2026-10-14T14:00:00Z'}]:[{...row,status:'not_sold',sale_date:'2026-09-23T14:00:00Z'}]))
+ assert.equal((await provider.detail('70000001','1'))?.auction_date,'2026-10-14T14:00:00Z')
+ assert.equal(calls.length,1)
+ let errors=0
+ const failed=createEridanProvider(async()=>{errors++;throw new Error('Auction provider HTTP 503')})
+ await assert.rejects(()=>failed.detail('70000001','1'),/503/)
+ assert.equal(errors,1)
+})
+
+test('saved historical lots remain available with lifecycle status and without stale live prices', async () => {
+ const {provider,calls}=fixture((_,params)=>envelope(params.get('status')==='active'?[]:[{...row,status:'not_sold',sale_date:'2026-09-23T14:00:00Z',current_bid:5000,buy_now_price:7000}]))
+ const car=(await provider.detail('70000001','1'))!
+ assert.equal(calls.length,2); assert.equal(calls[1].params.has('status'),false)
+ assert.equal(car.auction_status,'not_sold'); assert.equal(car.status,'Run & Drive')
+ assert.equal(car.current_bid,undefined); assert.equal(car.buy_now,undefined)
+ const schedule=auctionSchedule(parseAuctionDate(car.auction_date),Date.parse('2026-10-13T12:00:00Z'),car.auction_status)
+ assert.equal(schedule.state,'unknown'); assert.equal(schedule.previousDate,true)
+ assert.equal(schedule.countdown,'Очаква се актуална дата')
+})
+
+test('VIN lookup prefers the active event and numeric lookup checks both active auctions before history', async () => {
+ const vin=fixture((_,params)=>envelope(params.get('status')==='active'?[{...row,lot_number:'70000002'}]:[row]))
+ assert.deepEqual(await vin.provider.lookup(row.vin),{lot:'70000002',site:'1'})
+ assert.equal(vin.calls[0].params.get('status'),'active')
+ const numeric=fixture((_,params)=>envelope(params.get('auction')==='iaai'?[{...row,auction:'iaai'}]:params.get('status')==='active'?[]:[{...row,status:'not_sold'}]))
+ assert.deepEqual(await numeric.provider.lookup('70000001'),{lot:'70000001',site:'2'})
+ assert.equal(numeric.calls.length,2)
 })

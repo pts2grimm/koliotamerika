@@ -32,3 +32,13 @@ test('missing, impossible and unzoned dates never become an invented local aucti
 test('provider date aliases survive normalization when its primary field is empty', () => {
  assert.equal(normalizeCar({ lot_id: 70000000, site: 1, auction_date: '', saleDate: '2026-10-12T14:00:00Z' })?.auction_date, '2026-10-12T14:00:00Z')
 })
+
+test('an expired active Eridan schedule cannot claim the vehicle auction has ended', () => {
+ const now=Date.parse('2026-10-13T12:00:00Z')
+ const past=parseAuctionDate('2026-09-23T14:00:00Z')
+ assert.equal(auctionSchedule(past,now,'active').countdown,'Очаква се актуална дата')
+ assert.equal(auctionSchedule(past,now,'not_sold').state,'unknown')
+ assert.equal(auctionSchedule(past,now,'sold').previousDate,true)
+ assert.equal(auctionSchedule(null,now,'active').countdown,'Очаква се дата')
+ assert.equal(auctionSchedule(parseAuctionDate('2026-10-14T14:00:00Z'),now,'active').time,'17:00')
+})
