@@ -61,10 +61,10 @@ function provider(){const name=auctionProviderName();if(name==='eridan')return c
 const cachedSearch=unstable_cache(async(_provider:string,params:string)=>{
  const data=await coalesce(JSON.stringify(['search',_provider,params]),()=>provider().search(new URLSearchParams(params)))
  return {data,fetchedAt:Date.now()}
-},['auction-search-v6-balanced-auctions'],{revalidate:60})
-const cachedMakes=unstable_cache(async(_provider:string)=>coalesce(JSON.stringify(['makes',_provider]),()=>provider().makes()),['auction-makes-v5-road'],{revalidate:3600})
-const cachedCar=unstable_cache(async(_provider:string,lot:string,site:string)=>coalesce(JSON.stringify(['car',_provider,lot,site]),()=>provider().detail(lot,site)),['auction-car-v3'],{revalidate:60})
-const cachedLookup=unstable_cache(async(_provider:string,q:string)=>coalesce(JSON.stringify(['lookup',_provider,q]),()=>provider().lookup(q)),['auction-lookup-v3'],{revalidate:60})
+},['auction-search-v7-active-road-atv-utv'],{revalidate:60})
+const cachedMakes=unstable_cache(async(_provider:string)=>coalesce(JSON.stringify(['makes',_provider]),()=>provider().makes()),['auction-makes-v6-road-atv-utv'],{revalidate:3600})
+const cachedCar=unstable_cache(async(_provider:string,lot:string,site:string)=>coalesce(JSON.stringify(['car',_provider,lot,site]),()=>provider().detail(lot,site)),['auction-car-v4-active-sale'],{revalidate:60})
+const cachedLookup=unstable_cache(async(_provider:string,q:string)=>coalesce(JSON.stringify(['lookup',_provider,q]),()=>provider().lookup(q)),['auction-lookup-v4-active-sale'],{revalidate:60})
 export async function searchAuctions(params:string){
  const sorted=new URLSearchParams(params);sorted.sort()
  const name=auctionProviderName()
@@ -73,7 +73,7 @@ export async function searchAuctions(params:string){
  return result.data
 }
 export const auctionMakes=()=>cachedMakes(auctionProviderName())
-const cachedModels=unstable_cache(async(_provider:string,make:string)=>coalesce(JSON.stringify(['models',_provider,make]),async()=>{const adapter=provider();return adapter.models?adapter.models(make):(await adapter.makes())[make]||[]}),['auction-models-v2-road'],{revalidate:3600})
+const cachedModels=unstable_cache(async(_provider:string,make:string)=>coalesce(JSON.stringify(['models',_provider,make]),async()=>{const adapter=provider();return adapter.models?adapter.models(make):(await adapter.makes())[make]||[]}),['auction-models-v3-road-atv-utv'],{revalidate:3600})
 export async function auctionModels(make:string) {
  if(!make.trim()||make.length>100)throw new Error('Invalid make')
  const makes=await auctionMakes()

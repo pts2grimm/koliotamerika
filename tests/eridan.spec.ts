@@ -293,3 +293,45 @@ test('successive uncached searches keep both auctions available past the former 
  const after = (await (await request.get('http://127.0.0.1:3199/test-requests')).json()).requests.length
  expect(after - before).toBeGreaterThan(20)
 })
+
+test('recently imported historical records cannot replace active catalogue dates or detail snapshots', async ({ page, request }) => {
+ await page.goto('/targove?make=BMW&model=X5&pagenum=2')
+ await expect(page.locator('.auction-card')).toHaveCount(6)
+ const card=page.locator('.auction-card').filter({has:page.locator('a[href="/targove/kola?lot=70000000&site=1"]')})
+ await expect(card.locator('time')).toHaveAttribute('datetime','2030-10-12T14:00:00.000Z')
+ await expect(card.locator('.auction-countdown')).not.toHaveText('Посоченият час е минал')
+ await card.locator('.auction-card-link').click()
+ await expect(page.locator('.detail-summary > .auction-schedule time')).toHaveAttribute('datetime','2030-10-12T14:00:00.000Z')
+ const requests=(await (await request.get('http://127.0.0.1:3199/test-requests')).json()).requests
+ const searches=requests.filter((call:{path:string;params:Record<string,string>})=>call.path==='/lots'&&call.params.make__name==='BMW')
+ expect(searches.length).toBeGreaterThan(0)
+ expect(searches.every((call:{params:Record<string,string>})=>call.params.status==='active')).toBe(true)
+})
+
+test('a historical-only saved lot clearly marks the previous date and links to Copart without a stale current bid', async ({ page }) => {
+ await page.goto('/targove/kola?lot=57397516&site=1')
+ await expect(page.locator('.detail-summary h1')).toHaveText('2020 PORSCHE MACAN S')
+ const schedule=page.locator('.detail-summary > .auction-schedule')
+ await expect(schedule.locator('.auction-countdown')).toHaveText('Очаква се актуална дата')
+ await expect(schedule).toContainText('Предишна дата от доставчика')
+ await expect(schedule).toContainText('23.09.2026')
+ await expect(schedule).not.toContainText('Посоченият час е минал')
+ await expect(page.getByRole('link',{name:'Провери актуалната обява в Copart'})).toHaveAttribute('href','https://www.copart.com/lot/57397516')
+ await expect(page.locator('.detail-summary .detail-price')).toHaveCount(0)
+})
+
+test('ATV and UTV are included in both-auction results and seller data is rendered without invented values', async ({ page }) => {
+ await page.goto('/targove?vehicle_type=ATVUTV')
+ await expect(page.locator('.auction-card')).toHaveCount(2)
+ await expect(page.locator('.auction-card').filter({hasText:'Sportsman 570'})).toHaveCount(1)
+ await expect(page.locator('.auction-card').filter({hasText:'UFORCE 1000'})).toHaveCount(1)
+ expect(await page.locator('.auction-card .car-badge').allTextContents()).toEqual(['COPART','IAAI'])
+ await page.locator('.auction-card').filter({hasText:'Sportsman 570'}).locator('.auction-card-link').click()
+ await expect(page.locator('.vehicle-facts').filter({hasText:'Информация за автомобила'})).toContainText('Example ATV Seller')
+ await page.goto('/targove/kola?lot=85000002&site=2')
+ await expect(page.locator('.vehicle-facts dt').filter({hasText:/^Продавач$/})).toHaveCount(0)
+ await page.goto('/targove')
+ for (const lot of ['85000003','85000004','85000005','82000000','83000000'])
+  await expect(page.locator('.auction-card a[href*="lot='+lot+'"]')).toHaveCount(0)
+ await expect(page.locator('select[name=make] option[value=POLARIS]')).toHaveCount(1)
+})

@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import { CalendarClock } from 'lucide-react'
 import { auctionSchedule, parseAuctionDate } from '@/lib/auction-schedule'
 
-export function AuctionSchedule({ date, initialNow }: { date?: string; initialNow: number }) {
+export function AuctionSchedule({ date, initialNow, auctionStatus, showPreviousDate = false }: { date?: string; initialNow: number; auctionStatus?: string; showPreviousDate?: boolean }) {
  const timestamp = parseAuctionDate(date)
  const [now, setNow] = useState(initialNow)
  useEffect(() => {
@@ -22,11 +22,12 @@ export function AuctionSchedule({ date, initialNow }: { date?: string; initialNo
   document.addEventListener('visibilitychange', update)
   return () => { window.clearTimeout(timer); document.removeEventListener('visibilitychange', update) }
  }, [timestamp])
- const schedule = auctionSchedule(timestamp, now)
+ const schedule = auctionSchedule(timestamp, now, auctionStatus)
  return <div className={`auction-schedule auction-schedule-${schedule.state}`} aria-label="Дата и час на търга">
   <CalendarClock size={19} aria-hidden="true" />
   <div><span className="auction-schedule-label">{schedule.state === 'upcoming' ? 'ДО ТЪРГА' : 'ДАТА НА ТЪРГА'}</span><strong className="auction-countdown">{schedule.countdown}</strong>
-   {timestamp !== null && <><time dateTime={new Date(timestamp).toISOString()}>{schedule.date} · {schedule.time} ч.</time><small>Българско време</small></>}
+   {timestamp !== null && (!schedule.previousDate || showPreviousDate) && <>{schedule.previousDate && <small>Предишна дата от доставчика</small>}<time dateTime={new Date(timestamp).toISOString()}>{schedule.date} · {schedule.time} ч.</time><small>Българско време</small></>}
+   {schedule.previousDate && showPreviousDate && <small>Това не потвърждава, че няма нов търг за автомобила.</small>}
   </div>
  </div>
 }

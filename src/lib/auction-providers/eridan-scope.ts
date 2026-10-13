@@ -1,6 +1,6 @@
 // Eridan's make directory includes equipment, boats and malformed names, and some
 // marine lots are incorrectly assigned VEHTYPE_M. Keep the supported road brands
-// explicit until Eridan supplies a category-aware make/model directory.
+// explicit for cars, motorcycles and ATV/UTV until Eridan supplies a category-aware make/model directory.
 export const eridanRoadBrands = {
  Automobile: [
   'ACURA', 'ALFA ROMEO', 'ASTON MARTIN', 'AUDI', 'AUSTIN', 'BENTLEY', 'BMW', 'BUICK',
@@ -17,29 +17,29 @@ export const eridanRoadBrands = {
  ],
  Motorcycle: [
   'APRILIA', 'BENELLI', 'BETA', 'BIG DOG', 'BIMOTA', 'BMW', 'BRIXTON', 'BUELL',
-  'BSA', 'CFMOTO', 'CF MOTO', 'DUCATI', 'GAS GAS', 'GASGAS', 'HARLEY-DAVIDSON',
+  'BSA', 'CAN-AM', 'CAN AM', 'CANAM', 'POLARIS', 'CFMOTO', 'CF MOTO', 'DUCATI', 'GAS GAS', 'GASGAS', 'HARLEY-DAVIDSON',
   'HARLEY DAVIDSON', 'HARLEY', 'HONDA', 'HUSQVARNA', 'HUSABERG', 'HYOSUNG',
   'INDIAN', 'KAWASAKI', 'KTM', 'KYMCO', 'LANCE', 'LIVEWIRE', 'MOTO GUZZI',
   'MOTO MORINI', 'MV AGUSTA', 'NORTON', 'PIAGGIO', 'ROYAL ENFIELD', 'SHERCO',
   'SUZUKI', 'SYM', 'TRIUMPH', 'URAL', 'VESPA', 'VICTORY', 'YAMAHA', 'ZERO',
  ],
+ ATVUTV: [
+  'ARCTIC CAT', 'ARCTICCAT', 'BOMBARDIER', 'CAN-AM', 'CAN AM', 'CANAM',
+  'CFMOTO', 'CF MOTO', 'COLEMAN', 'HISUN', 'HONDA', 'KAWASAKI', 'KYMCO',
+  'MASSIMO', 'ODES', 'POLARIS', 'SEGWAY', 'SUZUKI', 'TAO TAO', 'TAOTAO',
+  'TEXTRON', 'TRACKER', 'YAMAHA',
+ ],
 } as const
 export type EridanRoadType = keyof typeof eridanRoadBrands
-export const eridanRoadTypes: EridanRoadType[] = ['Automobile', 'Motorcycle']
+export const eridanRoadTypes: EridanRoadType[] = ['Automobile', 'Motorcycle', 'ATVUTV']
 const key = (value: string) => value.trim().toUpperCase().replace(/[^A-Z0-9]/g, '')
 const brandKeys = Object.fromEntries(eridanRoadTypes.map(type => [type, new Set(eridanRoadBrands[type].map(key))])) as Record<EridanRoadType, Set<string>>
 export function isEridanRoadMake(make: string, type?: EridanRoadType) {
  return (type ? [type] : eridanRoadTypes).some(type => brandKeys[type].has(key(make)))
 }
 export function isEridanRoadModel(model: string, make = '') {
- const value = model.trim(), brand = key(make)
- const utilityModels: Record<string, RegExp> = {
-  HONDA: /^(?:SXS\d|TRX\d|FOURTRAX|PIONEER|TALON)/i,
-  YAMAHA: /^(?:YXZ\d|YFM\d|YXR\d|YXE\d)/i,
-  KAWASAKI: /^(?:MULE|TERYX|BRUTE FORCE|KFX\d|KRF\d|KRT\d|KVF\d)/i,
-  SUZUKI: /^LT-?[AZF]?\d/i,
- }
- return Boolean(value) && !utilityModels[brand]?.test(value) &&
+ const value = model.trim()
+ return Boolean(value) &&
   !/^(?:unknown|unk|other|n\/a|none|not specified|[?*.-]+)$/i.test(value) &&
-  !/\b(?:boat|marine|outboard|waverunner|wave runner|jet ski|jetski|seadoo|sea doo|atv|utv|snowmobile|mower|tractor|trailer|forklift|excavator)\b/i.test(value)
+  !/\b(?:boat|marine|outboard|waverunner|wave runner|jet ski|jetski|seadoo|sea doo|snowmobile|mower|tractor|trailer|forklift|excavator)\b/i.test(value)
 }
