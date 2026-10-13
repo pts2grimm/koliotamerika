@@ -15,6 +15,12 @@ async function main() {
    ? [{name, properties: Object.fromEntries(Object.entries(properties))}] : []
  })))
  const request = createEridanTransport({apiKey:process.env.ERIDAN_API_KEY,fetch})
+ const categories = await request('/item_types', new URLSearchParams()) as {value:string,label:string}[]
+ console.log('ERIDAN_VEHICLE_CATEGORIES', JSON.stringify(categories))
+ for (const category of categories.filter(item=>/ATV|UTV|all.terrain|utility.*vehicle/i.test(item.label))) {
+  const data=await request('/lots',new URLSearchParams({item_type:category.value,status:'active',page:'1',page_size:'5',ordering:'-id'})) as {items:Record<string,unknown>[]}
+  console.log('ERIDAN_UTILITY_SAMPLE',JSON.stringify({category,items:data.items.map(row=>({make:row.make,model:row.model,item_type:row.item_type,body_style:row.body_style,status:row.status}))}))
+ }
  const response = await request('/lots', new URLSearchParams({lot_number:'57397516',auction:'copart',ordering:'-updated_at',page:'1',page_size:'10'})) as {items:Record<string,unknown>[],has_next:boolean}
  assert.ok(Array.isArray(response.items))
  console.log('SCHEDULE_NOW', new Date().toISOString())
@@ -28,7 +34,7 @@ async function main() {
  for (const auction of ['copart','iaai']) {
   const sample = await request('/lots', new URLSearchParams({auction, sale_date__gte:new Date().toISOString(), ordering:'sale_date', page:'1', page_size:'5'})) as {items:Record<string,unknown>[]}
   assert.ok(Array.isArray(sample.items))
-  console.log('SCHEDULE_UPCOMING_SAMPLE', JSON.stringify({auction,items:sample.items.map(row=>({lot:row.lot_number,status:row.status,sale_date:row.sale_date,is_future_sale:row.is_future_sale,updated_at:row.updated_at,auction_last_update:row.auction_last_update}))}))
+  console.log('SCHEDULE_UPCOMING_SAMPLE', JSON.stringify({auction,items:sample.items.map(row=>({lot:row.lot_number,status:row.status,sale_date:row.sale_date,is_future_sale:row.is_future_sale,updated_at:row.updated_at,auction_last_update:row.auction_last_update,sellerPresent:typeof row.seller==='string'&&row.seller.trim().length>0,sellerMatches:normalizeEridanCar(row)?.seller===(typeof row.seller==='string'&&row.seller.trim()?row.seller.trim():undefined)}))}))
  }
  const future = await request('/lots', new URLSearchParams({lot_number:'57397516',auction:'copart',sale_date__gte:new Date().toISOString(),page:'1',page_size:'10'})) as {items:Record<string,unknown>[],has_next:boolean}
  console.log('SCHEDULE_REPORTED_FUTURE', {count:future.items?.length,hasNext:future.has_next})
