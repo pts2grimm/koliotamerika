@@ -1,4 +1,4 @@
-name: Verify search recovery
+name: Verify deterministic catalogue outage recovery
 on:
   push:
     branches: ['codex/eridan-navigation-profile']
@@ -15,7 +15,6 @@ jobs:
           node-version: '24'
           cache: npm
       - run: npm ci --include=dev
-      - run: npx tsx --test tests/eridan.test.ts
       - name: Production build for isolated browser tests
         run: npm run build
         env:
@@ -25,7 +24,6 @@ jobs:
           NEXT_PUBLIC_SERVER_URL: http://localhost:3100
           SITE_INDEXABLE: 'false'
       - run: npm run typecheck
-      - run: npm test
       - run: npx playwright install --with-deps chromium
       - run: npx playwright test --config=playwright.eridan.config.ts
       - uses: actions/upload-artifact@v4

@@ -254,12 +254,14 @@ test('a stalled model directory times out and can be retried without refreshing 
  release?.()
 })
 
-test('a temporary catalogue error can recover with the same filters using the retry button', async ({ page }) => {
+test('a temporary catalogue error can recover with the same filters using the retry button', async ({ page, request }) => {
+ await request.post('http://127.0.0.1:3199/test-search-outage?enabled=true')
  await page.goto('/targove?make=BMW&model=X5&site=2&year_from=2019&year_to=2023')
  await expect(page.locator('.empty-state')).toContainText('В момента търговете не се зареждат.')
  const retry = page.getByRole('link', {name: 'Опитай отново', exact: true})
  const target = new URL((await retry.getAttribute('href'))!, page.url())
  expect(Object.fromEntries(target.searchParams)).toEqual({make:'BMW',model:'X5',site:'2',year_from:'2019',year_to:'2023'})
+ await request.post('http://127.0.0.1:3199/test-search-outage?enabled=false')
  await retry.click()
  await expect(page.locator('.auction-card')).toHaveCount(12)
  expect(await page.locator('.auction-card .car-badge').allTextContents()).toEqual(Array(12).fill('IAAI'))

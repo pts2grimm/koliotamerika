@@ -16,12 +16,13 @@ cars.push({ ...cars[0], id: 3000, vin: 'JH200000000000001', lot_number: '8100000
 cars.push({ ...cars[0], id: 4000, vin: 'CAT00000000000001', lot_number: '82000000', item_type: 'VEHTYPE_E', make: { id: 4, name: 'CATERPILLAR' }, model: { id: 40, name: 'D6', make_id: 4 }, name: 'Caterpillar excavator' })
 cars.push({ ...cars[0], id: 5000, vin: 'SEA00000000000001', lot_number: '83000000', item_type: 'VEHTYPE_M', make: { id: 5, name: 'SEA RAY' }, model: { id: 50, name: 'BOAT', make_id: 5 }, name: 'Sea Ray boat' })
 cars.push({ ...cars[0], id: 6000, vin: 'WBA00000000000099', lot_number: '84000000', images: [], name: '2022 BMW X5 incomplete gallery' })
-let failedSearchOnce = false
+let searchOutage = false
 createServer((req, res) => {
  const url = new URL(req.url, 'http://127.0.0.1'), p = url.searchParams
  const send = (data, status = 200) => { res.writeHead(status, { 'Content-Type': 'application/json' }); res.end(JSON.stringify(data)) }
  if (url.pathname === '/') return send({ ok: true })
  if (url.pathname === '/test-requests') return send({ requests })
+ if (url.pathname === '/test-search-outage' && req.method === 'POST') { searchOutage = p.get('enabled') === 'true'; return send({ok:true}) }
  if (req.headers.authorization !== 'Bearer eridan-local-fixture') return send({ error: 'unauthorized' }, 401)
  requests.push({ path: url.pathname, params: Object.fromEntries(p) })
  if (url.pathname === '/item_types') return send([{ value: 'VEHTYPE_V', label: 'Vehicle' }, { value: 'VEHTYPE_M', label: 'Motorcycle' }])
@@ -37,8 +38,7 @@ createServer((req, res) => {
   return
  }
  if (url.pathname !== '/lots') return send({ error: 'unknown endpoint' }, 404)
- if (!failedSearchOnce && p.get('year_from') === '2019' && p.get('year_to') === '2023') {
-  failedSearchOnce = true
+ if (searchOutage && p.get('year_from') === '2019' && p.get('year_to') === '2023') {
   return send({ error: 'temporary fixture outage' }, 503)
  }
  const allowed = ['page', 'page_size', 'ordering', 'auction', 'lot_number', 'vin', 'make__name', 'model__name', 'year_from', 'year_to', 'fuel_type__name', 'item_type', 'has_images', 'makes']
