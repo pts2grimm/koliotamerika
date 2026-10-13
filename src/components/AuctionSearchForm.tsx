@@ -15,8 +15,11 @@ export function AuctionSearchForm({ children, action, className, label, buttonLa
   navigate(action+(params.size?'?'+params.toString():''))
  }}>
   {children}
-  <button className={'button '+(outlined?'button-outline':'button-dark')} type="submit" disabled={pending}>
-   {pending ? <LoadingIndicator>Търсим…</LoadingIndicator> : <><Search size={18} />{buttonLabel}</>}
+  <button className={'button search-submit '+(outlined?'button-outline':'button-dark')} type="submit" disabled={pending}>
+   <span className="search-button-content">
+    <span className="search-button-idle" aria-hidden={pending}><Search size={18} />{buttonLabel}</span>
+    <span className="search-button-loading" aria-hidden={!pending}><LoadingIndicator>Търсим…</LoadingIndicator></span>
+   </span>
   </button>
  </form>
 }

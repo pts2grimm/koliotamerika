@@ -718,3 +718,54 @@ test('sorting and lot lookup report progress then remove it on completion',async
  expect(await page.evaluate(()=>JSON.parse(sessionStorage.getItem('lot-pending')||'null'))).toEqual({text:'Търсим…',disabled:true,busy:'true'})
  await expect(page.getByRole('status').filter({hasText:'Търсим…'})).toHaveCount(0)
 })
+
+for (const width of [1600,390]) {
+ test('homepage search keeps its geometry while models and results load at width '+width,async({page})=>{
+  await page.setViewportSize({width,height:1000})
+  await page.goto('/')
+  const finder=page.getByRole('form',{name:'Намери автомобил',exact:true})
+  await expect(finder).toBeVisible()
+  await page.evaluate(async()=>{await document.fonts.ready})
+  const geometry=()=>finder.evaluate(form=>[form,...form.querySelectorAll('select,button[type=submit]')].map(el=>{
+   const r=el.getBoundingClientRect()
+   return {x:r.x+scrollX,y:r.y+scrollY,width:r.width,height:r.height}
+  }))
+  const stable=(actual:Awaited<ReturnType<typeof geometry>>,expected:Awaited<ReturnType<typeof geometry>>)=>{
+   expect(actual.length).toBe(expected.length)
+   actual.forEach((box,i)=>Object.entries(box).forEach(([key,value])=>{
+    expect(Math.abs(value-expected[i][key as keyof typeof box])).toBeLessThan(1)
+   }))
+  }
+  await page.route('**/api/auction-models?*',async route=>{
+   await new Promise(resolve=>setTimeout(resolve,2000))
+   await route.continue()
+  })
+  const before=await geometry()
+  await finder.locator('[name=make]').selectOption('BMW')
+  await expect(finder.locator('.model-loading .loading-spinner')).toBeVisible()
+  stable(await geometry(),before)
+  const spinner=await finder.locator('.model-loading').boundingBox()
+  const model=await finder.locator('[name=model]').boundingBox()
+  expect(spinner!.y).toBeGreaterThan(model!.y)
+  expect(spinner!.y+spinner!.height).toBeLessThan(model!.y+model!.height)
+  await expect(finder.locator('[name=model]')).toBeEnabled()
+  stable(await geometry(),before)
+  await finder.evaluate(form=>{
+   const boxes=()=>[form,...form.querySelectorAll('select,button[type=submit]')].map(el=>{
+    const r=el.getBoundingClientRect()
+    return {x:r.x+scrollX,y:r.y+scrollY,width:r.width,height:r.height}
+   })
+   sessionStorage.removeItem('finder-pending-geometry')
+   new MutationObserver(()=>{
+    if(form.getAttribute('aria-busy')==='true')sessionStorage.setItem('finder-pending-geometry',JSON.stringify(boxes()))
+   }).observe(form,{subtree:true,attributes:true,childList:true})
+  })
+  const ready=await geometry()
+  await finder.getByRole('button',{name:'Разгледай',exact:true}).click()
+  await expect(page).toHaveURL(/targove\?make=BMW$/)
+  await expect(page.locator('.auction-card:visible')).toHaveCount(24)
+  const pending=await page.evaluate(()=>JSON.parse(sessionStorage.getItem('finder-pending-geometry')||'null'))
+  expect(pending).not.toBeNull()
+  stable(pending,ready)
+ })
+}
