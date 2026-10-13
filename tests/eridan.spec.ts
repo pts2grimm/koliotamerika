@@ -486,7 +486,7 @@ for(const width of [1280,390]){
    await expect(page.getByRole('heading',{level:1})).toContainText('BMW 328I')
    await page.goto('/targove?make=BMW&model=3+SERIES')
    await page.getByRole('link',{name:'Премахни филтър: BMW'}).click()
-   expect(new URL(page.url()).searchParams.has('model')).toBe(false)
+   await expect(page).toHaveURL('http://localhost:3100/targove')
   }finally{await request.post('http://127.0.0.1:3199/test-model-families?enabled=false')}
  })
 }
