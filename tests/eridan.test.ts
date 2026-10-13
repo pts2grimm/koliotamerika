@@ -589,9 +589,9 @@ test('highlight programs remain distinct and enhanced never implies a running en
 })
 
 test('condition and seller filtering scan beyond nonmatching API pages before mixed pagination', async () => {
- const rows=Array.from({length:240},(_,i)=>({...row,id:1000-i,lot_number:String(71000000+i),
-  auction:i%2?'iaai':'copart',highlights:i<200?['ENGINE START PROGRAM']:['RUNS AND DRIVES'],
-  seller:i<200?'Other company':'Example Insurance'}))
+ const rows=Array.from({length:2040},(_,i)=>({...row,id:10000-i,lot_number:String(71000000+i),
+  auction:i%2?'iaai':'copart',highlights:i<2000?['ENGINE START PROGRAM']:['RUNS AND DRIVES'],
+  seller:i<2000?'Other company':'Example Insurance'}))
  const {provider,calls}=fixture((_,p)=>{
   assert.equal(p.get('status'),'active')
   assert.equal(p.has('highlights'),false); assert.equal(p.has('seller'),false)
