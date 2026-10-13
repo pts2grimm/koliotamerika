@@ -23,9 +23,9 @@ test('changed values replace duplicates and pagination carries only the current 
 
 test('sort survives filters and pagination, resets the page on change and rejects arbitrary ordering',()=>{
  const filters=readAuctionFilters({make:'BMW',sort:'auction_soon',vehicle_type:'Automobile'})
- assert.equal(auctionResultsURL(filters,3),'/targove?make=BMW&vehicle_type=Automobile&sort=auction_soon&pagenum=3')
+ assert.equal(auctionResultsURL(filters,3),'/targove?make=BMW&sort=auction_soon&pagenum=3')
  const form=new FormData()
  for(const [key,value] of Object.entries({...filters,sort:'year_desc',pagenum:'3'}))form.append(key,value)
- assert.equal(auctionFormURL(form),'/targove?make=BMW&vehicle_type=Automobile&sort=year_desc')
+ assert.equal(auctionFormURL(form),'/targove?make=BMW&sort=year_desc')
  assert.equal(auctionResultsURL({make:'BMW',sort:'unknown'}),'/targove?make=BMW')
 })

@@ -460,6 +460,9 @@ test('BMW-only search skips dense expired imports while keeping undated listings
 for(const width of [1280,390]){
  test('grouped BMW selector includes all variants across auctions at width '+width,async({page,request})=>{
   await request.post('http://127.0.0.1:3199/test-model-families?enabled=true')
+  // This fixture enables new lots mid-suite; the real category directory is cached for an hour.
+  // Seed this browser's directory while still exercising real grouped search and pagination.
+  await page.route('**/api/auction-models?*', route => route.fulfill({contentType:'application/json',body:JSON.stringify({models:['3 SERIES','4 SERIES','X5']})}))
   try{
    await page.setViewportSize({width,height:900})
    await page.goto('/targove?make=BMW')
