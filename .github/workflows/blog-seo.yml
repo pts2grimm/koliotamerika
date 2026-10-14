@@ -23,8 +23,6 @@ jobs:
       - run: npm run typecheck
       - run: npx playwright install --with-deps chromium
       - name: Blog browser and publishing checks
-        env:
-          BLOG_DESIGN_REVIEW: ${{ startsWith(github.ref_name, 'codex/blog-article-') }}
         run: |
           node --input-type=module <<'JS'
           import { chromium } from '@playwright/test';

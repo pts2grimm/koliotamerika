@@ -6,13 +6,13 @@ export const defaultTiers = [
  { from: 10000, fee: 1500, percent: 0, extra: 3500 }, { from: 15000, fee: 0, percent: 12.5, extra: 5000 },
  { from: 20000, fee: 0, percent: 12.5, extra: 7000 }, { from: 25000, fee: 0, percent: 12.5, extra: 10000 }
 ]
-export const CalculatorSettings: GlobalConfig = { slug: 'calculator-settings', label: 'Калкулатор за внос', admin: { description: 'Примерни разходи, а не текуща оферта. Таксите на аукциона включват покупката, получаването от площадката, онлайн наддаването, екологичната такса и документа; комисионната е €1000. Мито 10% и ДДС 20% са допусканията от публикувания пример. Старите BGN настройки се пазят в архивните секции.' }, access: { read: () => true, update: ({ req }) => req.user?.collection === 'users' }, fields: [
+export const CalculatorSettings: GlobalConfig = { slug: 'calculator-settings', label: 'Калкулатор за внос', admin: { description: 'Примерни разходи, а не текуща оферта. Покупката и обработката следват единната клиентска тарифа; комисионната е €1000. Мито 10% и ДДС 20% са допусканията от публикувания пример. Старите BGN настройки се пазят в архивните секции.' }, access: { read: () => true, update: ({ req }) => req.user?.collection === 'users' }, fields: [
  {name:'usdToEur',label:'Примерен курс: 1 USD в EUR',type:'number',required:true,defaultValue:0.9,min:0.01,max:10},
  {name:'shippingUsd',label:'Начален морски транспорт (USD)',type:'number',required:true,defaultValue:1000,min:0,max:100000},
  {name:'insuranceUsd',label:'Примерна застраховка (USD)',type:'number',required:true,defaultValue:200,min:0,max:100000},
- {name:'documentUsd',label:'Документ в таксите на аукциона (USD)',type:'number',required:true,defaultValue:20,min:0,max:100000},
+ {name:'documentUsd',label:'Примерно изпращане на документ (USD)',type:'number',required:true,defaultValue:20,min:0,max:100000},
  {name:'portHandlingEur',label:'Примерна обработка в пристанището (EUR)',type:'number',required:true,defaultValue:300,min:0,max:100000},
- {name:'deliveryEur',label:'Примерна доставка до България (EUR)',type:'number',required:true,defaultValue:1000,min:0,max:100000},
+ {name:'deliveryEur',label:'Примерна доставка до България (EUR)',type:'number',required:true,defaultValue:900,min:0,max:100000},
  { type:'collapsible', label:'Архив на предишния калкулатор (не участва в новата сметка)', admin:{initCollapsed:true}, fields:[
  { name: 'usdToBgn', label: 'Коефициент USD → BGN от текущата тарифа', type: 'number', required: true, min: 0.01, defaultValue: 1.7, admin: { description: 'Пренесен от WordPress. Не е автоматичен валутен курс.' } },
  { name: 'fixedCosts', label: 'Фиксирани допълнителни разходи (BGN)', type: 'number', required: true, min: 0, defaultValue: 4100 },
@@ -20,7 +20,7 @@ export const CalculatorSettings: GlobalConfig = { slug: 'calculator-settings', l
  { name: 'defaultInland', label: 'Начална стойност за вътрешен транспорт (USD)', type: 'number', min: 0, defaultValue: 500 },
  { type:'collapsible',label:'Архив на предишните диапазони',admin:{initCollapsed:true},fields:[
  { name: 'defaultShipping', label: 'Начална стойност за контейнер (USD)', type: 'number', min: 0, defaultValue: 800 },
- { name: 'tiers', label: 'Ценови диапазони', type: 'array', required: false, defaultValue: defaultTiers, fields: [
+ { name: 'tiers', label: 'Ценови диапазони', type: 'array', required: true, minRows: 1, defaultValue: defaultTiers, fields: [
   { name: 'from', label: 'Цена на търг от (USD)', type: 'number', required: true, min: 0 },
   { name: 'fee', label: 'Фиксирана такса (USD)', type: 'number', required: true, min: 0 },
   { name: 'percent', label: 'Допълнителна такса (%)', type: 'number', required: true, min: 0, max: 100 },

@@ -21,4 +21,4 @@ export function onlineFee(price: number) {
  if (!Number.isFinite(price) || price < 0 || price > 500000) return null
  return [...onlineBands].reverse().find(([from]) => price >= from)![1]
 }
-export const exampleCosts = { usdToEur: 0.9, defaultInland: 500, shippingUsd: 1000, insuranceUsd: 200, documentUsd: 20, portHandlingEur: 300, deliveryEur: 1000 }
+export const exampleCosts = { usdToEur: 0.9, defaultInland: 500, shippingUsd: 1000, insuranceUsd: 200, documentUsd: 20, portHandlingEur: 300, deliveryEur: 900 }

@@ -9,8 +9,3 @@
 .calculator-inputs>.button{white-space:normal}
 .calculator-result>p{font-size:14px;line-height:1.75}
 @media(max-width:380px){.calculator-result dl>div{flex-wrap:wrap;gap:4px}.calculator-result dd{margin-left:auto}}
-
-.calculator-customs { padding:18px; border:1px solid var(--line); border-radius:10px; background:var(--soft); }
-.calculator-customs label { display:block; }
-.calculator-customs p { font-size:13px; line-height:1.6; margin:12px 0 0; }
-.calculator-customs .button { white-space:normal; margin-top:12px; width:100%; }

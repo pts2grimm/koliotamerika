@@ -17,40 +17,32 @@ const services = [
  ['/#dealers','За автокъщи и търговци'],
 ]
 export function Brand() { return <Link href="/" className="brand" aria-label="Коли от Америка — начална страница"><Image src="/images/logo.webp" alt="Коли от Америка" width={180} height={41} priority /></Link> }
-export function Header({ powersports = false }: { powersports?: boolean }) {
+export function Header() {
  const [open,setOpen]=useState(false)
  const [servicesOpen,setServicesOpen]=useState(false)
- const [auctionsOpen,setAuctionsOpen]=useState(false)
- const auctionTrigger=useRef<HTMLButtonElement>(null)
  const pathname=usePathname()
  const nav=useRef<HTMLElement>(null)
  const trigger=useRef<HTMLButtonElement>(null)
  const menu=useRef<HTMLButtonElement>(null)
- const close=()=>{setOpen(false);setServicesOpen(false);setAuctionsOpen(false)}
+ const close=()=>{setOpen(false);setServicesOpen(false)}
  useEffect(()=>{
-  const pointer=(event:PointerEvent)=>{if(!nav.current?.contains(event.target as Node) && !menu.current?.contains(event.target as Node)){setServicesOpen(false);setAuctionsOpen(false);setOpen(false)}}
+  const pointer=(event:PointerEvent)=>{if(!nav.current?.contains(event.target as Node) && !menu.current?.contains(event.target as Node)){setServicesOpen(false);setOpen(false)}}
   document.addEventListener('pointerdown',pointer)
   return ()=>document.removeEventListener('pointerdown',pointer)
  },[])
  return <header className="site-header"><div className="container nav-wrap"><Brand />
   <nav ref={nav} id="primary-navigation" aria-label="Основна навигация" className={open?'nav-links open':'nav-links'}
-   onKeyDown={event=>{if(event.key==='Escape'){event.preventDefault();if(auctionsOpen){setAuctionsOpen(false);auctionTrigger.current?.focus()}else if(servicesOpen){setServicesOpen(false);trigger.current?.focus()}else{setOpen(false);menu.current?.focus()}}}}>
-   {links.map(([href,label])=>href==='/targove'&&powersports?<div className="nav-services" key={href} onBlur={event=>{if(!event.currentTarget.contains(event.relatedTarget))setAuctionsOpen(false)}}>
-    <button ref={auctionTrigger} type="button" className="services-trigger" aria-expanded={auctionsOpen} aria-controls="auctions-navigation" onClick={()=>{setAuctionsOpen(!auctionsOpen);setServicesOpen(false)}}>Търгове<ChevronDown size={15} aria-hidden="true" /></button>
-    <div id="auctions-navigation" className="services-dropdown" hidden={!auctionsOpen}>
-     <span className="services-caption">Избери превозно средство</span>
-     {[[ '/targove','Търгове за коли' ],[ '/targove/motori-atv','Търгове за мотори и ATV' ]].map(([url,text])=><Link key={url} href={url} aria-current={pathname===url?'page':undefined} onClick={close}>{text}<ArrowUpRight size={15} aria-hidden="true" /></Link>)}
-    </div>
-   </div>:href==='/uslugi'?<div className="nav-services" key={href}
+   onKeyDown={event=>{if(event.key==='Escape'){event.preventDefault();if(servicesOpen){setServicesOpen(false);trigger.current?.focus()}else{setOpen(false);menu.current?.focus()}}}}>
+   {links.map(([href,label])=>href==='/uslugi'?<div className="nav-services" key={href}
     onBlur={event=>{if(!event.currentTarget.contains(event.relatedTarget))setServicesOpen(false)}}>
     <button ref={trigger} type="button" className="services-trigger" aria-expanded={servicesOpen} aria-controls="services-navigation"
-     onClick={()=>{setServicesOpen(!servicesOpen);setAuctionsOpen(false)}}>{label}<ChevronDown size={15} aria-hidden="true" /></button>
+     onClick={()=>setServicesOpen(!servicesOpen)}>{label}<ChevronDown size={15} aria-hidden="true" /></button>
     <div id="services-navigation" className="services-dropdown" hidden={!servicesOpen}>
      <span className="services-caption">От избора до България</span>
      {services.map(([url,text])=><Link key={url} href={url} aria-current={pathname===url?'page':undefined} onClick={close}>{text}<ArrowUpRight size={15} aria-hidden="true" /></Link>)}
     </div>
    </div>:<Link key={href} href={href} aria-current={pathname===href?'page':undefined} onClick={close}>{label}</Link>)}
   </nav><ThemeToggle /><Link className="account-nav" href="/profil" aria-label="Моят профил" onClick={close}><CircleUserRound size={23} strokeWidth={1.6} /><span>Моят гараж</span></Link><Link className="button button-dark nav-cta" href="/kontakti">Намери моята кола <ArrowUpRight size={17} /></Link>
-  <button ref={menu} className="menu-button" onClick={()=>{setOpen(!open);setServicesOpen(false);setAuctionsOpen(false)}} aria-label={open?'Затвори менюто':'Отвори менюто'} aria-expanded={open} aria-controls="primary-navigation">{open?<X />:<Menu />}</button>
+  <button ref={menu} className="menu-button" onClick={()=>{setOpen(!open);setServicesOpen(false)}} aria-label={open?'Затвори менюто':'Отвори менюто'} aria-expanded={open} aria-controls="primary-navigation">{open?<X />:<Menu />}</button>
  </div></header>
 }
