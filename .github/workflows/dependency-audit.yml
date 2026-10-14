@@ -1,0 +1,39 @@
+name: Dependency advisory audit
+on:
+  push:
+    branches: ['codex/dependency-audit-2026-10-14']
+permissions:
+  contents: read
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Inspect lockfile and current registry advisories
+        run: |
+          node --input-type=module <<'JS'
+          import { readFileSync, writeFileSync } from 'node:fs';
+          import { spawnSync } from 'node:child_process';
+          const lock = JSON.parse(readFileSync('package-lock.json', 'utf8'));
+          const names = ['nodemailer', 'esbuild', 'dompurify'];
+          console.log('INSTALLED', JSON.stringify(Object.entries(lock.packages).filter(([path]) => names.some(name => path.endsWith('/' + name))).map(([path, p]) => ({path, version:p.version, dev:!!p.dev}))));
+          for (const omit of [false, true]) {
+            const result = spawnSync('npm', ['audit', '--json', ...(omit ? ['--omit=dev'] : [])], { encoding: 'utf8' });
+            const data = JSON.parse(result.stdout);
+            if (!data.metadata) throw new Error('Audit unavailable');
+            writeFileSync(omit ? 'audit-production.json' : 'audit-all.json', JSON.stringify(data, null, 2));
+            console.log(omit ? 'PRODUCTION' : 'ALL', JSON.stringify({metadata:data.metadata, vulnerabilities:Object.values(data.vulnerabilities || {}).map(v=>({name:v.name,severity:v.severity,range:v.range,nodes:v.nodes,fixAvailable:v.fixAvailable,via:v.via}))}));
+          }
+          for (const name of names) {
+            const result = spawnSync('npm', ['view', name, 'version', '--json'], { encoding:'utf8' });
+            console.log('LATEST', name, result.stdout.trim());
+          }
+          JS
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dependency-audit
+          path: audit-*.json
