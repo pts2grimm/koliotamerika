@@ -1,3 +1,4 @@
+import schedule from '../content/editorial-schedule.json' with { type: 'json' }
 import { test, expect } from '@playwright/test'
 import redirects from '../content/legacy-redirects.json' with { type: 'json' }
 import snapshot from '../content/wordpress.json' with { type: 'json' }
@@ -29,8 +30,16 @@ test('blog SEO, migration URLs, draft protection and timed release', async ({ pa
   const graph = schemas.map(s => JSON.parse(s)).find(s => s['@graph'])['@graph']
   expect(graph[0]['@type']).toBe('BlogPosting')
   expect(graph[0].datePublished).toContain('2025-10-07')
-  expect(graph[0].dateModified).toBeUndefined()
-  await expect(page.locator('time')).toHaveCount(1)
+  // This seeded article receives the content-review update after the archive import.
+  // Its original publication date stays intact; the review has a separate visible date.
+  const articleTimes = page.locator('.article-meta time')
+  await expect(articleTimes).toHaveCount(2)
+  expect(graph[0].datePublished).toBe(await articleTimes.first().getAttribute('datetime'))
+  const reviewedAt = await articleTimes.last().getAttribute('datetime')
+  expect(reviewedAt).toBeTruthy()
+  expect(graph[0].dateModified).toBe(reviewedAt)
+  expect(new Date(reviewedAt!).getTime()).toBeGreaterThan(new Date(graph[0].datePublished).getTime())
+  await expect(page.locator('.article-body h2').first()).toHaveText('Какво сравняваш при избор на платформа')
   for (const width of [320, 390, 1440]) {
    await page.setViewportSize({ width, height: 900 })
    for (const theme of ['light', 'dark']) {
@@ -53,7 +62,17 @@ test('blog SEO, migration URLs, draft protection and timed release', async ({ pa
   const found = await admin.get('/api/pages', { headers, params: { 'where[slug][equals]': slug } })
   const draft = (await found.json()).docs[0]
   expect(draft, 'Imported draft must be readable with staff authentication').toBeTruthy()
-  expect(draft.status).toBe('draft')
+  if (process.env.ERIDAN_RELEASE_TEST === 'true') {
+   for (const item of schedule) {
+    const response = await admin.get('/api/pages', { headers, params: { 'where[slug][equals]': item.slug } })
+    const scheduled = (await response.json()).docs[0]
+    const futureSlot = Date.parse(item.publishedAt) > Date.now()
+    expect(scheduled.status).toBe(futureSlot ? 'published' : 'draft')
+    if (futureSlot) expect(scheduled.publishedAt).toBe(item.publishedAt)
+    expect((await visitor.get('/' + item.slug)).status()).toBe(404)
+    expect(await (await visitor.get('/sitemap.xml')).text()).not.toContain('/' + item.slug)
+   }
+  } else expect(draft.status).toBe('draft')
   expect(draft.body.root.children.length).toBeGreaterThan(10)
   const future = await admin.patch('/api/pages/' + draft.id, { headers, data: { status: 'published', publishedAt: '2099-01-01T10:00:00.000Z' } })
   expect(future.ok(), await future.text()).toBe(true)
@@ -70,5 +89,17 @@ test('blog SEO, migration URLs, draft protection and timed release', async ({ pa
   await page.goto('/' + slug)
   await expect(page.locator('h1')).toHaveCount(1)
   await expect(page.locator('.article-body h2').first()).toHaveText('Какво означава Clean Title?')
+  const hero = page.locator('.editorial-image img')
+  await expect(hero).toHaveAttribute('alt', /Илюстрация на автомобил/)
+  await expect(hero).toHaveAttribute('src', /clean-title/)
+  await expect.poll(() => hero.evaluate(img => (img as HTMLImageElement).naturalWidth)).toBeGreaterThan(0)
+  await expect(page.locator('.editorial-caption')).toContainText('AI')
+  await expect(page.locator('meta[property="og:image"]')).toHaveAttribute('content', /images\/editorial\/clean-title\.png/)
+  const artworkGraph = (await page.locator('script[type="application/ld+json"]').allTextContents()).map(s => JSON.parse(s)).find(s => s['@graph'])['@graph']
+  expect(artworkGraph[0].image).toEqual([baseURL + '/images/editorial/clean-title.png'])
+  await page.goto('/blog')
+  const featuredImage = page.locator('.journal-featured a[href="/' + slug + '"] img')
+  await expect(featuredImage).toHaveAttribute('src', /clean-title/)
+  await expect.poll(() => featuredImage.evaluate(img => (img as HTMLImageElement).naturalWidth)).toBeGreaterThan(0)
  } finally { await visitor.dispose(); await admin.dispose() }
 })

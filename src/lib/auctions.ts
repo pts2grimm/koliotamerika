@@ -1,3 +1,4 @@
+import { catalogueSort } from './auction-sorting'
 import { sameEridanMake } from './auction-providers/make-aliases'
 import 'server-only'
 import { cache } from 'react'
@@ -68,8 +69,10 @@ const cachedMakes=unstable_cache(async(_provider:string)=>coalesce(JSON.stringif
 const cachedCar=unstable_cache(async(_provider:string,lot:string,site:string)=>coalesce(JSON.stringify(['car',_provider,lot,site]),()=>provider().detail(lot,site)),['auction-car-v8-seller-category'],{revalidate:60})
 const cachedLookup=unstable_cache(async(_provider:string,q:string,lifecycle:'active'|'sold')=>coalesce(JSON.stringify(['lookup',_provider,q,lifecycle]),()=>provider().lookup(q,lifecycle)),['auction-lookup-v6-active-or-archive'],{revalidate:60})
 export async function searchAuctions(params:string){
- const sorted=new URLSearchParams(params);sorted.sort()
+ const sorted=new URLSearchParams(params)
  const name=auctionProviderName()
+ if(name==='eridan')sorted.set('sort',catalogueSort(sorted.get('sort')))
+ sorted.sort()
  const result=await cachedSearch(name,sorted.toString())
  if(name==='eridan')catalogueSnapshots.remember(result.data.items,result.fetchedAt)
  return result.data
