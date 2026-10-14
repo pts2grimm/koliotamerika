@@ -36,6 +36,7 @@ cars.push({...cars[0],id:9502,lot_number:'72239476',vin:'TST00000072239476',stat
 const aliasMakes=['MERCEDES','MERCEDES BENZ','MERCEDES-BENZ','ROLLS ROYCE','ROLLS-ROYCE']
 const aliasModels=aliasMakes.map((_,i)=>({id:201+i,name:i<3?['C300','AMG C 43','C-CLASS C300'][i]:'GHOST',make_id:101+i}))
 const aliasCars=Array.from({length:36},(_,i)=>({...cars[0],id:50000+i,lot_number:String(95000000+i),auction:i%2?'iaai':'copart',make:{id:101+i%3,name:aliasMakes[i%3]},model:aliasModels[i%3],name:'2023 '+aliasMakes[i%3]+' '+aliasModels[i%3].name}))
+let sitemapOutage=false
 let aliasExamples=false
 let searchOutage = false, transientSearchFailures = 0, expiredBackfill = false, familyExamples = false, sortExamples = false
 const backfill = Array.from({length:600},(_,i)=>({...cars[0], id:20000+i, lot_number:String(88000000+i), sale_date:'2026-09-01T12:00:00Z'}))
@@ -51,6 +52,7 @@ createServer((req, res) => {
   else finish()
  }
  if (url.pathname === '/test-make-aliases' && req.method === 'POST') { aliasExamples=p.get('enabled')==='true'; return send({ok:true}) }
+ if (url.pathname === '/test-sitemap-outage' && req.method === 'POST') { sitemapOutage=p.get('enabled')==='true'; return send({ok:true}) }
  if (url.pathname === '/') return send({ ok: true })
  if (url.pathname === '/test-sort-examples' && req.method === 'POST') { sortExamples = p.get('enabled') === 'true'; return send({ok:true}) }
  if (url.pathname === '/test-model-families' && req.method === 'POST') { familyExamples = p.get('enabled') === 'true'; return send({ok:true}) }
@@ -82,6 +84,7 @@ createServer((req, res) => {
  if (transientSearchFailures && p.get('year_from') === '2018' && p.get('year_to') === '2023') {
   transientSearchFailures--; return send({ error: 'one temporary gateway failure' }, 503)
  }
+ if(sitemapOutage && p.get('sale_date__lte') && ['VEHTYPE_M','VEHTYPE_A'].includes(p.get('item_type'))) return send({error:'temporary sitemap fixture outage'},503)
  const allowed = ['page', 'page_size', 'ordering', 'auction', 'lot_number', 'vin', 'make__name', 'model__name', 'model_ids', 'year_from', 'year_to', 'fuel_type__name', 'item_type', 'has_images', 'makes', 'status', 'sale_date__lte', 'sale_date__gte', 'sale_date__isnull']
  if ([...p.keys()].some(key => !allowed.includes(key))) return send({ error: 'unknown filter' }, 422)
  const items = [...cars.map((car,i)=>sortExamples&&i<30?{...car,sale_date:i>27?null:new Date(Date.UTC(2032,0,1+(29-i))).toISOString(),created_at:new Date(Date.UTC(2026,0,i+1)).toISOString()}:car),...(aliasExamples ? aliasCars : []),...(familyExamples ? familyCars : []),...(expiredBackfill ? [...backfill,...undated] : [])].filter(car =>

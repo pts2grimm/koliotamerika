@@ -11,7 +11,7 @@ export async function GET(request:Request,{params}:{params:Promise<{section:stri
  if(!requestIsIndexable(request.headers.get('host')))return new Response(sitemapXML([]),{headers})
  try{
   const result=await searchAuctions(sitemapSearch(section))
-  const cars=result.items.filter(car=>auctionImages(car).length>0)
+  const cars=result.items.filter(car=>auctionImages({...car,link_img_small:[]}).length>0)
   return new Response(sitemapXML(sitemapLotURLs(cars,siteURL(),section)),{headers})
  }catch{
   // Do not tell crawlers that an API failure is an empty, successful sitemap.
