@@ -3,8 +3,8 @@ import { auctionProviderName, auctionImages, searchAuctions } from '@/lib/auctio
 import { requestIsIndexable } from '@/lib/indexing-policy'
 import { isAuctionSitemapSection, sitemapLotURLs, sitemapSearch, sitemapXML } from '@/lib/auction-sitemap'
 export const dynamic='force-dynamic'
-export async function GET(request:Request,{params}:{params:Promise<{section:string}>}) {
- const {section}=await params
+export async function GET(request:Request) {
+ const section=new URL(request.url).searchParams.get('section')||''
  const headers={'Content-Type':'application/xml; charset=utf-8','Cache-Control':'no-store'}
  if(!isAuctionSitemapSection(section)||auctionProviderName()!=='eridan')return new Response('Not found',{status:404})
  // Check BEFORE any provider calls, even when the environment was misconfigured.

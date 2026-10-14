@@ -5,7 +5,7 @@ Archived Eridan lots have factual visible archive text and WebPage, Vehicle and 
 ## Sitemaps
 
 - Existing /sitemap.xml remains the CMS sitemap and does not query Eridan.
-- /sitemap-index.xml references it plus four feeds under /sitemaps/auctions/: cars, cars-archive, powersports, powersports-archive.
+- /sitemap-index.xml references it plus four feeds at the root-scoped /sitemap-auctions.xml?section= endpoint: cars, cars-archive, powersports, powersports-archive.
 - Each feed includes the first catalogue page (up to 48 unique lots with galleries, both auctions), with nearest upcoming sales or most recent ended sales. This is a rotating discovery sample, **not a full inventory export or a durable VIN archive**. Further listings are linked through catalogue pagination.
 - Feeds reuse the catalogue data cache. One section's provider error returns 503 and Retry-After, never a misleading successful empty sitemap.
 - No invented lastmod: auction dates and today's date are not page modification dates.
