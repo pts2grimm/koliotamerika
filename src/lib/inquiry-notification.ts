@@ -51,3 +51,28 @@ export async function notifyInquiry(inquiry: InquiryNotification, delivery: Deli
   return false
  }
 }
+
+
+/**
+ * Start the notification while the request is alive. Bound the visitor's wait.
+ * A deadline is NOT proof of failure: an in-flight SMTP transaction may finish
+ * later. Do not retry it automatically (that could deliver duplicate emails).
+ */
+export async function notifyInquiryBeforeResponse(inquiry: InquiryNotification, delivery: Delivery, timeoutMs = 12000): Promise<boolean> {
+ let expired = false
+ let timer: ReturnType<typeof setTimeout> | undefined
+ const deadline = new Promise<boolean>(resolve => {
+  timer = setTimeout(() => {
+   expired = true
+   delivery.warn('Inquiry notification wait_timeout; final SMTP outcome is unknown, inquiry remains saved.')
+   resolve(false)
+  }, timeoutMs)
+ })
+ const work = notifyInquiry(inquiry, { ...delivery, send: mail => {
+  // A slow recipient lookup must not start a new send after the deadline.
+  if (expired) throw Object.assign(new Error('Notification wait expired'), { code: 'ETIMEDOUT' })
+  return delivery.send(mail)
+ } })
+ try { return await Promise.race([work, deadline]) }
+ finally { if (timer) clearTimeout(timer) }
+}

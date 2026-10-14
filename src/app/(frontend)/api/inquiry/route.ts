@@ -1,4 +1,4 @@
-import { notifyInquiry } from '@/lib/inquiry-notification'
+import { notifyInquiryBeforeResponse } from '@/lib/inquiry-notification'
 import { passwordRecoveryEnabled } from '@/lib/accounts-enabled'
 import { recordLead } from '@/lib/record-lead'
 import { NextResponse, after } from 'next/server'
@@ -41,18 +41,22 @@ export async function POST(request: Request) {
    const lead = { id: eventId, email: customer?.email || result.data.email, phone: result.data.phone,
      path: typeof tracking?.path === 'string' ? tracking.path.slice(0, 2000) : '/kontakti',
      marketing: tracking?.marketing === true, time: Date.now() }
-   after(async () => {
-    await Promise.allSettled([
-     recordLead(payload, request, lead),
-     notifyInquiry({ ...result.data, id: inquiry.id, email: customer?.email || result.data.email }, {
-      enabled: passwordRecoveryEnabled(), siteURL: siteURL(),
-      getRecipient: async () => (await payload.findGlobal({ slug: 'site-settings', depth: 0 })).email,
-      send: mail => payload.sendEmail(mail),
-      warn: message => payload.logger.warn(message),
-      info: message => payload.logger.info(message),
-     }),
-    ])
+   // Analytics may run after the response; business mail must start during it.
+   try { after(() => recordLead(payload, request, lead)) }
+   catch { console.warn('Inquiry analytics scheduling unavailable; inquiry remains saved.') }
+   await notifyInquiryBeforeResponse({ ...result.data, id: inquiry.id, email: customer?.email || result.data.email }, {
+    enabled: passwordRecoveryEnabled(), siteURL: siteURL(),
+    getRecipient: async () => (await payload.findGlobal({ slug: 'site-settings', depth: 0 })).email,
+    send: mail => payload.sendEmail(mail),
+    // Use stdout/stderr directly: hosted log collectors may not flush Payload's logger.
+    warn: message => console.warn(message),
+    info: message => console.info(message),
    })
-   return NextResponse.json({ success: true, eventId }, { status: 201 })
+   return NextResponse.json({ success: true, eventId }, { status: 201, headers: { 'X-Inquiry-Handler': 'smtp-awaited-v1', 'Cache-Control': 'no-store' } })
  } catch (error) { console.error('Inquiry persistence failed:', error instanceof Error ? error.name : 'Unknown error'); return NextResponse.json({ error: 'Запитването не беше записано. Моля, опитай отново.' }, { status: 500 }) }
+}
+
+// Public version marker only; never disclose SMTP configuration or allow GET to send.
+export function GET() {
+ return new Response(null, { status: 405, headers: { Allow: 'POST', 'Cache-Control': 'no-store', 'X-Inquiry-Handler': 'smtp-awaited-v1' } })
 }
