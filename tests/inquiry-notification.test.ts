@@ -24,9 +24,36 @@ test('missing SMTP never sends; failed delivery does not reject or expose custom
  assert.equal(calls, 0)
  assert.equal(await notifyInquiry(inquiry, { ...delivery, enabled: true }), false)
  assert.equal(calls, 1)
- assert.equal(warnings.length, 1)
+ assert.equal(warnings.length, 2)
  assert.ok(!warnings[0].includes('credentials'))
  assert.ok(!warnings[0].includes(inquiry.email))
  assert.equal(await notifyInquiry(inquiry, { ...delivery, enabled: true, getRecipient: async () => '' }), false)
  assert.equal(calls, 1)
+})
+
+test('SMTP acceptance is logged without leaking envelope or SMTP response', async () => {
+ const logs: string[] = []
+ const delivery = { enabled: true, siteURL: 'https://koliotamerika.bg',
+  getRecipient: async () => 'office@example.test',
+  send: async () => ({ accepted: ['office@example.test'], response: '250 secret SMTP server detail' }),
+  info: (line: string) => logs.push(line), warn: (line: string) => logs.push(line) }
+ assert.equal(await notifyInquiry(inquiry, delivery), true)
+ assert.ok(logs.some(line => line.includes('accepted by SMTP')))
+ assert.ok(!logs.join(' ').includes('office@example.test'))
+ assert.ok(!logs.join(' ').includes('secret'))
+ assert.equal(await notifyInquiry(inquiry, { ...delivery, send: async () => ({ accepted: [], rejected: ['office@example.test'] }) }), false)
+ assert.ok(logs.some(line => line.includes('recipient_rejected')))
+})
+test('SMTP failures report only a known category, never error text or customer data', async () => {
+ for (const [code, reason] of [['EAUTH', 'authentication'], ['EDNS', 'dns'], ['ETIMEDOUT', 'timeout'], ['ECONNREFUSED', 'connection'], ['ETLS', 'tls'], ['secret-value', 'unknown']]) {
+  const logs: string[] = []
+  const error = Object.assign(new Error(inquiry.email + ' password=private'), { code, response: inquiry.message, command: 'AUTH private' })
+  assert.equal(await notifyInquiry(inquiry, { enabled: true, siteURL: 'https://koliotamerika.bg',
+   getRecipient: async () => 'office@example.test', send: async () => { throw error },
+   warn: line => logs.push(line) }), false)
+  assert.ok(logs[0].includes('failed: ' + reason + ';'))
+  assert.ok(!logs[0].includes(inquiry.email))
+  assert.ok(!logs[0].includes('private'))
+  assert.ok(!logs[0].includes('secret-value'))
+ }
 })
