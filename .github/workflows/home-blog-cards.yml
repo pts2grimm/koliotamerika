@@ -1,0 +1,39 @@
+name: Homepage blog cards
+on:
+  push:
+    branches: [codex/home-blog-cards-2026-10-14]
+permissions:
+  contents: read
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --include=dev
+      - run: npm run build
+        env:
+          PREVIEW_MODE: 'true'
+          PAYLOAD_SECRET: ci-card-review-only-not-a-live-secret
+      - run: npm run typecheck
+      - run: npx playwright install --with-deps chromium
+      - name: Review desktop and mobile cards in both themes
+        run: |
+          node --input-type=module <<'JS'
+          import {writeFileSync} from 'node:fs'
+          import {spawnSync} from 'node:child_process'
+          import {chromium} from '@playwright/test'
+          writeFileSync('tests/home-blog-cards.review.spec.ts',"import { test, expect } from '@playwright/test'\ntest('review homepage editorial images and card spacing',async({page,request})=>{\n const signup=await request.post('/api/users/first-register',{data:{email:'cards@example.test',password:'Cards-review-password-2026',name:'Cards Review'}})\n expect(signup.ok()).toBe(true)\n const login=await request.post('/api/users/login',{data:{email:'cards@example.test',password:'Cards-review-password-2026'}})\n const headers={Authorization:'JWT '+(await login.json()).token}\n const found=await request.get('/api/pages',{headers,params:{'where[slug][equals]':'clean-title-kola-ot-amerika'}})\n const article=(await found.json()).docs[0]\n expect(article).toBeTruthy()\n expect((await request.patch('/api/pages/'+article.id,{headers,data:{status:'published',publishedAt:'2026-10-13T06:00:00.000Z'}})).ok()).toBe(true)\n for(const width of [1440,900,390,320]){\n  await page.setViewportSize({width,height:1000})\n  await page.goto('/')\n  const consent=page.getByRole('button',{name:'Само необходимите',exact:true})\n  if(await consent.isVisible())await consent.click()\n  const cards=page.locator('.home-news-grid article')\n  await expect(cards).toHaveCount(3)\n  await page.locator('.home-news').scrollIntoViewIfNeeded()\n  await page.evaluate(()=>document.fonts.ready)\n  const clean=cards.filter({has:page.locator('a[href=\"/clean-title-kola-ot-amerika\"]')})\n  await expect(clean.locator('img')).toHaveAttribute('src',/clean-title/)\n  await expect(clean.locator('img')).toHaveAttribute('alt',/Илюстрация на автомобил/)\n  for(const card of await cards.all()){\n   await card.scrollIntoViewIfNeeded()\n   await expect.poll(()=>card.locator('img').evaluate(img=>(img as HTMLImageElement).naturalWidth)).toBeGreaterThan(0)\n  }\n  for(const theme of ['dark','light']){\n   await page.evaluate(theme=>{document.documentElement.dataset.theme=theme},theme)\n   const metrics=await cards.evaluateAll(items=>items.map(item=>{\n    const box=item.getBoundingClientRect(),copy=item.querySelector('.home-news-copy')!,head=item.querySelector('h3')!.getBoundingClientRect(),image=item.querySelector('img')!.getBoundingClientRect(),cta=item.querySelector('.home-news-copy>.text-link')!.getBoundingClientRect()\n    return {padding:parseFloat(getComputedStyle(copy).paddingLeft),inset:head.left-box.left,imageWidth:image.width,imageHeight:image.height,cta:cta.top,width:box.width,height:box.height,top:box.top}\n   }))\n   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1)).toBe(true)\n   for(const m of metrics){expect(m.padding).toBeGreaterThanOrEqual(22);expect(m.inset).toBeGreaterThanOrEqual(22);expect(Math.abs(m.imageWidth/m.imageHeight-16/9)).toBeLessThan(.02)}\n   if(width===1440){expect(Math.max(...metrics.map(m=>m.cta))-Math.min(...metrics.map(m=>m.cta))).toBeLessThan(2);expect(Math.max(...metrics.map(m=>m.top))-Math.min(...metrics.map(m=>m.top))).toBeLessThan(2)}\n   if(width<=390){expect(metrics[1].top).toBeGreaterThan(metrics[0].top+metrics[0].height)}\n   console.log('CARD_METRICS',JSON.stringify({width,theme,metrics}))\n   const screenshot=await page.locator('.home-news').screenshot({path:test.info().outputPath('cards-'+width+'-'+theme+'.jpg'),type:'jpeg',quality:60})\n   if(theme==='dark'&&(width===1440||width===390)){\n    const encoded=screenshot.toString('base64')\n    for(let i=0;i<encoded.length;i+=8000)console.log('CARDS_PREVIEW_'+width+':'+encoded.slice(i,i+8000))\n   }\n  }\n }\n})\n")
+          writeFileSync('playwright.home-blog-cards.config.ts',"import { defineConfig } from '@playwright/test'\nimport base from './playwright.landing.config'\nexport default defineConfig({...base,testMatch:'**/home-blog-cards.review.spec.ts',timeout:120000})\n")
+          const result=spawnSync('npx',['playwright','test','--config=playwright.home-blog-cards.config.ts','--reporter=line'],{stdio:'inherit',env:{...process.env,CHROMIUM_PATH:chromium.executablePath()}})
+          process.exit(result.status??1)
+          JS
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: homepage-blog-card-review
+          path: test-results
