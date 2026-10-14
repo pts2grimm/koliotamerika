@@ -1,0 +1,27 @@
+name: Titan public DNS check
+on:
+  push:
+    branches: ['codex/titan-dns-check-2026-10-14']
+permissions:
+  contents: read
+jobs:
+  dns:
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: Query authoritative DNS and public resolvers
+        run: |
+          node --input-type=module <<'JS'
+          import { Resolver, resolve4 } from 'node:dns/promises'
+          const domain='koliotamerika.bg';
+          const authoritative=await resolve4('atlas.dns-parking.com');
+          for(const [name,ip] of [['authoritative',authoritative[0]],['Google','8.8.8.8'],['Cloudflare','1.1.1.1']]){
+            const r=new Resolver({timeout:4000,tries:1});r.setServers([ip]);
+            try{
+              const mx=await r.resolveMx(domain);
+              const txt=await r.resolveTxt(domain);
+              const spf=txt.map(x=>x.join('')).filter(x=>x.startsWith('v=spf1'));
+              console.log(JSON.stringify({at:new Date().toISOString(),resolver:name,mx,spf}));
+            }catch(e){console.log(JSON.stringify({resolver:name,error:e.code}));}
+          }
+          JS
