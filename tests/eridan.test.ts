@@ -878,3 +878,28 @@ test('cylinder-only searches need no make/model and work in powersports and arch
   }
  }
 })
+
+test('Renegade family searches all CAN-AM spelling variants before paginating ATV results',async()=>{
+ const names=['RENEGADE','RENEGADE X','RENEGADE 570','RENEGADE X MR 650','RENEGADE X XC 1000R']
+ const models=names.map((name,i)=>({id:100+i,name}))
+ const aliases=['CAN-AM','CAN AM','CANAM']
+ const rows=Array.from({length:40},(_,i)=>({...row,id:5000+i,lot_number:String(97000000+i),auction:i%2?'iaai':'copart',make:{id:90+i%3,name:aliases[i%3]},model:models[i%5],item_type:'VEHTYPE_A'}))
+ const {provider,calls}=fixture((path,p)=>{
+  if(path==='/models')return {items:models.filter((_,i)=>aliases[i%3]===p.get('make__name')),count:models.filter((_,i)=>aliases[i%3]===p.get('make__name')).length}
+  assert.equal(path,'/lots')
+  assert.equal(p.get('makes'),'CAN-AM,CAN AM,CANAM')
+  assert.equal(p.get('make__name'),null)
+  assert.equal(p.get('item_type'),'VEHTYPE_A')
+  assert.equal(p.get('model__name'),null)
+  assert.deepEqual(p.get('model_ids')!.split(',').map(Number).sort(),models.map(m=>m.id).sort())
+  const eligible=rows.filter(r=>r.auction===p.get('auction')&&p.get('sale_date__isnull')!=='true').sort((a,b)=>a.id-b.id)
+  const page=Number(p.get('page')),size=Number(p.get('page_size'))
+  return envelope(eligible.slice((page-1)*size,page*size),page,page*size<eligible.length,size)
+ })
+ const results=[]
+ for(const page of ['1','2'])results.push(...(await provider.search(new URLSearchParams({make:'CAN-AM',model:'RENEGADE',vehicle_type:'ATVUTV',site:'1,2',sort:'auction_soon',page}))).items)
+ assert.equal(results.length,40)
+ assert.equal(new Set(results.map(r=>r.id)).size,40)
+ assert.deepEqual(new Set(results.map(r=>r.model)),new Set(names))
+ assert.equal(calls.filter(c=>c.path==='/models').length,3)
+})
