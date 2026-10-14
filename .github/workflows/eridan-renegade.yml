@@ -1,0 +1,21 @@
+name: Eridan Renegade audit
+on:
+  push:
+    branches: ['codex/eridan-canam-family']
+permissions:
+  contents: read
+jobs:
+  live-audit:
+    if: contains(github.event.head_commit.message, '[renegade-live]')
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci --include=dev
+      - run: node --import tsx scripts/check-eridan-renegade-live.ts
+        env:
+          ERIDAN_API_KEY: ${{ secrets.ERIDAN_API_KEY }}
