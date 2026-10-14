@@ -56,3 +56,19 @@ jobs:
         run: node --import tsx scripts/${{ contains(github.event.head_commit.message, '[release-review]') && 'check-eridan-release-live.ts' || contains(github.event.head_commit.message, '[cylinders-live]') && 'check-eridan-cylinders-live.ts' || contains(github.event.head_commit.message, '[makes-live]') && 'check-eridan-make-aliases-live.ts' || contains(github.event.head_commit.message, '[families-live]') && 'check-eridan-model-families-live.ts' || contains(github.event.head_commit.message, '[seller-live]') && 'check-eridan-seller-live.ts' || 'check-eridan-live.ts' }}
         env:
           ERIDAN_API_KEY: ${{ secrets.ERIDAN_API_KEY }}
+
+  public-release-review:
+    if: contains(github.event.head_commit.message, '[release-review]')
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: node scripts/check-eridan-public-release.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: public-release-check
+          path: public-release-check.json
