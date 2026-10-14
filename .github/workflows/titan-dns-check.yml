@@ -15,7 +15,8 @@ jobs:
           import { Resolver, resolve4 } from 'node:dns/promises'
           const domain='koliotamerika.bg';
           const authoritative=await resolve4('atlas.dns-parking.com');
-          for(const [name,ip] of [['authoritative',authoritative[0]],['Google','8.8.8.8'],['Cloudflare','1.1.1.1']]){
+          const secondary=await resolve4('hyperion.dns-parking.com');
+          for(const [name,ip] of [['atlas',authoritative[0]],['hyperion',secondary[0]],['Google','8.8.8.8'],['Cloudflare','1.1.1.1']]){
             const r=new Resolver({timeout:4000,tries:1});r.setServers([ip]);
             try{
               const mx=await r.resolveMx(domain);
