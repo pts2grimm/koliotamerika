@@ -1,0 +1,18 @@
+name: English version
+on:
+  push:
+    branches: [codex/english-version-2026-10-14]
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --include=dev
+      - run: node scripts/english-variants.mjs --collect
