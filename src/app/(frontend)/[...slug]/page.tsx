@@ -1,3 +1,4 @@
+import { BlogArticle } from '@/components/BlogArticle'
 import { editorialImage } from '@/lib/editorial-images'
 import { CookiePolicy } from '@/components/CookiePolicy'
 import { servicesReviewKey } from '@/lib/services-review-key'
@@ -81,5 +82,19 @@ export default async function ContentPage({ params }: Props) {
   {topics.length > 0 && <aside className="container article-more"><h2>Теми на статията</h2><ul>{topics.map(topic => <li key={topic.path}><Link href={topic.path}>{topic.label}</Link></li>)}</ul></aside>}
   {more.length > 0 && <aside className="container article-more"><h2>Още от блога</h2><ul>{more.map(item => <li key={item.id}><Link href={'/' + item.slug}>{item.title}</Link></li>)}</ul><Link className="text-link" href="/blog">Всички статии</Link></aside>}
  </LandingPage>
- return <>{article && <div className="container"><nav className="landing-breadcrumbs" aria-label="Път до страницата"><Link href="/">Начало</Link><span aria-hidden="true">/</span><Link href="/blog">Блог</Link><span aria-hidden="true">/</span><span aria-current="page">{page.title}</span></nav></div>}<section className="page-heading container"><span className="eyebrow orange">{page.eyebrow || 'КОЛИ ОТ АМЕРИКА'}</span><h1>{page.title}</h1><p>{page.intro}</p>{article && <div className="article-meta"><span>{page.sourceURL ? 'Публикация в' : 'От редакцията на'} {site!.brand}</span>{published && <time dateTime={published}>{new Intl.DateTimeFormat('bg-BG', { dateStyle: 'long', timeZone: 'Europe/Sofia' }).format(new Date(published))}</time>}{reviewedAt && <span>Съдържание прегледано на <time dateTime={reviewedAt}>{new Intl.DateTimeFormat('bg-BG', { dateStyle: 'long', timeZone: 'Europe/Sofia' }).format(new Date(reviewedAt))}</time></span>}</div>}</section>{image && <div className="container editorial-image"><Image src={image} alt={imageAlt(page.image, cover.artwork?.alt || page.title)} width={cover.artwork?.width || 1400} height={cover.artwork?.height || 700} sizes="(max-width: 1400px) 100vw, 1400px" preload />{cover.artwork && <p className="editorial-caption">{cover.artwork.caption}</p>}</div>}<article className="article-body container">{page.body && <EditorialContent data={page.body} />}{page.sections?.map((section, i) => <section key={section.id || i}><h2>{section.heading}</h2>{section.body.split(/\n\s*\n/).map((p, j) => <p key={j}>{p}</p>)}</section>)}{['poveritelnost','zashtita-na-lichni-danni'].includes(page.slug) && <CookiePolicy />}</article><LegacyExamples slug={page.slug} />{article && <><script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(articleStructuredData(page, siteURL(), site!.brand, image || undefined, reviewedAt)).replace(/</g, '\\u003c') }} />{topics.length > 0 && <aside className="container article-more"><h2>Теми на статията</h2><ul>{topics.map(topic => <li key={topic.path}><Link href={topic.path}>{topic.label}</Link></li>)}</ul></aside>}{more.length > 0 && <aside className="container article-more"><h2>Още от блога</h2><ul>{more.map(item => <li key={item.id}><Link href={'/' + item.slug}>{item.title}</Link></li>)}</ul><Link className="text-link" href="/blog">Всички статии</Link></aside>}</>}{page.slug === 'vnos-na-koli-ot-usa' && <ImportCalculator config={await calculatorSettings()} />}{!['poveritelnost','zashtita-na-lichni-danni','obshti-usloviya'].includes(page.slug) && <CTA />}</>
+ if (article) return <>
+  <BlogArticle page={page} brand={site!.brand} reviewedAt={reviewedAt} topics={topics} more={more} />
+  <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(articleStructuredData(page, siteURL(), site!.brand, image || undefined, reviewedAt)).replace(/</g, '\\u003c') }} />
+  <CTA />
+ </>
+ return <>
+  <section className="page-heading container"><span className="eyebrow orange">{page.eyebrow || 'КОЛИ ОТ АМЕРИКА'}</span><h1>{page.title}</h1><p>{page.intro}</p></section>
+  {image && <div className="container editorial-image"><Image src={image} alt={imageAlt(page.image, page.title)} width={1400} height={700} sizes="(max-width: 1400px) 100vw, 1400px" preload /></div>}
+  <article className="article-body container">
+   {page.body && <EditorialContent data={page.body} />}
+   {page.sections?.map((section, i) => <section key={section.id || i}><h2>{section.heading}</h2>{section.body.split(/\n\s*\n/).map((p, j) => <p key={j}>{p}</p>)}</section>)}
+   {['poveritelnost','zashtita-na-lichni-danni'].includes(page.slug) && <CookiePolicy />}
+  </article>
+  <LegacyExamples slug={page.slug} />
+ </>
 }

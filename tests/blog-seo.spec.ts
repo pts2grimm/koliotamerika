@@ -48,6 +48,30 @@ test('blog SEO, migration URLs, draft protection and timed release', async ({ pa
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true)
    }
   }
+  // Capture the built article in both themes, including mobile text wrapping.
+  for (const width of [390, 1440]) {
+   await page.setViewportSize({ width, height: 1000 })
+   for (const theme of ['light', 'dark'] as const) {
+    await page.emulateMedia({ colorScheme: theme })
+    await page.reload()
+    await page.evaluate(() => document.fonts.ready)
+    const consent = page.getByRole('button', { name: 'Само необходимите', exact: true })
+    if (await consent.isVisible()) await consent.click()
+    await expect(page.locator('.blog-article .article-body')).toBeVisible()
+    const paragraph = page.locator('.blog-article .article-body p').first()
+    expect(await paragraph.evaluate(el => parseFloat(getComputedStyle(el).fontSize))).toBeGreaterThanOrEqual(17)
+    await expect(page.locator('.blog-article-card')).toHaveCount(3)
+    await page.screenshot({ path: test.info().outputPath('article-' + width + '-' + theme + '.png'), fullPage: true })
+    if (process.env.BLOG_DESIGN_REVIEW === 'true' && theme === 'dark') {
+     await page.evaluate(() => window.scrollTo({ top: 0, behavior: 'instant' }))
+     const encoded = (await page.screenshot({ type: 'jpeg', quality: 40 })).toString('base64')
+     for (let i = 0; i < encoded.length; i += 8000) console.log('ARTICLE_PREVIEW_' + width + ':' + encoded.slice(i, i + 8000))
+     await page.locator('.article-body h2').first().scrollIntoViewIfNeeded()
+     const body = (await page.screenshot({ type: 'jpeg', quality: 40 })).toString('base64')
+     for (let i = 0; i < body.length; i += 8000) console.log('ARTICLE_BODY_' + width + ':' + body.slice(i, i + 8000))
+    }
+   }
+  }
   for (const article of snapshot.items.filter(item => item.kind === 'article')) {
    const response = await visitor.get('/' + article.slug)
    expect(response.status(), article.slug).toBe(200)
