@@ -26,6 +26,7 @@ jobs:
           NODE_ENV: production
           PREVIEW_MODE: 'false'
           AUCTION_PROVIDER: eridan
+          SITE_INDEXABLE: 'true'
           DATABASE_URI: file:/tmp/koa-editorial-restore/payload.db
           MEDIA_DIR: /tmp/koa-editorial-restore/media
           PAYLOAD_SECRET: ci-editorial-only-not-a-live-secret
