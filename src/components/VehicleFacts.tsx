@@ -10,15 +10,16 @@ function Facts({ title, rows, className = '' }: { title: string; rows: [string, 
 }
 export function TechnicalFacts({ car }: { car: AuctionCar }) {
  return <Facts title="Технически характеристики" className="technical-facts" rows={[
-  ['Година', car.year || undefined], ['Пробег', mileage(car.odometer)], ['Двигател', car.engine], ['Гориво', car.fuel], ['Скоростна кутия', car.transmission], ['Задвижване', car.drive],
+  ['Година', car.year || undefined], ['Пробег', mileage(car.odometer, car.odometer_unit)], ['Двигател', car.engine], ['Гориво', car.fuel], ['Скоростна кутия', car.transmission], ['Задвижване', car.drive],
  ]} />
 }
 export function AuctionFacts({ car }: { car: AuctionCar }) {
  return <Facts title="Информация за автомобила" rows={[
   ['VIN код', car.vin], ['Lot ID', car.lot_id], ['Щат', car.state], ['Местоположение', car.location],
   ['Състояние', car.status ? <DetailTooltip {...statusHint(car.status)} /> : undefined],
+  ['Обозначение на аукциона', car.enhanced ? <DetailTooltip {...statusHint('Enhanced Vehicles')} /> : undefined],
   ['Документ', car.document_old ? <DetailTooltip {...documentHint(car.document_old)} /> : undefined],
-  ['Продавач', car.seller], ['Тип продавач', car.seller_type ? <DetailTooltip {...sellerHint(car.seller_type)} /> : undefined],
+  ['Продавач', car.seller || (car.seller_type_source === 'seller_presence' ? 'Частно лице' : undefined)], ['Тип продавач', car.seller_type ? <DetailTooltip {...sellerHint(car.seller_type, car.seller_type_source)} /> : undefined],
  ]} />
 }
 export function DamageFacts({ car }: { car: AuctionCar }) {

@@ -1,0 +1,37 @@
+'use client'
+import NextLink from 'next/link'
+import { useEffect, useRef, useState, type ComponentProps } from 'react'
+import { useDocumentNavigation } from '@/lib/use-document-navigation'
+import { AuctionLinkPending } from './AuctionLinkPending'
+import { createAuctionPrefetchBudget } from '@/lib/auction-prefetch'
+
+const budget=createAuctionPrefetchBudget()
+
+export function AuctionLink(props:ComponentProps<typeof NextLink>) {
+ const { pending, navigate } = useDocumentNavigation()
+ const [armed,setArmed]=useState(false)
+ const timer=useRef<ReturnType<typeof setTimeout>|undefined>(undefined)
+ const cancel=()=>{clearTimeout(timer.current);setArmed(false)}
+ useEffect(()=>()=>clearTimeout(timer.current),[])
+ const warm=()=>{
+  const connection=(navigator as Navigator & {connection?:{saveData?:boolean;effectiveType?:string}}).connection
+  if(props.prefetch===false||props.download||props.target==='_blank'||connection?.saveData||['slow-2g','2g'].includes(connection?.effectiveType||''))return
+  if(budget.claim(props.href))setArmed(true)
+ }
+ return <NextLink {...props} prefetch={armed}
+  onPointerEnter={event=>{props.onPointerEnter?.(event);if(!event.defaultPrevented&&event.pointerType==='mouse'){clearTimeout(timer.current);timer.current=setTimeout(warm,180)}}}
+  onPointerLeave={event=>{props.onPointerLeave?.(event);cancel()}}
+  onFocus={event=>{props.onFocus?.(event);if(!event.defaultPrevented)warm()}}
+  onBlur={event=>{props.onBlur?.(event);cancel()}}
+  onNavigate={event=>{
+   let cancelled=false
+   props.onNavigate?.({preventDefault(){cancelled=true;event.preventDefault()}})
+   // Full-route prefetch can outlive fresh auction data in Next's client cache.
+   // Old prepared routes get a fresh document request instead of reusing that payload.
+   if(!cancelled&&budget.expired(props.href)&&typeof props.href==='string'){
+    event.preventDefault();navigate(props.href)
+   }
+  }}>
+  {props.children}<AuctionLinkPending detail documentPending={pending}/>
+ </NextLink>
+}

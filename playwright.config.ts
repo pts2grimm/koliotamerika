@@ -1,7 +1,7 @@
 import { defineConfig } from '@playwright/test'
 import { randomBytes } from 'node:crypto'
 export default defineConfig({
- testDir: './tests', testMatch: '**/*.spec.ts', workers: 1, fullyParallel: false, timeout: 90000,
+ testDir: './tests', testMatch: '**/*.spec.ts', testIgnore: '**/eridan.spec.ts', workers: 1, fullyParallel: false, timeout: 90000,
  expect: { timeout: 15000 },
  use: { baseURL: 'http://localhost:3100', headless: true, launchOptions: { executablePath: process.env.CHROMIUM_PATH || '/usr/bin/chromium', args: ['--no-sandbox'] }, screenshot: 'only-on-failure', trace: 'retain-on-failure' },
  webServer: [{ command: 'node tests/fixtures/auction-server.mjs', url: 'http://127.0.0.1:3199', reuseExistingServer: false }, { command: 'npm run dev -- --port 3100', url: 'http://localhost:3100', reuseExistingServer: false, timeout: 120000,

@@ -1,8 +1,10 @@
+import { isAuctionClosed, archivedAuctionLabel } from '@/lib/auction-lifecycle'
 import { SiteLink as Link } from '@/components/SiteLink'
 import { ArrowUpRight, CalendarDays, Gauge, Fuel } from 'lucide-react'
 import { auctionCurrency, auctionImages, type AuctionCar } from '@/lib/auctions'
 import { SaveAuction } from './SaveAuction'
 import { AuctionSchedule } from './AuctionSchedule'
+import { AuctionBuyNow } from './AuctionBuyNow'
 import { CardPhotos } from './CardPhotos'
 
 export function AuctionCard({ car }: { car: AuctionCar }) {
@@ -12,10 +14,12 @@ export function AuctionCard({ car }: { car: AuctionCar }) {
   <CardPhotos images={auctionImages(car)} title={car.title} href={href} badge={car.site === 1 ? 'COPART' : 'IAAI'} />
   <Link href={href} className="car-content auction-card-link">
    <span className="eyebrow">ЛОТ {car.lot_id}</span><h3>{car.title}</h3>
-   <div className="car-specs"><span><CalendarDays size={14} />{car.year}</span>{car.odometer != null && <span><Gauge size={14} />{car.odometer.toLocaleString('bg-BG')} мили</span>}{fuel && <span><Fuel size={14} />{fuel}</span>}</div>
+   <div className="car-specs"><span><CalendarDays size={14} />{car.year}</span>{car.odometer != null && <span><Gauge size={14} />{car.odometer.toLocaleString('bg-BG')} {car.odometer_unit === 'km' ? 'км' : car.odometer_unit === 'unknown' ? '(неуточнена единица)' : 'мили'}</span>}{fuel && <span><Fuel size={14} />{fuel}</span>}</div>
    <p className="auction-damage">{car.damage_pr || 'Щетите се уточняват'}<span>{car.status || 'Без посочено състояние'}</span></p>
-   <AuctionSchedule date={car.auction_date} initialNow={Date.now()} />
-   <div className="auction-price-row"><div><span className="price-label">Текущ залог</span><strong>{car.current_bid != null ? auctionCurrency(car.current_bid, car.currency) : 'Няма оферта'}</strong><span className="price-disclaimer">Без разходите за внос</span></div><span className="card-detail-arrow" aria-label="Виж автомобила"><ArrowUpRight size={22} /></span></div>
+   {car.enhanced && <p className="bid-note">Enhanced Vehicles · Не потвърждава, че пали или се движи.</p>}
+   {isAuctionClosed(car) ? <div><p className="auction-sold" role="status">{archivedAuctionLabel(car)}</p><p className="bid-note">VIN: {car.vin || 'Не е предоставен'}</p></div> : <><AuctionSchedule date={car.auction_date} auctionStatus={car.auction_status} initialNow={Date.now()} />
+   <div className="auction-price-row"><div><span className="price-label">Текущ залог</span><strong>{car.current_bid != null ? auctionCurrency(car.current_bid, car.currency) : 'Не е предоставен'}</strong><span className="price-disclaimer">Без разходите за внос</span></div><span className="card-detail-arrow" aria-label="Виж автомобила"><ArrowUpRight size={22} /></span></div>
+   <AuctionBuyNow car={car} /></>}
   </Link>
   <SaveAuction lot={String(car.lot_id)} site={String(car.site)} title={car.title} />
  </article>

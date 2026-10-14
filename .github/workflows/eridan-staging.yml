@@ -1,0 +1,74 @@
+name: Eridan staging verification
+on:
+  push:
+    branches: ['codex/eridan-production-2026-10-14', 'eridan-staging', 'codex/eridan-catalogue-reliability', 'codex/eridan-auction-dates', 'codex/eridan-active-only', 'codex/eridan-condition-buy-now', 'codex/eridan-seller-filter-urls', 'codex/eridan-model-families', 'codex/eridan-catalogue-sorting', 'codex/eridan-powersports-pages', 'codex/eridan-make-aliases', 'codex/eridan-loading-states', 'codex/eridan-loading-layout', 'codex/eridan-cylinder-filter', 'codex/eridan-iaai-cylinders-hints', 'codex/eridan-release-review', 'codex/eridan-canam-family']
+permissions:
+  contents: read
+jobs:
+  contracts-and-browser:
+    if: "!contains(github.event.head_commit.message, '[schedule-live]')"
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci --include=dev
+      - run: npx tsx --test tests/eridan.test.ts
+      - name: Production build for isolated browser tests
+        run: npm run build
+        env:
+          NEXT_DIST_DIR: .next-eridan
+          PREVIEW_MODE: 'true'
+          PAYLOAD_SECRET: eridan-build-fixture-secret-no-real-data
+          NEXT_PUBLIC_SERVER_URL: http://localhost:3100
+          SITE_INDEXABLE: 'false'
+      - run: npm run typecheck
+      - run: npm test
+      - run: npx playwright install --with-deps chromium
+      - name: Blog, content links and launch readiness
+        if: contains(github.event.head_commit.message, '[release-review]')
+        run: npx playwright test --config=playwright.eridan-readiness.config.ts
+        env:
+          ERIDAN_RELEASE_TEST: 'true'
+      - run: npx playwright test --config=playwright.eridan.config.ts
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: eridan-browser-results
+          path: test-results/
+          retention-days: 5
+  # Include [eridan-live] in a staging commit message only when a real API check is needed.
+  protected-live-contract:
+    if: contains(github.event.head_commit.message, '[eridan-live]')
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci --include=dev
+      - name: Verify real adapter with protected credentials
+        run: node --import tsx scripts/${{ contains(github.event.head_commit.message, '[release-review]') && 'check-eridan-release-live.ts' || contains(github.event.head_commit.message, '[cylinders-live]') && 'check-eridan-cylinders-live.ts' || contains(github.event.head_commit.message, '[makes-live]') && 'check-eridan-make-aliases-live.ts' || contains(github.event.head_commit.message, '[families-live]') && 'check-eridan-model-families-live.ts' || contains(github.event.head_commit.message, '[seller-live]') && 'check-eridan-seller-live.ts' || 'check-eridan-live.ts' }}
+        env:
+          ERIDAN_API_KEY: ${{ secrets.ERIDAN_API_KEY }}
+
+  public-release-review:
+    if: contains(github.event.head_commit.message, '[release-review]')
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: node scripts/check-eridan-public-release.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: public-release-check
+          path: public-release-check.json

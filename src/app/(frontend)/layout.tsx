@@ -1,3 +1,4 @@
+import { auctionProviderName } from '@/lib/auctions'
 import { Tracking } from '@/components/Tracking'
 import { integrationSettings, publicIntegrationSettings } from '@/lib/integrations-server'
 import './integrations.css'
@@ -11,6 +12,7 @@ import './theme.css'
 import './landing.css'
 import './sea-transport.css'
 import './filters.css'
+import './auction-loading.css'
 import './blog-seo.css'
 import './navigation.css'
 import './legacy-gallery.css'
@@ -33,5 +35,5 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function Layout({ children }: { children: React.ReactNode }) {
  const site = await settings()
  const json = { '@context': 'https://schema.org', '@type': 'Organization', name: site.brand, url: siteURL(), ...(site.phone ? { telephone: site.phone } : {}), ...(site.email ? { email: site.email } : {}) }
- return <html lang="bg" data-scroll-behavior="smooth" suppressHydrationWarning><head><script id="theme-init" dangerouslySetInnerHTML={{ __html: themeInitScript }} /></head><body><AccountProvider enabled={accountsEnabled()} recovery={passwordRecoveryEnabled()}><a className="skip-link" href="#main">Към съдържанието</a><Header />{isPreview() && <div className="preview-notice" role="note">Демонстрационна версия · Разгледай сайта. Изпращането на запитвания е изключено.</div>}<main id="main">{children}</main><Footer /><Tracking config={await publicIntegrationSettings()} /><script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(json).replace(/</g, '\\u003c') }} /></AccountProvider></body></html>
+ return <html lang="bg" data-scroll-behavior="smooth" suppressHydrationWarning><head><script id="theme-init" dangerouslySetInnerHTML={{ __html: themeInitScript }} /></head><body><AccountProvider enabled={accountsEnabled()} recovery={passwordRecoveryEnabled()}><a className="skip-link" href="#main">Към съдържанието</a><Header powersports={auctionProviderName() === 'eridan'} />{isPreview() && <div className="preview-notice" role="note">Демонстрационна версия · Разгледай сайта. Изпращането на запитвания е изключено.</div>}<main id="main">{children}</main><Footer /><Tracking config={await publicIntegrationSettings()} /><script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(json).replace(/</g, '\\u003c') }} /></AccountProvider></body></html>
 }
