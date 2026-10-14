@@ -511,7 +511,8 @@ for(const width of [1280,390]){
   await request.post('http://127.0.0.1:3199/test-sort-examples?enabled=true')
   try{
    await page.setViewportSize({width,height:900})
-   await page.goto('/targove?make=BMW&model=X5&year_from='+ (width===1280?'2000':'2001') +'&pagenum=2')
+   // This fixture changes sale dates; keep keys separate from the earlier 1990–2001 cache-budget test.
+   await page.goto('/targove?make=BMW&model=X5&year_from='+ (width===1280?'2004':'2005') +'&pagenum=2')
    await page.getByRole('combobox',{name:'Подреди по'}).selectOption('auction_soon')
    await expect(page).toHaveURL(/sort=auction_soon$/)
    await expect(page.locator('.auction-card:visible')).toHaveCount(24)
@@ -844,7 +845,7 @@ for(const width of [1280,390]){
 test('nearest auction is the default across pages and powersports without a sort query',async({page,request})=>{
  await request.post('http://127.0.0.1:3199/test-sort-examples?enabled=true')
  try{
-  await page.goto('/targove?make=BMW&model=X5&year_from=1999')
+  await page.goto('/targove?make=BMW&model=X5&year_from=2006')
   await expect(page.getByRole('combobox',{name:'Подреди по'})).toHaveValue('auction_soon')
   await expect(page.locator('select[name=sort] option')).toHaveCount(5)
   const first=await page.locator('.auction-card:visible time').evaluateAll(nodes=>nodes.map(n=>Date.parse(n.getAttribute('datetime')!)))
