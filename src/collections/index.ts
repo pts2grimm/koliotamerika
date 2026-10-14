@@ -1,4 +1,3 @@
-import { invalidatePublicContent } from '../lib/content-cache-hooks'
 import { lexicalEditor, EXPERIMENTAL_TableFeature } from '@payloadcms/richtext-lexical'
 import { publishedPages } from '../lib/page-access'
 import { enforcePasswordPolicy } from '../lib/password-hook'
@@ -17,7 +16,7 @@ const slug: Field = { name: 'slug', label: 'URL адрес', type: 'text', requi
   validate: (value: unknown) => typeof value === 'string' && /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(value) ? true : 'Използвайте малки латински букви, цифри и тирета.' }
 const status: Field = { name: 'status', label: 'Публикуване', type: 'select', required: true, defaultValue: 'draft', options: [{ label: 'Чернова', value: 'draft' }, { label: 'Публикувано', value: 'published' }], admin: { position: 'sidebar' } }
 export const Users: CollectionConfig = { slug: 'users', endpoints: process.env.CUSTOMER_ACCOUNTS_ENABLED === 'true' && process.env.ALLOW_ADMIN_SETUP !== 'true' ? [{ path: '/first-register', method: 'post', handler: () => Response.json({ error: 'Administrator setup is disabled.' }, { status: 403 }) }] : [], labels: { singular: 'Администратор', plural: 'Администратори' }, auth: { maxLoginAttempts: 5, lockTime: 600000 }, hooks: { beforeOperation: [enforcePasswordPolicy, ({ operation, req }) => { if (operation === 'create' && req.user?.collection === 'customers') throw new Forbidden() }] }, admin: { useAsTitle: 'email' }, access: { create: staff, read: staff, update: staff, delete: staff }, fields: [{ name: 'name', label: 'Име', type: 'text' }] }
-export const Media: CollectionConfig = { slug: 'media', hooks: { afterChange: [invalidatePublicContent], afterDelete: [invalidatePublicContent] }, labels: { singular: 'Снимка', plural: 'Медия' }, access: { read: () => true, create: staff, update: staff, delete: staff }, upload: { staticDir: path.resolve(process.env.MEDIA_DIR || path.join(process.cwd(), 'public/media')), mimeTypes: ['image/jpeg', 'image/png', 'image/webp', 'image/avif'], imageSizes: [{ name: 'card', width: 800, height: 550, fit: 'cover' }], adminThumbnail: 'card' }, fields: [{ name: 'alt', label: 'Описание на изображението (SEO)', type: 'text', required: true }] }
+export const Media: CollectionConfig = { slug: 'media', labels: { singular: 'Снимка', plural: 'Медия' }, access: { read: () => true, create: staff, update: staff, delete: staff }, upload: { staticDir: path.resolve(process.env.MEDIA_DIR || path.join(process.cwd(), 'public/media')), mimeTypes: ['image/jpeg', 'image/png', 'image/webp', 'image/avif'], imageSizes: [{ name: 'card', width: 800, height: 550, fit: 'cover' }], adminThumbnail: 'card' }, fields: [{ name: 'alt', label: 'Описание на изображението (SEO)', type: 'text', required: true }] }
 export const Cars: CollectionConfig = { slug: 'cars', labels: { singular: 'Автомобил', plural: 'Автомобили' }, admin: { useAsTitle: 'title', defaultColumns: ['title', 'price', 'availability', 'status'] }, access: { read: published, create: staff, update: staff, delete: staff }, fields: [
   { name: 'title', label: 'Заглавие', type: 'text', required: true }, slug, status,
   { type: 'row', fields: [{ name: 'make', label: 'Марка', type: 'text', required: true, index: true }, { name: 'model', label: 'Модел', type: 'text', required: true }, { name: 'year', label: 'Година', type: 'number', required: true, min: 1900, max: 2100 }] },
@@ -30,7 +29,7 @@ export const Cars: CollectionConfig = { slug: 'cars', labels: { singular: 'Ав�
   { name: 'description', label: 'Описание и какво включва цената', type: 'textarea', required: true },
   { name: 'features', label: 'Оборудване', type: 'array', fields: [{ name: 'label', label: 'Екстра', type: 'text', required: true }] }, ...seoFields
 ] }
-export const Pages: CollectionConfig = { slug: 'pages', hooks: { afterChange: [invalidatePublicContent], afterDelete: [invalidatePublicContent] }, labels: { singular: 'Материал', plural: 'Съдържание' }, admin: {
+export const Pages: CollectionConfig = { slug: 'pages', labels: { singular: 'Материал', plural: 'Съдържание' }, admin: {
     useAsTitle: 'title',
     group: false,
     defaultColumns: ['title', 'kind', 'status', 'publishedAt'],

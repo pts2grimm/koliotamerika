@@ -37,7 +37,7 @@ function sandbox() {
     })
     assert.ifError(result.error)
     assert.equal(result.status, 0, result.stdout + result.stderr)
-    assert.doesNotMatch(result.stdout + result.stderr, /(?:Page SEO upgrade|Content review|Pricing details|Plain language update|Customer pricing update|Services review|Gallery review|Clarity update|Calculator delivery update) deferred/, result.stdout + result.stderr)
+    assert.doesNotMatch(result.stdout + result.stderr, /(?:Page SEO upgrade|Content review|Pricing details|Plain language update|Customer pricing update|Services review|Gallery review|Clarity update) deferred/, result.stdout + result.stderr)
   }
   return { dir, filename, run }
 }
@@ -234,19 +234,6 @@ test('calculator migration resumes with existing new columns and preserves legac
   db=new DatabaseSync(filename);journal(db)
   assert.deepEqual({...db.prepare('SELECT usd_to_bgn,fixed_costs,usd_to_eur,default_inland,default_shipping,note FROM calculator_settings').get()},{usd_to_bgn:2,fixed_costs:777,usd_to_eur:0.95,default_inland:650,default_shipping:1234,note:'Keep note'})
   assert.equal(db.prepare('SELECT shipping_usd FROM calculator_settings').get()?.shipping_usd,1000)
-  assert.equal(db.prepare('SELECT delivery_eur FROM calculator_settings').get()?.delivery_eur,1000)
-  assert.equal(db.prepare("SELECT COUNT(*) AS n FROM payload_kv WHERE key='calculator:delivery:2026-10-14:v1'").get()?.n,1)
-  // The one-time default update must not undo a later explicit administrator edit.
-  db.exec('UPDATE calculator_settings SET delivery_eur=900')
-  db.close();run()
-  db=new DatabaseSync(filename)
-  assert.equal(db.prepare('SELECT delivery_eur FROM calculator_settings').get()?.delivery_eur,900)
-  // A custom amount on first encounter must also survive the update.
-  db.exec("DELETE FROM payload_kv WHERE key='calculator:delivery:2026-10-14:v1'")
-  db.exec('UPDATE calculator_settings SET delivery_eur=875')
-  db.close();run()
-  db=new DatabaseSync(filename)
-  assert.equal(db.prepare('SELECT delivery_eur FROM calculator_settings').get()?.delivery_eur,875)
   db.close()
  }finally{rmSync(dir,{recursive:true,force:true})}
 })

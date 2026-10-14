@@ -23,13 +23,6 @@ export async function initializeContent(payload: Payload, options: { preview: bo
     payload.logger.info(`[bootstrap] Imported ${imported} missing pages/articles.`)
     const { importEditorialDrafts } = await import('./import-editorial-drafts')
     await importEditorialDrafts(payload)
-    try {
-      const { scheduleEditorialArticles } = await import('./schedule-editorial')
-      const scheduled = await scheduleEditorialArticles(payload)
-      if (scheduled) payload.logger.info(`[bootstrap] Scheduled ${scheduled} approved editorial articles.`)
-    } catch (error) {
-      payload.logger.warn({ err: error }, '[bootstrap] Editorial scheduling deferred; existing content preserved.')
-    }
     // Editorial upgrades must never prevent the site from starting. Transactions
     // leave failed pages unchanged and the next initialization can retry them.
     try {
@@ -102,12 +95,6 @@ export async function initializeContent(payload: Payload, options: { preview: bo
     } catch(error) {
       payload.logger.warn({err:error},'[bootstrap] Clarity update deferred; existing content preserved.')
     }
-  }
-  try {
-    const { upgradeCalculatorDelivery } = await import('./calculator-upgrade')
-    await upgradeCalculatorDelivery(payload)
-  } catch (error) {
-    payload.logger.warn({ err: error }, '[bootstrap] Calculator delivery update deferred; existing settings preserved.')
   }
   payload.logger.info('[bootstrap] Ready.')
 }
