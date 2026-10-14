@@ -3,13 +3,13 @@ import { JSDOM } from 'jsdom'
 
 const origins=['https://darkturquoise-duck-750266.hostingersite.com','https://koliotamerika.bg']
 const report={checkedAt:new Date().toISOString(),sites:[]}
-const fetchPublic=async(url)=>{
- const response=await fetch(url,{signal:AbortSignal.timeout(15000),redirect:'error',headers:{Accept:'text/html, application/json','User-Agent':'Koliotamerika-SEO-Audit/1.0'}})
- if(!response.ok)throw new Error('HTTP '+response.status)
+const fetchPublic=async(url,allowRedirect=false)=>{
+ const response=await fetch(url,{signal:AbortSignal.timeout(15000),redirect:'manual',headers:{Accept:'text/html, application/json','User-Agent':'Koliotamerika-SEO-Audit/1.0'}})
+ if(!response.ok&&!(allowRedirect&&[301,302,303,307,308].includes(response.status)))throw new Error('HTTP '+response.status)
  return response
 }
 for(const origin of origins){
- const result={origin,cmsCount:0,checked:0,complete:false,errors:[],missingCMSFields:[],pages:[],duplicateTitles:[],duplicateDescriptions:[]}
+ const result={origin,cmsCount:0,checked:0,complete:false,errors:[],redirects:[],missingCMSFields:[],pages:[],duplicateTitles:[],duplicateDescriptions:[]}
  report.sites.push(result)
  try{
   const docs=[]
@@ -33,7 +33,8 @@ for(const origin of origins){
    while(next<Math.min(paths.length,110)){
     const path=paths[next++]
     try{
-     const response=await fetchPublic(new URL(path,origin))
+     const response=await fetchPublic(new URL(path,origin),true)
+     if(response.status>=300&&response.status<400){const to=new URL(response.headers.get('location')||'',origin);if(to.origin!==origin)throw new Error('Unexpected external redirect');result.redirects.push({path,to:to.pathname+to.search,status:response.status});continue}
      const dom=new JSDOM(await response.text()),d=dom.window.document
      const title=d.querySelector('title')?.textContent?.trim()||''
      const description=d.querySelector('meta[name="description"]')?.getAttribute('content')?.trim()||''
@@ -57,7 +58,7 @@ for(const origin of origins){
   }
  }catch(error){result.errors.push({path:'/api/pages',error:error.message})}
  result.pages.sort((a,b)=>a.path.localeCompare(b.path))
- console.log(JSON.stringify({origin,checked:result.checked,cmsCount:result.cmsCount,complete:result.complete,errors:result.errors,missingCMSFields:result.missingCMSFields,issues:result.pages.filter(p=>p.issues.length).map(({path,issues})=>({path,issues})),duplicateTitles:result.duplicateTitles,duplicateDescriptions:result.duplicateDescriptions}))
+ console.log(JSON.stringify({origin,checked:result.checked,cmsCount:result.cmsCount,complete:result.complete,errors:result.errors,redirects:result.redirects,missingCMSFields:result.missingCMSFields,issues:result.pages.filter(p=>p.issues.length).map(({path,issues})=>({path,issues})),duplicateTitles:result.duplicateTitles,duplicateDescriptions:result.duplicateDescriptions}))
 }
 await mkdir('reports',{recursive:true})
 await writeFile('reports/public-seo-audit.json',JSON.stringify(report,null,2))
