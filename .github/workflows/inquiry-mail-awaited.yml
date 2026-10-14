@@ -1,0 +1,25 @@
+name: Awaited inquiry SMTP
+on:
+  push:
+    branches: ['codex/inquiry-mail-awaited-2026-10-14']
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --include=dev
+      - run: npm test
+      - run: npm run build
+        env:
+          PREVIEW_MODE: 'true'
+          PAYLOAD_SECRET: isolated-smtp-ci-not-live-secret
+      - run: npm run typecheck
+      - name: Production request with local SMTP acceptance, refusal and timeout
+        run: node scripts/test-inquiry-smtp.mjs
