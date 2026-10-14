@@ -837,13 +837,13 @@ export interface CalculatorSetting {
   fixedCosts: number;
   defaultInland?: number | null;
   defaultShipping?: number | null;
-  tiers: {
+  tiers?: {
     from: number;
     fee: number;
     percent: number;
     extra: number;
     id?: string | null;
-  }[];
+  }[] | null;
   note?: string | null;
   updatedAt?: string | null;
   createdAt?: string | null;

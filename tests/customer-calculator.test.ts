@@ -6,24 +6,27 @@ import { calculateImport } from '../src/lib/calculate'
 import { exampleCosts, purchaseFee, onlineFee } from '../src/lib/customer-tariff'
 import { clarifyCopy } from '../src/lib/clarity-copy'
 import pricing from '../content/customer-pricing-2026-10.json'
-test('calculator excludes removed charges and uses the updated delivery default',()=>{
+test('calculator consolidates all auction charges once and uses the updated delivery default',()=>{
  const result=calculateImport(10000,500,1000,exampleCosts)!
  assert.equal(exampleCosts.deliveryEur,1000)
- assert.equal(result.totalEur,18110.92)
- assert.equal(result.subtotalUsd,13090)
- assert.equal(result.subtotalEur,11781)
- assert.equal(result.customsEur,11781)
- assert.equal(result.vatBaseEur,14259.1)
- assert.equal(result.dutyEur,1178.1)
- assert.equal(result.vatEur,2851.82)
+ assert.equal(result.totalEur,18455.44)
+ assert.equal(result.subtotalUsd,13380)
+ assert.equal(result.subtotalEur,12042)
+ assert.equal(result.customsEur,12042)
+ assert.equal(result.vatBaseEur,14546.2)
+ assert.equal(result.dutyEur,1204.2)
+ assert.equal(result.vatEur,2909.24)
  assert.equal(result.commissionEur,1000)
  assert.deepEqual(result.rows.map(row=>[row.label,row.usd]),[
-  ['Автомобил',10000],['Такси на аукциона',1390],['Вътрешен транспорт в САЩ',500],
+  ['Автомобил',10000],['Такси на аукциона',1680],['Вътрешен транспорт в САЩ',500],
   ['Морски транспорт',1000],['Застраховка — примерен бюджет',200],
  ])
- // Archived document settings have no effect on totals or input validity.
- assert.deepEqual(calculateImport(10000,500,1000,{...exampleCosts,documentUsd:9999}),result)
- assert.deepEqual(calculateImport(10000,500,1000,{...exampleCosts,documentUsd:NaN}),result)
+ // Each component is charged once inside the consolidated fee.
+ assert.equal(result.fee,1390+95+160+15+20)
+ const withoutDocument=calculateImport(10000,500,1000,{...exampleCosts,documentUsd:0})!
+ assert.equal(withoutDocument.fee,1660)
+ assert.equal(withoutDocument.totalEur,18431.68)
+ assert.equal(calculateImport(10000,500,1000,{...exampleCosts,documentUsd:NaN}),null)
  // The auction fee table itself is unchanged.
  const doc=new JSDOM(pricing[0].html)
  const number=(s:string)=>Number(s.replace(/[^0-9.]/g,''))
@@ -35,12 +38,12 @@ test('calculator excludes removed charges and uses the updated delivery default'
 })
 test('manual customs valuation changes taxes without replacing actual costs',()=>{
  const result=calculateImport(10000,500,1000,exampleCosts,10000)!
- assert.equal(result.subtotalEur,11781)
+ assert.equal(result.subtotalEur,12042)
  assert.equal(result.customsEur,10000)
  assert.equal(result.dutyEur,1000)
  assert.equal(result.vatBaseEur,12300)
  assert.equal(result.vatEur,2460)
- assert.equal(result.totalEur,17541)
+ assert.equal(result.totalEur,17802)
  const higherFreight=calculateImport(10000,600,1000,exampleCosts,10000)!
  assert.equal(higherFreight.customsEur,10000)
  assert.equal(higherFreight.dutyEur,result.dutyEur)
