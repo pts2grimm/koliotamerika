@@ -1,0 +1,28 @@
+name: Check Clean Title publication
+on:
+  push:
+    branches: [codex/clean-title-check-2026-10-14]
+permissions:
+  contents: read
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Read public article and blog responses
+        shell: bash
+        run: |
+          node --input-type=module <<'NODE'
+          for (const host of ['https://koliotamerika.bg','https://koliotamerika-bg-723056.hostingersite.com']) {
+            for (const path of ['/clean-title-kola-ot-amerika','/blog','/api/pages?where[slug][equals]=clean-title-kola-ot-amerika&depth=0']) {
+              const url=host+path;
+              try {
+                const r=await fetch(url,{signal:AbortSignal.timeout(25000)}), body=await r.text();
+                const result={url,status:r.status,finalURL:r.url,title:body.match(/<title>(.*?)<\/title>/s)?.[1],h1:body.match(/<h1[^>]*>(.*?)<\/h1>/s)?.[1],listed:body.includes('clean-title-kola-ot-amerika'),dates:[...new Set([...body.matchAll(/"(?:datePublished|publishedAt)"\s*:\s*"([^"]+)"/g)].map(m=>m[1]))]};
+                if(r.headers.get('content-type')?.includes('application/json')){
+                  const data=JSON.parse(body);result.records=data.docs?.map(x=>({id:x.id,slug:x.slug,status:x.status,publishedAt:x.publishedAt,title:x.title}));result.totalDocs=data.totalDocs;
+                }
+                console.log(JSON.stringify(result));
+              }catch{console.log(JSON.stringify({url,error:'public fetch failed'}));}
+            }
+          }
+          NODE
