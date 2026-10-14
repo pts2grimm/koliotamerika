@@ -157,8 +157,7 @@ test('a direct uncached lot streams a loading state before the delayed provider 
 
 test('both auctions appear immediately and the advanced auction selector can show only IAAI',async({page})=>{
  await page.goto('/targove?make=BMW&model=X5')
- const badges=await page.locator('.auction-card:visible .car-badge').allTextContents()
- expect(new Set(badges)).toEqual(new Set(['COPART','IAAI']))
+ await expect.poll(async()=>[...new Set(await page.locator('.auction-card:visible .car-badge').allTextContents())].sort()).toEqual(['COPART','IAAI'])
  const filters=page.getByRole('form',{name:'Филтри за автомобили'})
  await expect(filters.getByLabel('Аукцион',{exact:true})).toBeHidden()
  await filters.locator('.filter-advanced summary').click()
