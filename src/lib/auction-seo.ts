@@ -30,5 +30,5 @@ export function archivedVehicleData(car: AuctionCar, base: string, images: strin
   {'@type':'BreadcrumbList',itemListElement:[
    ['Начало','/'],[powersports?'Мотори и ATV':'Търгове',catalogue],['Архив',catalogue+'/arhiv'],[car.title,lotPath(car)]
   ].map(([name,path],index)=>({'@type':'ListItem',position:index+1,name,item:new URL(path,base).href}))}
- ]}
+ ] as const}
 }
