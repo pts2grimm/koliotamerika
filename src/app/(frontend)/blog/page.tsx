@@ -1,3 +1,4 @@
+import { publicArticles } from '@/lib/public-content'
 import { editorialImage } from '@/lib/editorial-images'
 import { cache } from 'react'
 import type { Metadata } from 'next'
@@ -6,9 +7,9 @@ import { blogPage, blogPath } from '@/lib/blog-seo'
 import Image from 'next/image'
 import { SiteLink as Link } from '@/components/SiteLink'
 import { ArrowUpRight } from 'lucide-react'
-import { cms, imageAlt, mediaUrl } from '@/lib/data'
+import { imageAlt, mediaUrl } from '@/lib/data'
 const getArticles = cache(async (page: number) => {
- const articles = await (await cms()).find({ collection: 'pages', overrideAccess: false, where: { kind: { equals: 'article' } }, sort: '-publishedAt', limit: 6, page })
+ const articles = await publicArticles(page)
  if (page > 1 && page > articles.totalPages) notFound()
  return articles
 })

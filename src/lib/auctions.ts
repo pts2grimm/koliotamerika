@@ -1,5 +1,5 @@
 import { formatCurrency } from './currency'
-import { catalogueSort } from './auction-sorting'
+import { canonicalEridanSearch } from './auction-cache-key'
 import { sameEridanMake } from './auction-providers/make-aliases'
 import 'server-only'
 import { cache } from 'react'
@@ -42,7 +42,16 @@ function transport(provider:'apicar'|'legacy'):AuctionTransport{return async(pat
 }}
 const eridanTransport=createEridanTransport({
  apiKey:process.env.ERIDAN_API_KEY,testBaseURL:process.env.ERIDAN_TEST_API_BASE_URL,
- fetch:(url,init)=>proxyFetch(url,{dispatcher,method:init.method,redirect:init.redirect,signal:init.signal,headers:init.headers as Record<string,string>}),
+ fetch:async(url,init)=>{
+  const start=Date.now();let status=0
+  try {
+   const response=await proxyFetch(url,{dispatcher,method:init.method,redirect:init.redirect,signal:init.signal,headers:init.headers as Record<string,string>})
+   status=response.status
+   return response
+  } finally {
+   if(process.env.AUCTION_LOGGING==='true') console.info(JSON.stringify({service:'auctions',event:'upstream',provider:'eridan',instance,operation:url.pathname,status,durationMs:Date.now()-start,queryHash:createHash('sha256').update(url.search).digest('hex').slice(0,16)}))
+  }
+ },
 })
 const eridanReferences=unstable_cache(async(path:string,params:string)=>coalesce(JSON.stringify(['eridan-reference',path,params]),()=>eridanTransport(path,new URLSearchParams(params))),['eridan-references-v2-scoped'],{revalidate:3600})
 const eridanRequest:AuctionTransport=async(path,params)=>{
@@ -65,16 +74,16 @@ function provider(){const name=auctionProviderName();if(name==='eridan')return c
 const cachedSearch=unstable_cache(async(_provider:string,params:string)=>{
  const data=await coalesce(JSON.stringify(['search',_provider,params]),()=>provider().search(new URLSearchParams(params)))
  return {data,fetchedAt:Date.now()}
-},['auction-search-v14-renegade-family'],{revalidate:60})
+},['auction-search-v15-canonical-input'],{revalidate:60})
 const cachedMakes=unstable_cache(async(_provider:string)=>coalesce(JSON.stringify(['makes',_provider]),()=>provider().makes()),['auction-makes-v7-merged-aliases'],{revalidate:3600})
 const cachedCar=unstable_cache(async(_provider:string,lot:string,site:string)=>coalesce(JSON.stringify(['car',_provider,lot,site]),()=>provider().detail(lot,site)),['auction-car-v8-seller-category'],{revalidate:60})
 const cachedLookup=unstable_cache(async(_provider:string,q:string,lifecycle:'active'|'sold')=>coalesce(JSON.stringify(['lookup',_provider,q,lifecycle]),()=>provider().lookup(q,lifecycle)),['auction-lookup-v6-active-or-archive'],{revalidate:60})
 export async function searchAuctions(params:string){
- const sorted=new URLSearchParams(params)
- const name=auctionProviderName()
- if(name==='eridan')sorted.set('sort',catalogueSort(sorted.get('sort')))
+ const start=Date.now(),name=auctionProviderName()
+ const sorted=new URLSearchParams(name==='eridan'?canonicalEridanSearch(params):params)
  sorted.sort()
  const result=await cachedSearch(name,sorted.toString())
+ if(process.env.AUCTION_LOGGING==='true') console.info(JSON.stringify({service:'auctions',event:'search',provider:name,instance,durationMs:Date.now()-start,dataAgeMs:Math.max(0,Date.now()-result.fetchedAt),items:result.data.items.length,queryHash:createHash('sha256').update(sorted.toString()).digest('hex').slice(0,16)}))
  if(name==='eridan')catalogueSnapshots.remember(result.data.items,result.fetchedAt)
  return result.data
 }

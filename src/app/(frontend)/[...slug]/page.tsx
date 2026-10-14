@@ -1,3 +1,4 @@
+import { publicPage as getPage, publicArticles } from '@/lib/public-content'
 import { BlogArticle } from '@/components/BlogArticle'
 import { editorialImage } from '@/lib/editorial-images'
 import { CookiePolicy } from '@/components/CookiePolicy'
@@ -14,13 +15,11 @@ import { LegacyExamples } from '@/components/LegacyExamples'
 import { EditorialContent } from '@/components/EditorialContent'
 import { ImportCalculator } from '@/components/ImportCalculator'
 import { calculatorSettings } from '@/lib/calculator'
-import { cache } from 'react'
 import { notFound, permanentRedirect } from 'next/navigation'
 import { cms, imageAlt, mediaUrl, settings, siteURL } from '@/lib/data'
 import { LandingPage } from '@/components/LandingPage'
 import { CTA } from '@/components/CTA'
 type Props = { params: Promise<{ slug: string[] }> }
-const getPage = cache(async (slug: string) => (await (await cms()).find({ collection: 'pages', where: { slug: { equals: slug } }, overrideAccess: false, limit: 1 })).docs[0])
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
  const slug = (await params).slug.join('/')
  const redirect = legacyRedirect('/' + slug)
@@ -73,7 +72,7 @@ export default async function ContentPage({ params }: Props) {
  const servicesReview = article ? (await payload.find({collection:'payload-kv',depth:0,limit:1,where:{key:{equals:servicesReviewKey(page.slug)}}})).docs[0]?.data as {appliedAt?:string;applied?:{body?:unknown}} | undefined : undefined
  const reviewedAt = servicesReview?.applied?.body ? isoDate(servicesReview.appliedAt) : detailReview?.applied?.body ? isoDate(detailReview.appliedAt) : review?.applied?.body ? isoDate(review.appliedAt) : undefined
  const topics = article ? legacyArchives.filter(archive => archive.kind === 'tag' && archiveContains(archive, page)) : []
- const more = article ? (await payload.find({ collection: 'pages', overrideAccess: false, where: { and: [{ kind: { equals: 'article' } }, { id: { not_equals: page.id } }] }, sort: '-publishedAt', limit: 3 })).docs : []
+ const more = article ? (await publicArticles(1, page.id)).docs : []
  // Keep the existing article record, URL, metadata and archive links; only its presentation changes.
  if (article && page.slug === 'morski-transport-na-avtomobili-ot-sasht') return <LandingPage page={page} editorial={{
   structuredData: articleStructuredData(page, siteURL(), site!.brand, image || undefined, reviewedAt),

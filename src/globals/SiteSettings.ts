@@ -1,6 +1,7 @@
+import { invalidatePublicContent } from '../lib/content-cache-hooks'
 import type { GlobalConfig } from 'payload'
 export const SiteSettings: GlobalConfig = {
-  slug: 'site-settings', label: 'Настройки на сайта', access: { read: () => true, update: ({ req }) => req.user?.collection === 'users' },
+  slug: 'site-settings', hooks: { afterChange: [invalidatePublicContent] }, label: 'Настройки на сайта', access: { read: () => true, update: ({ req }) => req.user?.collection === 'users' },
   fields: [
     { name: 'brand', label: 'Име на бизнеса', type: 'text', defaultValue: 'Коли от Америка', required: true },
     { name: 'phone', label: 'Телефон', type: 'text' }, { name: 'email', label: 'Имейл за контакт', type: 'email' },
