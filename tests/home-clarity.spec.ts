@@ -35,7 +35,7 @@ test('calculator uses editable customs value, consolidates auction fees and reje
  await expect(customs).toHaveValue('12042')
  await expect(page.locator('.calculator-result')).toContainText('Такси на аукциона')
  await expect(page.locator('.calculator-result')).toContainText('$')
- await expect(page.locator('.calculator-result')).toContainText('1 680,00')
+ await expect(page.locator('.calculator-result')).toContainText(/1\s*680,00/)
  await expect(page.locator('.calculator-result')).not.toContainText('щ.д.')
  for(const removed of ['Получаване от площадката','Онлайн наддаване','Екологична такса','Изпращане на документ']) await expect(page.locator('#calc')).not.toContainText(removed)
  await customs.fill('10000')
