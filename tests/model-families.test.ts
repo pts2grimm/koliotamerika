@@ -32,3 +32,15 @@ test('directory grouping retains every usable model ID, deduplicates IDs and kee
  assert.deepEqual(groups.get('3 SERIES'),[1,2,3])
  assert.deepEqual(groups.get('M3'),[4]);assert.deepEqual(groups.get('UNMAPPED CLASSIC'),[5]);assert.equal(groups.has('UNKNOWN'),false)
 })
+
+test('CAN-AM Renegade directory variants share one family across make spellings',()=>{
+ const variants=['RENEGADE X','RENEGADE 6','RENEGADE 650','RENEGADE 8','RENEGADE','RENEGADE X XC 1000R','RENEGADE X MR 1000R','RENEGADE X MR 650','RENEGADE 110 EFI','RENEGADE 570']
+ for(const make of ['CAN-AM','CAN AM','CANAM']){
+  const rows=variants.map((name,i)=>({id:i+1,name}))
+  rows.push({id:11,name:'OUTLANDER 650'},{id:12,name:'RYKER 900'})
+  const groups=groupModelDirectory(make,rows)
+  assert.deepEqual(groups.get('RENEGADE'),variants.map((_,i)=>i+1))
+  assert.deepEqual(groups.get('OUTLANDER 650'),[11])
+  assert.deepEqual(groups.get('RYKER 900'),[12])
+ }
+})

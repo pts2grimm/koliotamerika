@@ -1,3 +1,5 @@
+import assert from 'node:assert/strict'
+import { createEridanProvider } from '../src/lib/auction-providers/eridan'
 import { createEridanTransport } from '../src/lib/auction-providers/eridan-transport'
 import { modelFamily } from '../src/lib/auction-providers/model-families'
 import { eridanMakeAliases } from '../src/lib/auction-providers/make-aliases'
@@ -14,19 +16,21 @@ async function main(){
   }
  }
  console.log('RENEGADE_DIRECTORY',JSON.stringify(directory.filter(x=>/renegade/i.test(x.name)).map(x=>({...x,family:modelFamily('CAN-AM',x.name)}))))
+ assert.ok(directory.filter(x=>/renegade/i.test(x.name)).every(x=>modelFamily('CAN-AM',x.name)==='RENEGADE'))
+ const expected=new Set<string>()
  const cutoff=new Date().toISOString()
  for(const auction of ['copart','iaai'])for(const type of ['VEHTYPE_A','VEHTYPE_M']){
   const counts=new Map<string,{model:string;dated:number;undated:number;withImages:number}>()
   let complete=true,all=0
   for(const undated of [false,true])for(let page=1;page<=4;page++){
-   const data=await request('/lots',new URLSearchParams({makes:aliases.join(','),auction,item_type:type,status:'active',ordering:'id',page:String(page),page_size:'1000',...(undated?{sale_date__isnull:'true'}:{sale_date__gte:cutoff})})) as {items:{model:{name:string};images:string[]}[];has_next:boolean}
+   const data=await request('/lots',new URLSearchParams({makes:aliases.join(','),auction,item_type:type,status:'active',ordering:'id',page:String(page),page_size:'1000',...(undated?{sale_date__isnull:'true'}:{sale_date__gte:cutoff})})) as {items:{model:{name:string};images:string[];lot_number:string}[];has_next:boolean}
    for(const item of data.items){
     all++
     const name=item.model?.name||''
     if(!/renegade/i.test(name))continue
     const c=counts.get(name)||{model:name,dated:0,undated:0,withImages:0}
     c[undated?'undated':'dated']++
-    if(item.images?.length)c.withImages++
+    if(item.images?.length){c.withImages++;if(type==='VEHTYPE_A')expected.add((auction==='copart'?'1:':'2:')+item.lot_number)}
     counts.set(name,c)
    }
    if(!data.has_next)break
@@ -34,5 +38,15 @@ async function main(){
   }
   console.log('RENEGADE_LOTS',JSON.stringify({auction,type,complete,all,models:[...counts.values()]}))
  }
+ const provider=createEridanProvider(request)
+ const found=new Set<string>()
+ for(let page=1;page<=20;page++){
+  const result=await provider.search(new URLSearchParams({make:'CAN-AM',model:'RENEGADE',vehicle_type:'ATVUTV',site:'1,2',sort:'auction_soon',page:String(page)}))
+  for(const car of result.items){assert.equal(modelFamily(car.make,car.model),'RENEGADE');assert.ok(!found.has(car.id));found.add(car.id)}
+  if(!result.hasNext)break
+  if(page===20)throw new Error('incomplete-results')
+ }
+ assert.deepEqual([...found].sort(),[...expected].sort())
+ console.log('RENEGADE_ADAPTER_COMPLETE',JSON.stringify({modelIds:directory.filter(x=>/renegade/i.test(x.name)).length,eligible:expected.size,returned:found.size}))
 }
 main().catch(()=>{console.error('RENEGADE_AUDIT_FAILED');process.exitCode=1})
