@@ -103,5 +103,11 @@ export async function initializeContent(payload: Payload, options: { preview: bo
       payload.logger.warn({err:error},'[bootstrap] Clarity update deferred; existing content preserved.')
     }
   }
+  try {
+    const { upgradeCalculatorDelivery } = await import('./calculator-upgrade')
+    await upgradeCalculatorDelivery(payload)
+  } catch (error) {
+    payload.logger.warn({ err: error }, '[bootstrap] Calculator delivery update deferred; existing settings preserved.')
+  }
   payload.logger.info('[bootstrap] Ready.')
 }
