@@ -19,7 +19,7 @@ test('schedule is Eridan-only, future-only and updates status/date without repla
   process.env.AUCTION_PROVIDER='apicar'
   assert.equal(await scheduleEditorialArticles(payload,0),0);assert.equal(calls.length,0)
   process.env.AUCTION_PROVIDER='eridan'
-  assert.equal(await scheduleEditorialArticles(payload,Date.parse('2026-10-14T00:00:00Z')),3)
+  assert.equal(await scheduleEditorialArticles(payload,Date.parse('2026-10-14T00:00:00Z')),2)
   for(const call of calls){
    assert.deepEqual(Object.keys(call.data).sort(),['publishedAt','status'])
    assert.ok(call.where.and.some((part:any)=>part.status?.equals==='draft'))

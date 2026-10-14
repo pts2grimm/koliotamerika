@@ -1,0 +1,56 @@
+name: Restore Clean Title publication
+on:
+  push:
+    branches: [codex/restore-clean-title-2026-10-14]
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --include=dev
+      - run: npm test
+      - run: npm run build
+        env:
+          PREVIEW_MODE: 'true'
+          PAYLOAD_SECRET: ci-editorial-only-not-a-live-secret
+      - run: npm run typecheck
+      - name: Restore publication in an isolated database
+        env:
+          NODE_ENV: production
+          PREVIEW_MODE: 'false'
+          AUCTION_PROVIDER: eridan
+          SITE_INDEXABLE: 'true'
+          DATABASE_URI: file:/tmp/koa-editorial-restore/payload.db
+          MEDIA_DIR: /tmp/koa-editorial-restore/media
+          PAYLOAD_SECRET: ci-editorial-only-not-a-live-secret
+          NEXT_PUBLIC_SERVER_URL: http://localhost:3124
+        run: |
+          npm run hosting:prepare
+          node --import tsx tests/fixtures/clean-title-publication.ts
+          npm run start -- --port 3124 > /tmp/koa-editorial-server.log 2>&1 &
+          SERVER_PID=$!
+          trap 'kill "$SERVER_PID" 2>/dev/null || true' EXIT
+          node --input-type=module <<'NODE'
+          import assert from 'node:assert/strict'
+          let ready=false
+          for(let i=0;i<30;i++){try{await fetch('http://localhost:3124/blog');ready=true;break}catch{await new Promise(r=>setTimeout(r,1000))}}
+          assert.ok(ready)
+          for(const path of ['/clean-title-kola-ot-amerika','/blog','/sitemap.xml']){
+            const r=await fetch('http://localhost:3124'+path),body=await r.text()
+            assert.equal(r.status,200,path)
+            assert.ok(body.includes('clean-title-kola-ot-amerika'),path)
+            if(path.startsWith('/clean-title')){
+              assert.ok(body.includes('2026-10-13T06:00:00.000Z'))
+              assert.ok(body.includes('Clean Title'))
+              assert.ok(body.includes('/images/editorial/'))
+            }
+          }
+          console.log('PASS: article, blog and sitemap return 200 and include the restored publication with its original date and illustration.')
+          NODE

@@ -24,6 +24,12 @@ export async function initializeContent(payload: Payload, options: { preview: bo
     const { importEditorialDrafts } = await import('./import-editorial-drafts')
     await importEditorialDrafts(payload)
     try {
+      const { restoreCleanTitlePublication } = await import('./restore-clean-title-publication')
+      if (await restoreCleanTitlePublication(payload)) payload.logger.info('[bootstrap] Restored original Clean Title publication date.')
+    } catch (error) {
+      payload.logger.warn({ err: error }, '[bootstrap] Clean Title publication restoration deferred; existing content preserved.')
+    }
+    try {
       const { scheduleEditorialArticles } = await import('./schedule-editorial')
       const scheduled = await scheduleEditorialArticles(payload)
       if (scheduled) payload.logger.info(`[bootstrap] Scheduled ${scheduled} approved editorial articles.`)
