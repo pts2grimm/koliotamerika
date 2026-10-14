@@ -30,6 +30,14 @@ jobs:
           const result = spawnSync('npx', ['playwright', 'test', '--config=playwright.content-cache.config.ts', '--reporter=line'], { stdio: 'inherit', env: { ...process.env, CHROMIUM_PATH: chromium.executablePath() } });
           process.exit(result.status ?? 1);
           JS
+      - name: Eridan cache browser checks
+        run: |
+          node --input-type=module <<'JS'
+          import { chromium } from '@playwright/test';
+          import { spawnSync } from 'node:child_process';
+          const result = spawnSync('npx', ['playwright', 'test', '--config=playwright.cache-eridan.config.ts', '--reporter=line'], { stdio: 'inherit', env: { ...process.env, CHROMIUM_PATH: chromium.executablePath() } });
+          process.exit(result.status ?? 1);
+          JS
       - uses: actions/upload-artifact@v4
         if: always()
         with:
