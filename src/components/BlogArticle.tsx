@@ -44,7 +44,7 @@ export function BlogArticle({ page, brand, reviewedAt, topics, more }: Props) {
     {cover.src && <figure className="container editorial-image blog-article-cover">
       <Image src={cover.src} alt={imageAlt(page.image, cover.artwork?.alt || page.title)}
         width={cover.artwork?.width || 1400} height={cover.artwork?.height || 700}
-        sizes="(max-width: 760px) calc(100vw - 40px), (max-width: 1100px) calc(100vw - 64px), 1040px" preload />
+        sizes="(max-width: 760px) calc(100vw - 40px), 600px" preload />
       {cover.artwork && <figcaption className="editorial-caption">{cover.artwork.caption}</figcaption>}
     </figure>}
     <article className="article-body container">

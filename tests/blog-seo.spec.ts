@@ -61,12 +61,17 @@ test('blog SEO, migration URLs, draft protection and timed release', async ({ pa
     const paragraph = page.locator('.blog-article .article-body p').first()
     expect(await paragraph.evaluate(el => parseFloat(getComputedStyle(el).fontSize))).toBeGreaterThanOrEqual(17)
     await expect(page.locator('.blog-article-card')).toHaveCount(3)
+    // The heading, cover and body share a left edge; the cover stays secondary.
+    const boxes = await Promise.all(['.blog-article-heading', '.blog-article-cover', '.blog-article .article-body'].map(selector => page.locator(selector).boundingBox()))
+    expect(Math.max(...boxes.map(box => box!.x)) - Math.min(...boxes.map(box => box!.x))).toBeLessThanOrEqual(1)
+    const cover = await page.locator('.blog-article-cover img').boundingBox()
+    expect(cover!.height).toBeLessThanOrEqual(301)
     await page.screenshot({ path: test.info().outputPath('article-' + width + '-' + theme + '.png'), fullPage: true })
     if (process.env.BLOG_DESIGN_REVIEW === 'true' && theme === 'dark') {
      await page.evaluate(() => window.scrollTo({ top: 0, behavior: 'instant' }))
      const encoded = (await page.screenshot({ type: 'jpeg', quality: 40 })).toString('base64')
      for (let i = 0; i < encoded.length; i += 8000) console.log('ARTICLE_PREVIEW_' + width + ':' + encoded.slice(i, i + 8000))
-     await page.locator('.article-body h2').first().scrollIntoViewIfNeeded()
+     await page.locator('.article-body').evaluate(el => window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - 24, behavior: 'instant' }))
      const body = (await page.screenshot({ type: 'jpeg', quality: 40 })).toString('base64')
      for (let i = 0; i < body.length; i += 8000) console.log('ARTICLE_BODY_' + width + ':' + body.slice(i, i + 8000))
     }
