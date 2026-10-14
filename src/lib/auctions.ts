@@ -1,3 +1,4 @@
+import { formatCurrency } from './currency'
 import { catalogueSort } from './auction-sorting'
 import { sameEridanMake } from './auction-providers/make-aliases'
 import 'server-only'
@@ -102,4 +103,4 @@ export function auctionImages(car:AuctionCar) {
  return [...new Set(hd.length?hd:(car.link_img_small||[]).filter(safe))]
 }
 export function auctionImage(car:AuctionCar){return auctionImages(car)[0]}
-export function auctionCurrency(value:number,currency='USD'){return new Intl.NumberFormat('bg-BG',{style:'currency',currency:['USD','CAD','EUR','BGN'].includes(currency.toUpperCase())?currency.toUpperCase():'USD',maximumFractionDigits:0}).format(value)}
+export function auctionCurrency(value:number,currency='USD'){return formatCurrency(value,['USD','CAD','EUR','BGN'].includes(currency.toUpperCase())?currency.toUpperCase():'USD',0)}

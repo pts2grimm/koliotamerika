@@ -1,3 +1,4 @@
+import { formatCurrency } from '../src/lib/currency'
 import test from 'node:test'
 import assert from 'node:assert/strict'
 import { JSDOM } from 'jsdom'
@@ -5,27 +6,48 @@ import { calculateImport } from '../src/lib/calculate'
 import { exampleCosts, purchaseFee, onlineFee } from '../src/lib/customer-tariff'
 import { clarifyCopy } from '../src/lib/clarity-copy'
 import pricing from '../content/customer-pricing-2026-10.json'
-test('calculator reproduces every line and total of the published $10,000 example',()=>{
+test('calculator excludes removed charges and uses the updated delivery default',()=>{
  const result=calculateImport(10000,500,1000,exampleCosts)!
- assert.equal(result.totalEur,18335.44)
- assert.equal(result.customsEur,12042)
- assert.equal(result.vatBaseEur,14446.2)
- assert.equal(result.dutyEur,1204.2)
- assert.equal(result.vatEur,2889.24)
+ assert.equal(exampleCosts.deliveryEur,1000)
+ assert.equal(result.totalEur,18110.92)
+ assert.equal(result.subtotalUsd,13090)
+ assert.equal(result.subtotalEur,11781)
+ assert.equal(result.customsEur,11781)
+ assert.equal(result.vatBaseEur,14259.1)
+ assert.equal(result.dutyEur,1178.1)
+ assert.equal(result.vatEur,2851.82)
  assert.equal(result.commissionEur,1000)
+ assert.deepEqual(result.rows.map(row=>[row.label,row.usd]),[
+  ['Автомобил',10000],['Такси на аукциона',1390],['Вътрешен транспорт в САЩ',500],
+  ['Морски транспорт',1000],['Застраховка — примерен бюджет',200],
+ ])
+ // Archived document settings have no effect on totals or input validity.
+ assert.deepEqual(calculateImport(10000,500,1000,{...exampleCosts,documentUsd:9999}),result)
+ assert.deepEqual(calculateImport(10000,500,1000,{...exampleCosts,documentUsd:NaN}),result)
+ // The auction fee table itself is unchanged.
  const doc=new JSDOM(pricing[0].html)
- const rows=[...doc.window.document.querySelectorAll('table')[4].querySelectorAll('tr')].slice(1)
  const number=(s:string)=>Number(s.replace(/[^0-9.]/g,''))
- result.rows.forEach((row,i)=>{
-  const cells=rows[i].querySelectorAll('td')
-  assert.equal(row.usd,number(cells[1].textContent!),row.label)
-  assert.equal(row.eur,number(cells[2].textContent!),row.label)
- })
  for(const row of [...doc.window.document.querySelectorAll('table')[0].querySelectorAll('tr')].slice(1)){
   const cells=row.querySelectorAll('td')
   assert.equal(purchaseFee(number(cells[0].textContent!)),number(cells[1].textContent!))
  }
  doc.window.close()
+})
+test('manual customs valuation changes taxes without replacing actual costs',()=>{
+ const result=calculateImport(10000,500,1000,exampleCosts,10000)!
+ assert.equal(result.subtotalEur,11781)
+ assert.equal(result.customsEur,10000)
+ assert.equal(result.dutyEur,1000)
+ assert.equal(result.vatBaseEur,12300)
+ assert.equal(result.vatEur,2460)
+ assert.equal(result.totalEur,17541)
+ const higherFreight=calculateImport(10000,600,1000,exampleCosts,10000)!
+ assert.equal(higherFreight.customsEur,10000)
+ assert.equal(higherFreight.dutyEur,result.dutyEur)
+ assert.equal(higherFreight.vatEur,result.vatEur)
+ assert.equal(higherFreight.totalEur-result.totalEur,90)
+ for(const value of [-1,NaN,Infinity,10000001]) assert.equal(calculateImport(10000,500,1000,exampleCosts,value),null)
+ assert.ok(calculateImport(10000,500,1000,exampleCosts,0))
 })
 test('tariff boundaries, invalid values and zero transport cannot silently underprice',()=>{
  assert.equal(purchaseFee(999.99),370);assert.equal(purchaseFee(1000),440)
@@ -52,4 +74,12 @@ test('commercial clarification preserves custom copy and formatting and is repea
  assert.equal(after.root.children[1].children![0].format,2)
  assert.match(after.root.children[1].children![0].text,/невъзвръщаемата комисионна/)
  assert.deepEqual(clarifyCopy(after),after)
+})
+
+test('USD uses $ while CAD and EUR remain unambiguous',()=>{
+ assert.match(formatCurrency(95,'USD'),/95,00\s*\$/)
+ assert.doesNotMatch(formatCurrency(95,'USD'),/щ/)
+ assert.match(formatCurrency(95,'USD',0),/95\s*\$/)
+ assert.match(formatCurrency(95,'CAD'),/CAD/)
+ assert.match(formatCurrency(95,'EUR'),/€/)
 })
