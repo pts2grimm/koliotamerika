@@ -1,3 +1,5 @@
+import { smtpFailureReason } from './smtp-config'
+
 export type InquiryNotification = {
  id: string | number; name: string; email: string; phone: string;
  message: string; car?: string | null; budget?: string | null
@@ -8,18 +10,23 @@ type Delivery = {
  getRecipient: () => Promise<string | null | undefined>;
  send: (mail: Mail) => Promise<unknown>;
  warn: (message: string) => void;
+ info?: (message: string) => void;
 }
 
 /** The saved inquiry remains the source of truth; email is a best-effort notification. */
 export async function notifyInquiry(inquiry: InquiryNotification, delivery: Delivery): Promise<boolean> {
- if (!delivery.enabled) return false
+ if (!delivery.enabled) {
+  delivery.warn('Inquiry notification skipped: SMTP_HOST or SMTP_FROM is missing at runtime.')
+  return false
+ }
+ delivery.info?.('Inquiry notification started.')
  try {
   const to = (await delivery.getRecipient())?.trim()
   if (!to || !/^[^\s@<>,;]+@[^\s@<>,;]+\.[^\s@<>,;]+$/.test(to)) {
    delivery.warn('Inquiry notification skipped: configure the site contact email.')
    return false
   }
-  await delivery.send({
+  const result = await delivery.send({
    to, replyTo: { address: inquiry.email, name: inquiry.name },
    subject: 'Ново запитване от Коли от Америка',
    text: [
@@ -30,10 +37,17 @@ export async function notifyInquiry(inquiry: InquiryNotification, delivery: Deli
     new URL('/admin/collections/inquiries/' + encodeURIComponent(String(inquiry.id)), delivery.siteURL).href,
    ].join('\n'),
   })
+  // Nodemailer reports acceptance by SMTP, not final inbox delivery.
+  const accepted = result && typeof result === 'object' && 'accepted' in result ? (result as { accepted?: unknown }).accepted : undefined
+  if (Array.isArray(accepted) && accepted.length === 0) {
+   delivery.warn('Inquiry notification failed: recipient_rejected; the saved inquiry is available in the admin panel.')
+   return false
+  }
+  delivery.info?.(Array.isArray(accepted) ? 'Inquiry notification accepted by SMTP; inbox delivery is not confirmed.' : 'Inquiry notification transport completed; inbox delivery is not confirmed.')
   return true
- } catch {
+ } catch (error) {
   // Never log contact details, message bodies, SMTP credentials or transport errors.
-  delivery.warn('Inquiry notification failed; the saved inquiry is available in the admin panel.')
+  delivery.warn('Inquiry notification failed: ' + smtpFailureReason(error) + '; the saved inquiry is available in the admin panel.')
   return false
  }
 }

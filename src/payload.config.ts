@@ -1,3 +1,4 @@
+import { smtpConfiguration } from './lib/smtp-config'
 import { nodemailerAdapter } from '@payloadcms/email-nodemailer'
 import { Customers, SavedVehicles } from './collections/Customers'
 import { buildConfig } from 'payload'
@@ -16,6 +17,7 @@ import { initializeContent } from './lib/initialize-content'
 import { isPreview } from './lib/preview'
 import { migrations } from './migrations'
 const preview = isPreview()
+const smtp = smtpConfiguration(process.env)
 const remote = !preview && /^(libsql|https?):\/\//i.test(process.env.DATABASE_URI || '')
 const migrating = process.env.PAYLOAD_MIGRATING === 'true'
 if (remote && !process.env.DATABASE_AUTH_TOKEN) throw new Error('DATABASE_AUTH_TOKEN is required for the remote database.')
@@ -38,7 +40,7 @@ export default buildConfig({
   i18n: { fallbackLanguage: 'bg', supportedLanguages: { bg, en } },
   collections: [Users, Customers, SavedVehicles, Media, Cars, Pages, Inquiries, AuctionQuotes, Redirects, RateLimits],
   globals: [SiteSettings, CalculatorSettings, Integrations],
-  ...(process.env.SMTP_HOST && process.env.SMTP_FROM ? { email: nodemailerAdapter({ defaultFromAddress: process.env.SMTP_FROM, defaultFromName: 'Коли от Америка', skipVerify: true, transportOptions: { host: process.env.SMTP_HOST, port: Number(process.env.SMTP_PORT || 587), secure: process.env.SMTP_PORT === '465', ...(process.env.SMTP_USER ? { auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASSWORD } } : {}) } }) } : {}),
+  ...(smtp ? { email: nodemailerAdapter(smtp) } : {}),
   db: sqliteAdapter({
     client: { url: preview ? `file:${path.join(tmpdir(), `koa-preview-${process.pid}.db`)}` : process.env.DATABASE_URI || 'file:./.data/payload.db', ...(!preview && process.env.DATABASE_AUTH_TOKEN ? { authToken: process.env.DATABASE_AUTH_TOKEN } : {}) },
     // Never run development schema push against the persistent remote database.

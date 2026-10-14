@@ -49,6 +49,7 @@ export async function POST(request: Request) {
       getRecipient: async () => (await payload.findGlobal({ slug: 'site-settings', depth: 0 })).email,
       send: mail => payload.sendEmail(mail),
       warn: message => payload.logger.warn(message),
+      info: message => payload.logger.info(message),
      }),
     ])
    })
