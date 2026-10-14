@@ -9,3 +9,8 @@ export const auctionSortOptions = [
 export function auctionSort(value: unknown) {
  return auctionSortOptions.find(option => option.value === value) || auctionSortOptions[0]
 }
+
+// Public catalogues default to the next auction, including a bare /targove URL.
+export function catalogueSort(value: unknown) {
+ return auctionSort(value).value || 'auction_soon'
+}

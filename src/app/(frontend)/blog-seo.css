@@ -10,3 +10,5 @@
 .legacy-archive .blog-card h2,
 .legacy-archive .blog-card p { overflow-wrap:anywhere; }
 .legacy-archive .pagination { flex-wrap:wrap; }
+
+.editorial-image .editorial-caption{margin:1rem 0 0;font-size:.875rem;line-height:1.5;color:var(--muted)}

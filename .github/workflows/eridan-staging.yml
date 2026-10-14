@@ -1,7 +1,7 @@
 name: Eridan staging verification
 on:
   push:
-    branches: ['eridan-staging', 'codex/eridan-catalogue-reliability', 'codex/eridan-auction-dates', 'codex/eridan-active-only', 'codex/eridan-condition-buy-now', 'codex/eridan-seller-filter-urls', 'codex/eridan-model-families', 'codex/eridan-catalogue-sorting', 'codex/eridan-powersports-pages', 'codex/eridan-make-aliases', 'codex/eridan-loading-states', 'codex/eridan-loading-layout', 'codex/eridan-cylinder-filter', 'codex/eridan-iaai-cylinders-hints']
+    branches: ['eridan-staging', 'codex/eridan-catalogue-reliability', 'codex/eridan-auction-dates', 'codex/eridan-active-only', 'codex/eridan-condition-buy-now', 'codex/eridan-seller-filter-urls', 'codex/eridan-model-families', 'codex/eridan-catalogue-sorting', 'codex/eridan-powersports-pages', 'codex/eridan-make-aliases', 'codex/eridan-loading-states', 'codex/eridan-loading-layout', 'codex/eridan-cylinder-filter', 'codex/eridan-iaai-cylinders-hints', 'codex/eridan-release-review']
 permissions:
   contents: read
 jobs:
@@ -29,6 +29,9 @@ jobs:
       - run: npm test
       - run: npx playwright install --with-deps chromium
       - run: npx playwright test --config=playwright.eridan.config.ts
+      - name: Blog, content links and launch readiness
+        if: contains(github.event.head_commit.message, '[release-review]')
+        run: npx playwright test --config=playwright.eridan-readiness.config.ts
       - uses: actions/upload-artifact@v4
         if: failure()
         with:
@@ -48,6 +51,6 @@ jobs:
           cache: npm
       - run: npm ci --include=dev
       - name: Verify real adapter with protected credentials
-        run: node --import tsx scripts/${{ contains(github.event.head_commit.message, '[cylinders-live]') && 'check-eridan-cylinders-live.ts' || contains(github.event.head_commit.message, '[makes-live]') && 'check-eridan-make-aliases-live.ts' || contains(github.event.head_commit.message, '[families-live]') && 'check-eridan-model-families-live.ts' || contains(github.event.head_commit.message, '[seller-live]') && 'check-eridan-seller-live.ts' || 'check-eridan-live.ts' }}
+        run: node --import tsx scripts/${{ contains(github.event.head_commit.message, '[release-review]') && 'check-eridan-release-live.ts' || contains(github.event.head_commit.message, '[cylinders-live]') && 'check-eridan-cylinders-live.ts' || contains(github.event.head_commit.message, '[makes-live]') && 'check-eridan-make-aliases-live.ts' || contains(github.event.head_commit.message, '[families-live]') && 'check-eridan-model-families-live.ts' || contains(github.event.head_commit.message, '[seller-live]') && 'check-eridan-seller-live.ts' || 'check-eridan-live.ts' }}
         env:
           ERIDAN_API_KEY: ${{ secrets.ERIDAN_API_KEY }}

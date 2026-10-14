@@ -115,7 +115,7 @@ test('catalogue offers supported vehicle types and preserves saved motorcycle li
 test('cards and galleries use full images, and missing bids stay distinct from zero and other prices', async ({page})=>{
  const thumbnails: string[] = []
  page.on('request', req => { if(req.url().includes('test-gallery-thumb')) thumbnails.push(req.url()) })
- await page.goto('/targove?make=BMW&model=X5&site=1&pagenum=2')
+ await page.goto('/targove?make=BMW&model=X5&site=1')
  const card=page.locator('.auction-card:visible').filter({has:page.locator('a[href="/targove/kola?lot=70000001&site=1"]')})
  await expect(card.locator('.card-photo-link img')).toHaveAttribute('src',/test-gallery-1/)
  await card.scrollIntoViewIfNeeded()
@@ -158,7 +158,7 @@ test('a direct uncached lot streams a loading state before the delayed provider 
 test('both auctions appear immediately and the advanced auction selector can show only IAAI',async({page})=>{
  await page.goto('/targove?make=BMW&model=X5')
  const badges=await page.locator('.auction-card:visible .car-badge').allTextContents()
- expect(badges.slice(0,4)).toEqual(['COPART','IAAI','COPART','IAAI'])
+ expect(new Set(badges)).toEqual(new Set(['COPART','IAAI']))
  const filters=page.getByRole('form',{name:'Филтри за автомобили'})
  await expect(filters.getByLabel('Аукцион',{exact:true})).toBeHidden()
  await filters.locator('.filter-advanced summary').click()
@@ -188,7 +188,7 @@ test('auction routes are not prefetched from the viewport but the intended car i
  // Next 16 can prefetch separate route-tree and page segments for one URL.
  const preparedRequests=detailRequests.length
  expect(preparedRequests).toBeGreaterThan(0)
- expect(detailRequests.every(url=>!new URL(url).searchParams.has('lot')||new URL(url).searchParams.get('lot')==='70000014')).toBe(true)
+ expect(detailRequests.every(url=>!new URL(url).searchParams.has('lot')||new URL(url).searchParams.get('lot')==='70000000')).toBe(true)
  const started=Date.now()
  await card.click()
  await expect(page.locator('.detail-summary h1')).toContainText('BMW X5')
@@ -299,8 +299,8 @@ test('successive uncached searches keep both auctions available past the former 
   await page.goto('/targove?make=BMW&model=X5&year_from=' + year)
   await expect(page.locator('.auction-card:visible')).toHaveCount(24)
   const badges = await page.locator('.auction-card:visible .car-badge').allTextContents()
-  expect(badges.filter(text => text === 'COPART')).toHaveLength(12)
-  expect(badges.filter(text => text === 'IAAI')).toHaveLength(12)
+  expect(badges.filter(text => text === 'COPART').length).toBeGreaterThan(0)
+  expect(badges.filter(text => text === 'IAAI').length).toBeGreaterThan(0)
  }
  const after = (await (await request.get('http://127.0.0.1:3199/test-requests')).json()).requests.length
  expect(after - before).toBeGreaterThan(20)
@@ -357,7 +357,7 @@ test('ATV and UTV are included in both-auction results and seller data is render
 })
 
 test('Buy Now is visible separately from a missing bid and absent without a positive price',async({page})=>{
- await page.goto('/targove?make=BMW&model=X5&site=1&pagenum=2')
+ await page.goto('/targove?make=BMW&model=X5&site=1')
  const card=page.locator('.auction-card:visible').filter({has:page.locator('a[href="/targove/kola?lot=70000001&site=1"]')})
  await expect(card.locator('.auction-buy-now')).toContainText('Купи сега (Buy Now)')
  await expect(card.locator('.auction-buy-now')).toContainText(/9[\\s\\u00a0]*999/)
@@ -840,3 +840,24 @@ for(const width of [1280,390]){
   expect(await price.evaluate(el=>{const r=el.getBoundingClientRect();return r.right<=innerWidth})).toBe(true)
  })
 }
+
+test('nearest auction is the default across pages and powersports without a sort query',async({page,request})=>{
+ await request.post('http://127.0.0.1:3199/test-sort-examples?enabled=true')
+ try{
+  await page.goto('/targove?make=BMW&model=X5&year_from=1999')
+  await expect(page.getByRole('combobox',{name:'Подреди по'})).toHaveValue('auction_soon')
+  await expect(page.locator('select[name=sort] option')).toHaveCount(5)
+  const first=await page.locator('.auction-card:visible time').evaluateAll(nodes=>nodes.map(n=>Date.parse(n.getAttribute('datetime')!)))
+  expect(first.length).toBe(24)
+  expect(first.every((v,i)=>!i||v>=first[i-1])).toBe(true)
+  const ids=await page.locator('.auction-card-link').evaluateAll(nodes=>nodes.map(n=>n.getAttribute('href')))
+  await page.getByRole('link',{name:'Следваща',exact:true}).click()
+  const second=await page.locator('.auction-card:visible time').evaluateAll(nodes=>nodes.map(n=>Date.parse(n.getAttribute('datetime')!)))
+  expect(second[0]).toBeGreaterThanOrEqual(first.at(-1)!)
+  await expect(page.locator('.auction-card:visible').last()).toContainText('Очаква се дата')
+  const more=await page.locator('.auction-card-link').evaluateAll(nodes=>nodes.map(n=>n.getAttribute('href')))
+  expect(new Set([...ids,...more]).size).toBe(30)
+  await page.goto('/targove/motori-atv')
+  await expect(page.getByRole('combobox',{name:'Подреди по'})).toHaveValue('auction_soon')
+ }finally{await request.post('http://127.0.0.1:3199/test-sort-examples?enabled=false')}
+})
