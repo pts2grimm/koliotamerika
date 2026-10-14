@@ -1,3 +1,4 @@
+import schedule from '../content/editorial-schedule.json' with { type: 'json' }
 import { test, expect } from '@playwright/test'
 import redirects from '../content/legacy-redirects.json' with { type: 'json' }
 import snapshot from '../content/wordpress.json' with { type: 'json' }
@@ -61,7 +62,16 @@ test('blog SEO, migration URLs, draft protection and timed release', async ({ pa
   const found = await admin.get('/api/pages', { headers, params: { 'where[slug][equals]': slug } })
   const draft = (await found.json()).docs[0]
   expect(draft, 'Imported draft must be readable with staff authentication').toBeTruthy()
-  expect(draft.status).toBe('draft')
+  if (process.env.ERIDAN_RELEASE_TEST === 'true') {
+   for (const item of schedule) {
+    const response = await admin.get('/api/pages', { headers, params: { 'where[slug][equals]': item.slug } })
+    const scheduled = (await response.json()).docs[0]
+    expect(scheduled.status).toBe('published')
+    expect(scheduled.publishedAt).toBe(item.publishedAt)
+    expect((await visitor.get('/' + item.slug)).status()).toBe(404)
+    expect(await (await visitor.get('/sitemap.xml')).text()).not.toContain('/' + item.slug)
+   }
+  } else expect(draft.status).toBe('draft')
   expect(draft.body.root.children.length).toBeGreaterThan(10)
   const future = await admin.patch('/api/pages/' + draft.id, { headers, data: { status: 'published', publishedAt: '2099-01-01T10:00:00.000Z' } })
   expect(future.ok(), await future.text()).toBe(true)

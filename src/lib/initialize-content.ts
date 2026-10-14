@@ -23,6 +23,9 @@ export async function initializeContent(payload: Payload, options: { preview: bo
     payload.logger.info(`[bootstrap] Imported ${imported} missing pages/articles.`)
     const { importEditorialDrafts } = await import('./import-editorial-drafts')
     await importEditorialDrafts(payload)
+    const { scheduleEditorialArticles } = await import('./schedule-editorial')
+    const scheduled = await scheduleEditorialArticles(payload)
+    if (scheduled) payload.logger.info(`[bootstrap] Scheduled ${scheduled} approved editorial articles.`)
     // Editorial upgrades must never prevent the site from starting. Transactions
     // leave failed pages unchanged and the next initialization can retry them.
     try {
