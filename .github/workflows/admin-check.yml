@@ -1,0 +1,37 @@
+name: Admin public reachability
+on:
+  push:
+    branches: [codex/admin-check-2026-10-16]
+permissions:
+  contents: read
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Check unauthenticated admin routes and assets
+        shell: python
+        run: |
+          import urllib.request, urllib.error, urllib.parse, re, json
+          base = "https://koliotamerika.bg"
+          def check(path):
+              request = urllib.request.Request(urllib.parse.urljoin(base, path), headers={"User-Agent":"Mozilla/5.0 AdminAvailabilityCheck", "Cache-Control":"no-cache"})
+              try:
+                  response = urllib.request.urlopen(request, timeout=45)
+              except urllib.error.HTTPError as error:
+                  response = error
+              body = response.read().decode("utf-8", errors="replace")
+              row = {"path":path, "status":response.status, "finalURL":response.url, "contentType":response.headers.get("Content-Type"), "cacheControl":response.headers.get("Cache-Control"), "age":response.headers.get("Age"), "cache":response.headers.get("X-Hcdn-Cache-Status"), "length":len(body)}
+              title = re.search(r"<title>(.*?)</title>",body,re.S)
+              if title: row["title"] = title.group(1)
+              row["inputNames"] = list(dict.fromkeys(re.findall(r'<input[^>]*name="([^"]+)"',body)))
+              row["serverError"] = "Application error" in body
+              row["digests"] = list(dict.fromkeys(re.findall(r'digest[^0-9]{1,12}([0-9]{5,})',body)))[:5]
+              print(json.dumps(row), flush=True)
+              return body
+          check("/")
+          check("/admin")
+          html = check("/admin/login")
+          check("/api/users/me")
+          assets = list(dict.fromkeys(re.findall(r'(?:src|href)="(/_next/static/[^"]+)"', html)))
+          for path in assets[:6]: check(path.replace("&amp;","&"))
