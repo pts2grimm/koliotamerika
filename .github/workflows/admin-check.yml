@@ -35,3 +35,37 @@ jobs:
           check("/api/users/me")
           assets = list(dict.fromkeys(re.findall(r'(?:src|href)="(/_next/static/[^"]+)"', html)))
           for path in assets[:6]: check(path.replace("&amp;","&"))
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install isolated browser tooling
+        run: |
+          npm install --prefix /tmp/admin-browser playwright
+          node /tmp/admin-browser/node_modules/playwright/cli.js install --with-deps chromium
+      - name: Inspect login rendering without submitting credentials
+        run: |
+          node --input-type=module <<'JS'
+          import { chromium } from '/tmp/admin-browser/node_modules/playwright/index.mjs';
+          const browser = await chromium.launch();
+          const page = await browser.newPage();
+          const errors = [];
+          const failures = [];
+          page.on('pageerror', error => errors.push(error.message.slice(0,500)));
+          page.on('response', response => {
+            if(response.status() >= 400 && response.url().startsWith('https://koliotamerika.bg/')) failures.push({url:response.url().split('?')[0],status:response.status()});
+          });
+          for (const route of ['/admin', '/admin/login']) {
+            const response = await page.goto('https://koliotamerika.bg'+route,{waitUntil:'networkidle',timeout:60000});
+            const info = await page.evaluate(() => ({
+              url:location.href,
+              title:document.title,
+              inputs:[...document.querySelectorAll('input')].map(el=>({type:el.type,id:el.id,name:el.name,visible:el.getBoundingClientRect().height>0})),
+              buttons:[...document.querySelectorAll('button')].map(el=>el.innerText),
+              headings:[...document.querySelectorAll('h1,h2')].map(el=>el.innerText),
+              bodyText:document.body.innerText.slice(0,1500)
+            }));
+            console.log(JSON.stringify({route,status:response.status(),...info}));
+          }
+          console.log(JSON.stringify({errors,failures}));
+          await browser.close();
+          JS
