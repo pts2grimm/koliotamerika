@@ -1,71 +1,41 @@
-name: Admin public reachability
+name: Admin password reset delivery check
 on:
   push:
     branches: [codex/admin-check-2026-10-16]
 permissions:
   contents: read
 jobs:
-  inspect:
+  reset:
+    if: github.run_attempt == 1 && github.event.head_commit.message == 'Request one administrator password recovery email'
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 3
     steps:
-      - name: Check unauthenticated admin routes and assets
+      - name: Submit one recovery request and record only safe response metadata
         shell: python
         run: |
-          import urllib.request, urllib.error, urllib.parse, re, json
-          base = "https://koliotamerika.bg"
-          def check(path):
-              request = urllib.request.Request(urllib.parse.urljoin(base, path), headers={"User-Agent":"Mozilla/5.0 AdminAvailabilityCheck", "Cache-Control":"no-cache"})
+          import urllib.request, urllib.error, json, time, datetime
+          url = "https://koliotamerika.bg/api/users/forgot-password"
+          data = json.dumps({"email":"office@koliotamerika.bg"}).encode()
+          req = urllib.request.Request(url, data=data, method="POST", headers={"Content-Type":"application/json","Accept":"application/json","Origin":"https://koliotamerika.bg","Referer":"https://koliotamerika.bg/admin/forgot","User-Agent":"Mozilla/5.0 AdminRecoveryCheck"})
+          started = datetime.datetime.now(datetime.timezone.utc).isoformat()
+          now = time.monotonic()
+          try:
               try:
-                  response = urllib.request.urlopen(request, timeout=45)
+                  response = urllib.request.urlopen(req, timeout=70)
               except urllib.error.HTTPError as error:
                   response = error
-              body = response.read().decode("utf-8", errors="replace")
-              row = {"path":path, "status":response.status, "finalURL":response.url, "contentType":response.headers.get("Content-Type"), "cacheControl":response.headers.get("Cache-Control"), "age":response.headers.get("Age"), "cache":response.headers.get("X-Hcdn-Cache-Status"), "length":len(body)}
-              title = re.search(r"<title>(.*?)</title>",body,re.S)
-              if title: row["title"] = title.group(1)
-              row["inputNames"] = list(dict.fromkeys(re.findall(r'<input[^>]*name="([^"]+)"',body)))
-              row["serverError"] = "Application error" in body
-              row["digests"] = list(dict.fromkeys(re.findall(r'digest[^0-9]{1,12}([0-9]{5,})',body)))[:5]
-              print(json.dumps(row), flush=True)
-              return body
-          check("/")
-          check("/admin")
-          html = check("/admin/login")
-          check("/api/users/me")
-          assets = list(dict.fromkeys(re.findall(r'(?:src|href)="(/_next/static/[^"]+)"', html)))
-          for path in assets[:6]: check(path.replace("&amp;","&"))
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-      - name: Install isolated browser tooling
-        run: |
-          npm install --prefix /tmp/admin-browser playwright
-          node /tmp/admin-browser/node_modules/playwright/cli.js install --with-deps chromium
-      - name: Inspect login rendering without submitting credentials
-        run: |
-          node --input-type=module <<'JS'
-          import { chromium } from '/tmp/admin-browser/node_modules/playwright/index.mjs';
-          const browser = await chromium.launch();
-          const page = await browser.newPage();
-          const errors = [];
-          const failures = [];
-          page.on('pageerror', error => errors.push(error.message.slice(0,500)));
-          page.on('response', response => {
-            if(response.status() >= 400 && response.url().startsWith('https://koliotamerika.bg/')) failures.push({url:response.url().split('?')[0],status:response.status()});
-          });
-          for (const route of ['/admin', '/admin/login']) {
-            const response = await page.goto('https://koliotamerika.bg'+route,{waitUntil:'networkidle',timeout:60000});
-            const info = await page.evaluate(() => ({
-              url:location.href,
-              title:document.title,
-              inputs:[...document.querySelectorAll('input')].map(el=>({type:el.type,id:el.id,name:el.name,visible:el.getBoundingClientRect().height>0})),
-              buttons:[...document.querySelectorAll('button')].map(el=>el.innerText),
-              headings:[...document.querySelectorAll('h1,h2')].map(el=>el.innerText),
-              bodyText:document.body.innerText.slice(0,1500)
-            }));
-            console.log(JSON.stringify({route,status:response.status(),...info}));
-          }
-          console.log(JSON.stringify({errors,failures}));
-          await browser.close();
-          JS
+              raw = response.read()
+              parsed = json.loads(raw) if "json" in response.headers.get("Content-Type","") else {}
+              messages = [str(x.get("message","")) for x in parsed.get("errors",[]) if isinstance(x,dict)]
+              joined = " ".join(messages).lower()
+              flags = {name: any(term in joined for term in terms) for name, terms in {
+                "smtp": ["smtp","eauth","envelope"],
+                "database": ["sqlite","sql","libsql","database","transaction"],
+                "rateLimit": ["too many","rate limit"],
+                "permission": ["forbidden","not allowed","unauthorized"],
+                "serverError": ["something went wrong","internal server"],
+              }.items()}
+              print(json.dumps({"startedUTC":started,"httpStatus":response.status,"seconds":round(time.monotonic()-now,2),"jsonKeys":list(parsed.keys()),"errorCount":len(messages),"flags":flags}),flush=True)
+          except Exception as error:
+              print(json.dumps({"startedUTC":started,"seconds":round(time.monotonic()-now,2),"transportErrorType":type(error).__name__}),flush=True)
+              raise SystemExit(1)
