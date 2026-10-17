@@ -27,7 +27,7 @@ export const BillsOfSale: CollectionConfig = {
     group: 'Документи', useAsTitle: 'stock',
     defaultColumns: ['stock', 'saleDate', 'buyerName', 'vin', 'make', 'model', 'total', 'balance'],
     listSearchableFields: ['stock', 'vin', 'buyerName', 'make', 'model'],
-    description: 'Bill of Sale за закупен автомобил. Всички суми са в USD. Запази документа преди изтегляне на PDF. Подписите се полагат отделно.',
+    description: 'Bill of Sale за закупен автомобил. Всички суми са в USD. Запази документа преди изтегляне на PDF. Подписът на продавача се добавя автоматично. Купувачът подписва отделно.',
     components: { edit: { beforeDocumentControls: ['/src/components/admin/BosControls#BosDownload'] } },
   },
   access: { create: staff, read: staff, update: staff, delete: staff },

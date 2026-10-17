@@ -1,7 +1,7 @@
 import { withPayload } from '@payloadcms/next/withPayload'
 export default withPayload({
   poweredByHeader: false,
-  outputFileTracingIncludes: { '/api/admin/bos/*/pdf': ['./assets/fonts/*.ttf'] },
+  outputFileTracingIncludes: { '/api/admin/bos/*/pdf': ['./assets/fonts/*.ttf', './assets/bos/seller-signature.png'] },
   devIndicators: false,
   distDir: process.env.NEXT_DIST_DIR || '.next',
   experimental: { cpus: 2 },
