@@ -3,7 +3,7 @@ import type { Access, CollectionConfig } from 'payload'
 const staff: Access = ({ req }) => req.user?.collection === 'users'
 const blocked = () => Response.json({ error: 'Използвайте страницата за клиентски вход.' }, { status: 403 })
 export const Customers: CollectionConfig = {
- slug: 'customers', labels: { singular: 'Клиент', plural: 'Клиенти' }, admin: { useAsTitle: 'email', defaultColumns: ['name', 'email', 'phone', 'createdAt'] },
+ slug: 'customers', labels: { singular: 'Клиент', plural: 'Клиенти' }, admin: { group: 'Клиенти и запитвания', useAsTitle: 'email', defaultColumns: ['name', 'email', 'phone', 'createdAt'] },
  auth: {
   maxLoginAttempts: 5, lockTime: 600000, tokenExpiration: 60 * 60 * 24 * 7, useSessions: true,
   forgotPassword: { expiration: 3600000, generateEmailSubject: () => 'Нова парола — Коли от Америка', generateEmailHTML: args => {
@@ -22,7 +22,7 @@ export const Customers: CollectionConfig = {
  ],
 }
 export const SavedVehicles: CollectionConfig = {
- slug: 'saved-vehicles', labels: { singular: 'Запазен автомобил', plural: 'Запазени автомобили' }, admin: { useAsTitle: 'title' },
+ slug: 'saved-vehicles', labels: { singular: 'Запазен автомобил', plural: 'Запазени автомобили' }, admin: { group: 'Клиенти и запитвания', useAsTitle: 'title' },
  access: { create: () => false, read: staff, update: () => false, delete: staff },
  fields: [
   { name: 'customer', type: 'relationship', relationTo: 'customers', required: true, index: true },

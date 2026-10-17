@@ -68,6 +68,7 @@ export interface Config {
   };
   blocks: {};
   collections: {
+    'consent-events': ConsentEvent;
     users: User;
     customers: Customer;
     'saved-vehicles': SavedVehicle;
@@ -85,6 +86,7 @@ export interface Config {
   };
   collectionsJoins: {};
   collectionsSelect: {
+    'consent-events': ConsentEventsSelect<false> | ConsentEventsSelect<true>;
     users: UsersSelect<false> | UsersSelect<true>;
     customers: CustomersSelect<false> | CustomersSelect<true>;
     'saved-vehicles': SavedVehiclesSelect<false> | SavedVehiclesSelect<true>;
@@ -161,31 +163,22 @@ export interface CustomerAuthOperations {
   };
 }
 /**
+ * Регистър на изричните избори за 180 дни. Идентификаторът означава браузър, не доказана самоличност.
+ *
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "users".
+ * via the `definition` "consent-events".
  */
-export interface User {
+export interface ConsentEvent {
   id: number;
-  name?: string | null;
+  customer?: (number | null) | Customer;
+  event: string;
+  subject: string;
+  analytics: boolean;
+  marketing: boolean;
+  action: 'accept_all' | 'necessary_only' | 'save_preferences';
+  policyVersion: string;
   updatedAt: string;
   createdAt: string;
-  email: string;
-  resetPasswordToken?: string | null;
-  resetPasswordExpiration?: string | null;
-  salt?: string | null;
-  hash?: string | null;
-  resetPasswordRequestedAt?: string | null;
-  loginAttempts?: number | null;
-  lockUntil?: string | null;
-  sessions?:
-    | {
-        id: string;
-        createdAt?: string | null;
-        expiresAt: string;
-      }[]
-    | null;
-  password?: string | null;
-  collection: 'users';
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -215,6 +208,33 @@ export interface Customer {
     | null;
   password?: string | null;
   collection: 'customers';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "users".
+ */
+export interface User {
+  id: number;
+  name?: string | null;
+  updatedAt: string;
+  createdAt: string;
+  email: string;
+  resetPasswordToken?: string | null;
+  resetPasswordExpiration?: string | null;
+  salt?: string | null;
+  hash?: string | null;
+  resetPasswordRequestedAt?: string | null;
+  loginAttempts?: number | null;
+  lockUntil?: string | null;
+  sessions?:
+    | {
+        id: string;
+        createdAt?: string | null;
+        expiresAt: string;
+      }[]
+    | null;
+  password?: string | null;
+  collection: 'users';
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -526,6 +546,21 @@ export interface PayloadMigration {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "consent-events_select".
+ */
+export interface ConsentEventsSelect<T extends boolean = true> {
+  customer?: T;
+  event?: T;
+  subject?: T;
+  analytics?: T;
+  marketing?: T;
+  action?: T;
+  policyVersion?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "users_select".
  */
 export interface UsersSelect<T extends boolean = true> {
@@ -819,17 +854,19 @@ export interface SiteSetting {
   createdAt?: string | null;
 }
 /**
+ * Примерни разходи, а не текуща оферта. Таксите на аукциона включват покупката, получаването от площадката, онлайн наддаването, екологичната такса и документа; комисионната е €1000. Мито 10% и ДДС 20% са допусканията от публикувания пример. Старите BGN настройки се пазят в архивните секции.
+ *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "calculator-settings".
  */
 export interface CalculatorSetting {
+  id: number;
   usdToEur: number;
   shippingUsd: number;
   insuranceUsd: number;
   documentUsd: number;
   portHandlingEur: number;
   deliveryEur: number;
-  id: number;
   /**
    * Пренесен от WordPress. Не е автоматичен валутен курс.
    */
@@ -837,13 +874,15 @@ export interface CalculatorSetting {
   fixedCosts: number;
   defaultInland?: number | null;
   defaultShipping?: number | null;
-  tiers?: {
-    from: number;
-    fee: number;
-    percent: number;
-    extra: number;
-    id?: string | null;
-  }[] | null;
+  tiers?:
+    | {
+        from: number;
+        fee: number;
+        percent: number;
+        extra: number;
+        id?: string | null;
+      }[]
+    | null;
   note?: string | null;
   updatedAt?: string | null;
   createdAt?: string | null;
