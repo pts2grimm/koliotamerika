@@ -1,3 +1,4 @@
+import { BillsOfSale } from './collections/BillsOfSale'
 import { ConsentEvents } from './collections/ConsentEvents'
 import { smtpConfiguration } from './lib/smtp-config'
 import { nodemailerAdapter } from '@payloadcms/email-nodemailer'
@@ -40,7 +41,7 @@ export default buildConfig({
     },
   },
   i18n: { fallbackLanguage: 'bg', supportedLanguages: { bg, en } },
-  collections: [ConsentEvents, Users, Customers, SavedVehicles, Media, Cars, Pages, Inquiries, AuctionQuotes, Redirects, RateLimits],
+  collections: [BillsOfSale, ConsentEvents, Users, Customers, SavedVehicles, Media, Cars, Pages, Inquiries, AuctionQuotes, Redirects, RateLimits],
   globals: [SiteSettings, CalculatorSettings, Integrations],
   ...(smtp ? { email: nodemailerAdapter(smtp) } : {}),
   db: sqliteAdapter({
