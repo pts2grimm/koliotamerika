@@ -9,6 +9,7 @@ export class BosLayoutError extends Error {}
 let fontBytes: Promise<Buffer[]> | undefined
 const loadFonts = () => fontBytes ||= Promise.all([
   readFile(path.join(process.cwd(), 'assets/fonts/NotoSans-Regular.ttf')),
+  readFile(path.join(process.cwd(), 'assets/fonts/NotoSans-Bold.ttf')),
 ]).catch(error => { fontBytes = undefined; throw error })
 
 let signatureBytes: Promise<Buffer> | undefined
@@ -20,11 +21,12 @@ export async function createBosPDF(doc: BillOfSale) {
   pdf.registerFontkit(fontkit)
   const regular = await pdf.embedFont(StandardFonts.Helvetica)
   const bold = await pdf.embedFont(StandardFonts.HelveticaBold)
-  const fallback: { font: PDFFont; chars: Set<number> }[] = []
+  const fallback: { font: PDFFont; chars: Set<number>; strong: boolean }[] = []
   if (/[^\x20-\x7e]/.test(JSON.stringify(doc))) {
-    for (const bytes of await loadFonts()) {
-      const font = await pdf.embedFont(bytes, { subset: true })
-      fallback.push({ font, chars: new Set(font.getCharacterSet()) })
+    const bytes = await loadFonts()
+    for (const strong of [false, true]) {
+      const font = await pdf.embedFont(bytes[strong ? 1 : 0], { subset: true })
+      fallback.push({ font, chars: new Set(font.getCharacterSet()), strong })
     }
   }
   const page = pdf.addPage([612, 792])
@@ -34,7 +36,7 @@ export async function createBosPDF(doc: BillOfSale) {
   pdf.setSubject('Vehicle Bill of Sale')
   const choose = (character: string, strong = false) => {
     if (character.codePointAt(0)! >= 32 && character.codePointAt(0)! <= 126) return strong ? bold : regular
-    const supported = fallback.find(item => item.chars.has(character.codePointAt(0)!))
+    const supported = fallback.find(item => item.strong === strong && item.chars.has(character.codePointAt(0)!))
     if (!supported) throw new BosLayoutError('PDF шрифтът не поддържа символ: ' + character)
     return supported.font
   }
@@ -84,6 +86,11 @@ export async function createBosPDF(doc: BillOfSale) {
     line(x + 3, y + 10, x + 3 + width(value, 7, true), y + 10, .35)
   }
   const pair = (label: string, value: unknown, x: number, y: number, w: number) => text(label + (value == null || value === '' ? '' : ' ' + value), x, y, w, 7, false, 1)
+  const vehiclePair = (label: string, value: unknown, x: number, y: number, w: number) => {
+    const labelWidth = width(label + ' ', 7)
+    text(label, x, y, w, 7)
+    text(value, x + labelWidth, y, w - labelWidth, 7, true)
+  }
   const date = bosDate(doc.saleDate)
   const { total, balance } = bosAmounts(doc.vehiclePrice, doc.shipping, doc.paidAmount)
   text('BILL OF SALE', 32, 32, 180, 10)
@@ -115,18 +122,18 @@ export async function createBosPDF(doc: BillOfSale) {
   pair('SALESPERSON:', bosSeller.salesperson, 310, 148, 264)
 
   box(32, 166, 548, 62); heading('VEHICLE INFORMATION:', 32, 166, 548)
-  pair('YEAR:', doc.year, 36, 181, 124)
-  pair('COLOR 1:', doc.color1, 166, 181, 130)
-  pair('VIN:', doc.vin, 301, 181, 160)
-  pair('STOCK:', doc.stock, 466, 181, 110)
-  pair('MAKE:', doc.make, 36, 195, 124)
-  pair('COLOR 2:', doc.color2, 166, 195, 130)
-  pair('STYLE:', doc.style, 301, 195, 160)
-  pair('CYL:', doc.cylinders, 466, 195, 110)
-  pair('MODEL:', doc.model, 36, 209, 124)
-  pair('BODY:', doc.body, 166, 209, 130)
-  pair('MILEAGE:', doc.mileage == null ? '' : new Intl.NumberFormat('en-US').format(doc.mileage), 301, 209, 160)
-  pair('TRANS:', doc.transmission, 466, 209, 110)
+  vehiclePair('YEAR:', doc.year, 36, 181, 124)
+  vehiclePair('COLOR 1:', doc.color1, 166, 181, 130)
+  vehiclePair('VIN:', doc.vin, 301, 181, 160)
+  vehiclePair('STOCK:', doc.stock, 466, 181, 110)
+  vehiclePair('MAKE:', doc.make, 36, 195, 124)
+  vehiclePair('COLOR 2:', doc.color2, 166, 195, 130)
+  vehiclePair('STYLE:', doc.style, 301, 195, 160)
+  vehiclePair('CYL:', doc.cylinders, 466, 195, 110)
+  vehiclePair('MODEL:', doc.model, 36, 209, 124)
+  vehiclePair('BODY:', doc.body, 166, 209, 130)
+  vehiclePair('MILEAGE:', doc.mileage == null ? '' : new Intl.NumberFormat('en-US').format(doc.mileage), 301, 209, 160)
+  vehiclePair('TRANS:', doc.transmission, 466, 209, 110)
 
   box(32, 228, 316, 140); heading('TRADE-IN INFORMATION:', 32, 228, 316)
   const tradeRows = [['YEAR:', 'COLOR:'], ['MAKE:', 'MILEAGE:'], ['MODEL:', 'BODY:'], ['VIN:', ''], ['OWNER:', ''], ['BALANCE OWED:', ''], ['TO:', '']]
