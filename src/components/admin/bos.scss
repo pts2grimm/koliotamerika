@@ -1,0 +1,11 @@
+.koa-bos-download { margin:8px 0; }
+.koa-bos-download__button { display:inline-flex; align-items:center; gap:8px; background:#147e86; color:white; padding:12px 16px; border-radius:9px; font-weight:650; text-decoration:none; }
+.koa-bos-download__button:focus-visible { outline:2px solid var(--theme-text); outline-offset:3px; }
+.koa-bos-download > span { display:flex; align-items:center; gap:8px; font-size:12px; color:var(--theme-elevation-600); }
+.koa-bos-summary { display:flex; gap:32px; flex-wrap:wrap; padding:20px; margin-bottom:20px; border:1px solid var(--theme-elevation-200); border-radius:12px; background:var(--theme-elevation-50); }
+.koa-bos-summary span { display:grid; gap:8px; }
+.koa-bos-summary strong { font-size:24px; }
+.koa-bos-seller { padding:24px; border:1px solid var(--theme-elevation-200); border-radius:12px; max-width:500px; }
+.koa-bos-seller p { line-height:1.6; }
+.koa-bos-note, .koa-bos-seller small { color:var(--theme-elevation-600); }
+[data-theme=dark] .koa-bos-download__button { background:#7ad3d8; color:#10252b; }

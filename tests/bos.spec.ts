@@ -1,0 +1,75 @@
+import { test, expect } from '@playwright/test'
+import { mkdirSync, writeFileSync } from 'node:fs'
+import { PDFDocument } from 'pdf-lib'
+
+test('staff creates BOS, protects records, validates amounts and downloads a one-page PDF', async ({ page, playwright, baseURL }) => {
+  const admin = await playwright.request.newContext({ baseURL })
+  const visitor = await playwright.request.newContext({ baseURL })
+  const credentials = { email: 'bos-admin@example.test', password: 'Bos-admin-test-2026' }
+  expect((await admin.post('/api/users/first-register', { data: credentials })).ok()).toBeTruthy()
+  const login = await admin.post('/api/users/login', { data: credentials })
+  const headers = { Authorization: 'JWT ' + (await login.json()).token }
+  const sample = {
+    saleDate: '2026-10-17', buyerName: 'Петър Тестов / Demo Buyer', buyerAddress: '123 Example Road',
+    buyerCity: 'Sofia', buyerPostalCode: '1000', buyerCountry: 'Bulgaria', buyerPhone: '+359000000000',
+    vin: 'WBA3A5C50DF123456', make: 'BMW', model: 'M3', body: '4DR', year: 2018, cylinders: '6',
+    color1: 'BLUE', transmission: 'DCT', mileage: 45491, vehiclePrice: 6000, shipping: 300, paidAmount: 1000,
+    remarks: 'Тестов документ. Synthetic data for layout verification.',
+  }
+  expect((await visitor.post('/api/bills-of-sale', { data: sample })).status()).toBe(403)
+  const created = await admin.post('/api/bills-of-sale', { headers, data: { ...sample, stock: 'FORGED', total: 1, balance: 1 } })
+  expect(created.status(), await created.text()).toBe(201)
+  const doc = (await created.json()).doc
+  expect(doc.stock).toMatch(/^X[A-F0-9]{12}$/)
+  expect(doc.total).toBe(6300); expect(doc.balance).toBe(5300)
+  const url = '/api/admin/bos/' + doc.id + '/pdf'
+  expect((await visitor.get(url)).status()).toBe(403)
+  expect((await visitor.get('/api/bills-of-sale')).status()).toBe(403)
+  expect((await visitor.post('/api/account/register', { headers: { Origin: baseURL! }, data: {
+    email: 'bos-customer@example.test', password: 'Bos-customer-2026', name: 'BOS Test Customer', consent: true,
+  } })).ok()).toBeTruthy()
+  expect((await visitor.get(url)).status()).toBe(403)
+  expect((await visitor.get('/api/bills-of-sale/' + doc.id)).status()).toBe(403)
+  expect((await visitor.patch('/api/bills-of-sale/' + doc.id, { data: { paidAmount: 6300 } })).status()).toBe(403)
+  for (const change of [{ vehiclePrice: -1 }, { shipping: .001 }, { paidAmount: 6300.01 }, { saleDate: '2026-02-30' }, { vin: 'MASKEDVIN******' }]) {
+    expect((await admin.post('/api/bills-of-sale', { headers, data: { ...sample, ...change } })).status()).toBe(400)
+  }
+  const edited = await admin.patch('/api/bills-of-sale/' + doc.id, { headers, data: { vehiclePrice: 6100, stock: 'FORGED', total: 0, balance: 0 } })
+  expect(edited.status(), await edited.text()).toBe(200)
+  const changed = (await edited.json()).doc
+  expect(changed.stock).toBe(doc.stock); expect(changed.total).toBe(6400); expect(changed.balance).toBe(5400)
+  const copies = await Promise.all([1, 2].map(() => admin.post('/api/bills-of-sale', { headers, data: { ...sample, stock: doc.stock } })))
+  const stocks = await Promise.all(copies.map(async res => { expect(res.status()).toBe(201); return (await res.json()).doc.stock }))
+  expect(new Set([doc.stock, ...stocks]).size).toBe(3)
+  const pdfResponse = await admin.get(url, { headers })
+  expect(pdfResponse.status(), await pdfResponse.text()).toBe(200)
+  expect(pdfResponse.headers()['content-type']).toBe('application/pdf')
+  expect(pdfResponse.headers()['cache-control']).toContain('no-store')
+  expect(pdfResponse.headers()['x-robots-tag']).toContain('noindex')
+  expect(pdfResponse.headers()['content-disposition']).toContain(doc.stock)
+  const bytes = await pdfResponse.body()
+  expect((await PDFDocument.load(bytes)).getPageCount()).toBe(1)
+  mkdirSync('test-results', { recursive: true }); writeFileSync('test-results/bos.pdf', bytes)
+  expect((await admin.get('/api/admin/bos/999999999/pdf', { headers })).status()).toBe(404)
+  await page.goto('/admin')
+  await page.locator('input[name=email]').fill(credentials.email)
+  await page.locator('input[name=password]').fill(credentials.password)
+  await page.locator('button[type=submit]').click()
+  await expect(page.getByRole('heading', { name: 'Обзор на сайта', exact: true })).toBeVisible()
+  await page.goto('/admin/collections/bills-of-sale/' + doc.id)
+  const download = page.getByRole('link', { name: 'Изтегли BOS PDF' })
+  await expect(download).toBeVisible()
+  await page.locator('input[name=buyerName]').fill('Updated Demo Buyer')
+  await expect(download).toHaveCount(0)
+  await page.reload()
+  await expect(download).toBeVisible()
+  await page.setViewportSize({ width: 1440, height: 1050 })
+  await page.screenshot({ path: 'test-results/bos-admin.jpg', type: 'jpeg', quality: 70 })
+  await page.getByRole('tab', { name: 'Суми и бележки', exact: true }).click()
+  await expect(page.locator('.koa-bos-summary')).toContainText('6,400.00')
+  await page.screenshot({ path: 'test-results/bos-settlement.jpg', type: 'jpeg', quality: 70 })
+  const file = page.waitForEvent('download')
+  await download.click()
+  expect((await file).suggestedFilename()).toContain(doc.stock)
+  await admin.dispose(); await visitor.dispose()
+})

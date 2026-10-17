@@ -1,3 +1,4 @@
+import * as billsOfSale from './20261017_180000_bills_of_sale'
 import * as consentEvents from './20261017_120000_consent_events'
 import * as calculatorEur from './20261012_030000_calculator_eur'
 import * as migration_20261012_020000_integrations from './20261012_020000_integrations'
@@ -21,4 +22,5 @@ export const migrations = [
   { up: migration_20261012_020000_integrations.up, down: migration_20261012_020000_integrations.down, name: '20261012_020000_integrations' },
   {up:calculatorEur.up,down:calculatorEur.down,name:'20261012_030000_calculator_eur'},
   { up: consentEvents.up, down: consentEvents.down, name: '20261017_120000_consent_events' },
+  { up: billsOfSale.up, down: billsOfSale.down, name: '20261017_180000_bills_of_sale' },
 ]
