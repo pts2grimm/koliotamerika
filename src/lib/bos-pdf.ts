@@ -97,15 +97,16 @@ export async function createBosPDF(doc: BillOfSale) {
   buyerTop += text(doc.buyerName, 36, buyerTop, 266, 9, true, 2)
   buyerTop += text(doc.buyerAddress, 36, buyerTop, 266, 8, false, 2)
   buyerTop += text([doc.buyerCity, doc.buyerPostalCode, doc.buyerCountry].filter(Boolean).join(', '), 36, buyerTop, 266, 8)
-  buyerTop += 10
-  pair('HOME:', doc.buyerHomePhone, 36, buyerTop, 125)
-  pair('CELL:', doc.buyerPhone, 169, buyerTop, 132)
-  pair('D.L./STATE ID:', doc.buyerLicense, 36, buyerTop + 10, 164)
-  pair('WORK:', doc.buyerWorkPhone, 203, buyerTop + 10, 98)
-  pair('D.O.B.:', doc.buyerDOB ? bosDate(doc.buyerDOB) : '', 36, buyerTop + 20, 93)
-  pair('STATE:', doc.buyerState, 132, buyerTop + 20, 75)
-  pair('EXP.:', doc.buyerLicenseExpiry ? bosDate(doc.buyerLicenseExpiry) : '', 210, buyerTop + 20, 92)
-  pair('COUNTY:', doc.buyerCounty, 36, buyerTop + 30, 266)
+  // Keep the last contact row 4 pt above the bottom border at 166 pt.
+  const contactTop = 125
+  pair('HOME:', doc.buyerHomePhone, 36, contactTop, 125)
+  pair('CELL:', doc.buyerPhone, 169, contactTop, 132)
+  pair('D.L./STATE ID:', doc.buyerLicense, 36, contactTop + 10, 164)
+  pair('WORK:', doc.buyerWorkPhone, 203, contactTop + 10, 98)
+  pair('D.O.B.:', doc.buyerDOB ? bosDate(doc.buyerDOB) : '', 36, contactTop + 20, 93)
+  pair('STATE:', doc.buyerState, 132, contactTop + 20, 75)
+  pair('EXP.:', doc.buyerLicenseExpiry ? bosDate(doc.buyerLicenseExpiry) : '', 210, contactTop + 20, 92)
+  pair('COUNTY:', doc.buyerCounty, 36, contactTop + 30, 266)
   heading('SELLER INFORMATION:', 306, 50, 274)
   text(bosSeller.name, 310, 64, 264, 12, true)
   text(bosSeller.address, 310, 79, 264, 12)
@@ -141,9 +142,9 @@ export async function createBosPDF(doc: BillOfSale) {
   box(32, 494, 316, 76); heading('REMARKS:', 32, 494, 316)
   text(doc.remarks, 36, 510, 308, 8, false, 6)
 
-  box(348, 228, 232, 422); text('SETTLEMENT (USD)', 355, 232, 218, 9, true)
-  line(348, 244, 580, 244); line(510, 244, 510, 650)
-  for (let y = 259; y < 650; y += 15) line(348, y, 580, y)
+  box(348, 228, 232, 410); text('SETTLEMENT (USD)', 355, 232, 218, 9, true)
+  line(348, 244, 580, 244); line(510, 244, 510, 638)
+  for (let y = 259; y < 638; y += 15) line(348, y, 580, y)
   const settlement = (row: number, label: string, amount: string, strong = false) => {
     const top = 247 + row * 15
     text(label, 352, top, 154, 7, strong)
@@ -160,11 +161,11 @@ export async function createBosPDF(doc: BillOfSale) {
   settlement(24, 'TOTAL CREDIT', bosMoney(doc.paidAmount), true)
   settlement(25, 'BALANCE DUE', bosMoney(balance), true)
 
-  box(32, 570, 316, 80); heading('WARRANTY DISCLAIMER:', 32, 570, 316)
+  box(32, 570, 316, 68); heading('WARRANTY DISCLAIMER:', 32, 570, 316)
   text('Unless Seller provides a written warranty, or enters into a service contract within 90 days from the date of this contract, this vehicle is being sold "AS IS" "WITH ALL FAULTS" and Seller makes no warranties, express or implied, on the vehicle, and there will be no implied warranties of merchantability or of fitness for a particular purpose.', 36, 583, 308, 7, false, 6)
-  box(32, 650, 548, 38); heading('CONTRACTUAL DISCLOSURE STATEMENT (USED VEHICLES ONLY):', 32, 650, 548)
-  text('The information you see on the window form for this vehicle is part of this contract. Information on the window form overrides any contrary provisions in the contract of sale.', 36, 664, 540, 7, false, 2)
-  text('Buyer, by signing below, acknowledges receipt of a copy of this Bill of Sale.', 32, 690, 548, 8, false, 2)
+  box(32, 638, 548, 32); heading('CONTRACTUAL DISCLOSURE STATEMENT (USED VEHICLES ONLY):', 32, 638, 548)
+  text('The information you see on the window form for this vehicle is part of this contract. Information on the window form overrides any contrary provisions in the contract of sale.', 36, 652, 540, 7, false, 2)
+  text('Buyer, by signing below, acknowledges receipt of a copy of this Bill of Sale.', 32, 672, 548, 8, false, 2)
 
   for (const [x, label] of [[32, 'Seller / Authorized Representative'], [220, 'Buyer'], [408, 'Co-Buyer']] as const) {
     text('X', x, 729, 10, 8)
@@ -174,7 +175,7 @@ export async function createBosPDF(doc: BillOfSale) {
   }
   // Approved seller signature image; buyer and co-buyer fields remain empty.
   const signature = await pdf.embedPng(await loadSignature())
-  const signatureSize = signature.scale(50 / signature.height)
+  const signatureSize = signature.scale(68 / signature.height)
   page.drawImage(signature, { x: 64, y: 792 - 749, ...signatureSize })
   text('BOS ' + doc.stock + ' | ' + doc.vin, 32, 777, 548, 6)
   return pdf.save()
