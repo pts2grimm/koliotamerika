@@ -63,7 +63,7 @@ test('consent journal, customer linking, protected analytics and responsive dash
   await expect(page.getByRole('heading', { name: 'Обзор на сайта' })).toBeVisible()
 
   await page.setViewportSize({ width: 1440, height: 1050 })
-  if (!(await page.locator('.nav--nav-open').count())) await page.locator('.template-default__nav-toggler').click()
+  if (!(await page.locator('.nav--nav-open').count())) await page.locator('button.nav-toggler:visible').first().click()
   await expect(page.locator('.nav--nav-open')).toHaveCSS('opacity', '1')
   await expect(page.locator('nav').getByRole('link', { name: 'Обзор и аналитика', exact: true })).toBeVisible()
   await expect(page.locator('#koa-nav-overview')).toHaveAttribute('aria-current', 'page')
@@ -79,7 +79,7 @@ test('consent journal, customer linking, protected analytics and responsive dash
   await page.screenshot({ path: 'test-results/admin-overview-other-theme.png', fullPage: true })
   await page.screenshot({ path: 'test-results/admin-overview-other-theme.jpg', type: 'jpeg', quality: 65 })
   await page.setViewportSize({ width: 390, height: 844 })
-  if (!(await page.locator('.nav--nav-open').count())) await page.locator('.template-default__nav-toggler').click()
+  if (!(await page.locator('.nav--nav-open').count())) await page.locator('button.nav-toggler:visible').first().click()
   await expect(page.locator('.nav--nav-open')).toHaveCSS('opacity', '1')
   await page.screenshot({ path: 'test-results/admin-navigation-mobile.jpg', type: 'jpeg', quality: 75 })
   await page.locator('.nav__mobile-close').click()
