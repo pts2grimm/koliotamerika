@@ -20,11 +20,11 @@
 .koa-bos-options button:hover { background:var(--theme-elevation-100); }
 .koa-bos-options button:focus-visible, .koa-bos-picker input:focus-visible, .koa-bos-postal button:focus-visible { outline:2px solid #147e86; outline-offset:-2px; }
 .koa-bos-options span, .koa-bos-options small { font-size:12px; line-height:1.5; color:var(--theme-elevation-600); }
-.koa-bos-city { flex:1 1 0; min-width:0; padding:0 10px; margin-bottom:20px; }
+.koa-bos-city { width:100%; min-width:0; margin-bottom:24px; }
 .koa-bos-city > .field-type { margin-bottom:6px; padding:0; width:100%; }
 .koa-bos-city small { display:block; }
 .koa-bos-postal { margin-top:10px; padding:12px; border:1px solid var(--theme-elevation-200); border-radius:8px; }
 .koa-bos-postal button, .koa-bos-pages button { padding:7px 10px; margin:0 6px 6px 0; border:1px solid var(--theme-elevation-300); border-radius:6px; color:var(--theme-text); background:var(--theme-elevation-100); cursor:pointer; }
 .koa-bos-pages { display:flex; align-items:center; gap:10px; }
 .koa-bos-attribution { margin-top:8px; font-size:10px !important; }
-@media (max-width:767px) { .koa-bos-city { flex-basis:100%; } .koa-bos-picker { padding:14px; } }
+@media (max-width:767px) { .koa-bos-picker { padding:14px; } }

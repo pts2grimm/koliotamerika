@@ -76,6 +76,7 @@ export const BosCityField: TextFieldClientComponent = props => {
   const [loadError, setLoadError] = useState(false)
   const [focused, setFocused] = useState(false)
   const [chosen, setChosen] = useState<{ place: PostalPlace; city: string } | null>(null)
+  useEffect(() => { if (chosen && chosen.city !== city) setChosen(null) }, [city, chosen])
   const loaded = useRef(false)
   const bg = isBulgaria(country)
   const readOnly = disabled || props.readOnly
