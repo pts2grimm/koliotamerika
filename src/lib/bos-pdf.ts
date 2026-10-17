@@ -178,7 +178,7 @@ export async function createBosPDF(doc: BillOfSale) {
     text('X', x, 729, 10, 8)
     line(x + 12, 742, x + 172, 742)
     text(label, x + 4, 752, 172, 6.5)
-    text('Date: ____________________', x + 4, 765, 172, 7)
+    text('Date: ' + (label === 'Co-Buyer' ? '____________________' : date), x + 4, 765, 172, 7)
   }
   // Approved seller signature image; buyer and co-buyer fields remain empty.
   const signature = await pdf.embedPng(await loadSignature())
