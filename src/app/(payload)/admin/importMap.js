@@ -1,3 +1,5 @@
+import { BosBuyerPicker as BosBuyerPicker_a6cafe35c590dd007a9a50ae38e1e2e7 } from '../../../../src/components/admin/BosBuyerFields'
+import { BosCityField as BosCityField_a6cafe35c590dd007a9a50ae38e1e2e7 } from '../../../../src/components/admin/BosBuyerFields'
 import { BosSettlement as BosSettlement_657538249d19066ff12226af6abea4d6 } from '../../../../src/components/admin/BosControls'
 import { BosSeller as BosSeller_657538249d19066ff12226af6abea4d6 } from '../../../../src/components/admin/BosControls'
 import { BosDownload as BosDownload_657538249d19066ff12226af6abea4d6 } from '../../../../src/components/admin/BosControls'
@@ -36,6 +38,8 @@ import { CollectionCards as CollectionCards_f9c02e79a4aed9a3924487c0cd4cafb1 } f
 
 /** @type import('payload').ImportMap */
 export const importMap = {
+  "/src/components/admin/BosBuyerFields#BosBuyerPicker": BosBuyerPicker_a6cafe35c590dd007a9a50ae38e1e2e7,
+  "/src/components/admin/BosBuyerFields#BosCityField": BosCityField_a6cafe35c590dd007a9a50ae38e1e2e7,
   "/src/components/admin/BosControls#BosSettlement": BosSettlement_657538249d19066ff12226af6abea4d6,
   "/src/components/admin/BosControls#BosSeller": BosSeller_657538249d19066ff12226af6abea4d6,
   "/src/components/admin/BosControls#BosDownload": BosDownload_657538249d19066ff12226af6abea4d6,

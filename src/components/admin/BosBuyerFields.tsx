@@ -58,7 +58,7 @@ export function BosBuyerPicker() {
       {results.map(buyer => <li key={buyer.id}><button type="button" disabled={disabled || loading} onClick={() => select(buyer)}>
         <strong>{buyer.buyerName}</strong>
         <span>{[buyer.buyerAddress, buyer.buyerCity, buyer.buyerPostalCode, buyer.buyerCountry].filter(Boolean).join(', ')}</span>
-        <small>{[buyer.buyerPhone, buyer.stock].filter(Boolean).join(' · ')}</small>
+        <small>{[buyer.buyerPhone, buyer.buyerHomePhone, buyer.buyerWorkPhone, buyer.stock].filter(Boolean).join(' · ')}</small>
       </button></li>)}
     </ul>}
     {(page > 1 || more) && <div className="koa-bos-pages">
@@ -103,6 +103,7 @@ export const BosCityField: TextFieldClientComponent = props => {
   return <div className="koa-bos-city" onFocus={() => setFocused(true)}
     onBlur={e => { if (!e.currentTarget.contains(e.relatedTarget)) setFocused(false) }}>
     <TextField {...props} />
+    {!readOnly && !bg && <small>За предложения с пощенски код попълни държава „България“ или „Bulgaria“.</small>}
     {!readOnly && bg && <small>Въведи град и избери от справочника. Пощенският код може да се коригира.</small>}
     {!readOnly && bg && loadError && <p role="status">Справочникът не се зареди. Въведи града и кода ръчно.</p>}
     {!!matches.length && <ul className="koa-bos-options" aria-label="Населени места">
