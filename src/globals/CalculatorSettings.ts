@@ -6,7 +6,7 @@ export const defaultTiers = [
  { from: 10000, fee: 1500, percent: 0, extra: 3500 }, { from: 15000, fee: 0, percent: 12.5, extra: 5000 },
  { from: 20000, fee: 0, percent: 12.5, extra: 7000 }, { from: 25000, fee: 0, percent: 12.5, extra: 10000 }
 ]
-export const CalculatorSettings: GlobalConfig = { slug: 'calculator-settings', label: 'Калкулатор за внос', admin: { description: 'Примерни разходи, а не текуща оферта. Таксите на аукциона включват покупката, получаването от площадката, онлайн наддаването, екологичната такса и документа; комисионната е €1000. Мито 10% и ДДС 20% са допусканията от публикувания пример. Старите BGN настройки се пазят в архивните секции.' }, access: { read: () => true, update: ({ req }) => req.user?.collection === 'users' }, fields: [
+export const CalculatorSettings: GlobalConfig = { slug: 'calculator-settings', label: 'Калкулатор за внос', admin: { group: 'Настройки', description: 'Примерни разходи, а не текуща оферта. Таксите на аукциона включват покупката, получаването от площадката, онлайн наддаването, екологичната такса и документа; комисионната е €1000. Мито 10% и ДДС 20% са допусканията от публикувания пример. Старите BGN настройки се пазят в архивните секции.' }, access: { read: () => true, update: ({ req }) => req.user?.collection === 'users' }, fields: [
  {name:'usdToEur',label:'Примерен курс: 1 USD в EUR',type:'number',required:true,defaultValue:0.9,min:0.01,max:10},
  {name:'shippingUsd',label:'Начален морски транспорт (USD)',type:'number',required:true,defaultValue:1000,min:0,max:100000},
  {name:'insuranceUsd',label:'Примерна застраховка (USD)',type:'number',required:true,defaultValue:200,min:0,max:100000},
