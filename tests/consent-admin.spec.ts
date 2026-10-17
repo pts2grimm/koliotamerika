@@ -71,7 +71,7 @@ test('consent journal, customer linking, protected analytics and responsive dash
   await page.screenshot({ path: 'test-results/admin-overview-other-theme.png', fullPage: true })
   await page.screenshot({ path: 'test-results/admin-overview-other-theme.jpg', type: 'jpeg', quality: 65 })
   await page.setViewportSize({ width: 390, height: 844 })
-  if (await page.locator('nav').getByRole('link', { name: 'Обзор и аналитика', exact: true }).isVisible()) await page.locator('.template-default__nav-toggler').click()
+  if (await page.locator('.nav__mobile-close').isVisible()) await page.locator('.nav__mobile-close').click()
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBeTruthy()
   await page.screenshot({ path: 'test-results/admin-overview-mobile.png', fullPage: true })
   await page.screenshot({ path: 'test-results/admin-overview-mobile.jpg', type: 'jpeg', quality: 65 })
