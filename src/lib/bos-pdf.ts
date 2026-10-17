@@ -89,7 +89,7 @@ export async function createBosPDF(doc: BillOfSale) {
   const vehiclePair = (label: string, value: unknown, x: number, y: number, w: number) => {
     const labelWidth = width(label + ' ', 7)
     text(label, x, y, w, 7)
-    text(value, x + labelWidth, y, w - labelWidth, 7, true)
+    text(value, x + labelWidth, y, w - labelWidth, 8, true)
   }
   const date = bosDate(doc.saleDate)
   const { total, balance } = bosAmounts(doc.vehiclePrice, doc.shipping, doc.paidAmount)
