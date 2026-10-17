@@ -61,7 +61,7 @@ jobs:
         run: |
           node --input-type=module <<'JS'
           import {existsSync,readFileSync} from 'node:fs';
-          for(const path of ['test-results/admin-overview-desktop.jpg','test-results/admin-overview-mobile.jpg'])
+          for(const path of ['test-results/admin-overview-desktop.jpg','test-results/admin-overview-mobile.jpg','test-results/admin-overview-other-theme.jpg'])
             if(existsSync(path)) console.log('REVIEW_IMAGE '+JSON.stringify({path,base64:readFileSync(path).toString('base64')}));
           JS
       - uses: actions/upload-artifact@v4

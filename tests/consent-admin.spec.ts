@@ -8,13 +8,15 @@ test('consent journal, customer linking, protected analytics and responsive dash
   const origin = { Origin: baseURL! }
   const credentials = { email: 'consent-admin@example.test', password: 'Consent-admin-2026' }
   expect((await admin.post('/api/users/first-register', { data: credentials })).ok()).toBeTruthy()
-  expect((await admin.post('/api/users/login', { data: credentials })).ok()).toBeTruthy()
+  const login = await admin.post('/api/users/login', { data: credentials })
+  expect(login.ok()).toBeTruthy()
+  const adminHeaders = { Authorization: 'JWT ' + (await login.json()).token }
   const receipt = randomUUID()
   const choice = { receipt, event: randomUUID(), analytics: false, marketing: false, action: 'necessary_only', policyVersion: consentPolicyVersion }
   const post = (data: object) => visitor.post('/api/consent-choice', { headers: origin, data })
   expect((await post(choice)).status()).toBe(204)
   expect((await post(choice)).status()).toBe(204)
-  let records = (await (await admin.get('/api/consent-events')).json()).docs
+  let records = (await (await admin.get('/api/consent-events', { headers: adminHeaders })).json()).docs
   expect(records).toHaveLength(1)
   expect(records[0].customer).toBeFalsy()
   expect(records[0].subject).not.toBe(receipt)
@@ -30,13 +32,13 @@ test('consent journal, customer linking, protected analytics and responsive dash
     email: 'consent-customer@example.test', password: 'Consent-customer-2026', name: 'Клиент за проверка', consent: true,
   } })).ok()).toBeTruthy()
   expect((await post({ ...choice, event: randomUUID(), analytics: true, marketing: true, action: 'accept_all' })).status()).toBe(204)
-  records = (await (await admin.get('/api/consent-events', { params: { sort: '-createdAt' } })).json()).docs
+  records = (await (await admin.get('/api/consent-events', { headers: adminHeaders, params: { sort: '-createdAt' } })).json()).docs
   const linked = records.find((row: { analytics: boolean }) => row.analytics)
   expect(linked.customer.email).toBe('consent-customer@example.test')
   expect(records.find((row: { analytics: boolean }) => !row.analytics).customer).toBeFalsy()
   expect(new Set(records.map((row: { subject: string }) => row.subject)).size).toBe(1)
   expect((await visitor.get('/api/admin/consent-export')).status()).toBe(403)
-  expect((await admin.patch('/api/consent-events/' + linked.id, { data: { analytics: false } })).status()).toBe(403)
+  expect((await admin.patch('/api/consent-events/' + linked.id, { headers: adminHeaders, data: { analytics: false } })).status()).toBe(403)
   for (let index = 0; index < 22; index++) expect((await post({ ...choice, receipt: randomUUID(), event: randomUUID() })).status()).toBe(204)
 
   await page.goto('/admin')
@@ -63,12 +65,13 @@ test('consent journal, customer linking, protected analytics and responsive dash
   await page.screenshot({ path: 'test-results/admin-overview-desktop.jpg', type: 'jpeg', quality: 65 })
   await page.getByRole('button', { name: 'Смени темата' }).click()
   await page.screenshot({ path: 'test-results/admin-overview-other-theme.png', fullPage: true })
+  await page.screenshot({ path: 'test-results/admin-overview-other-theme.jpg', type: 'jpeg', quality: 65 })
   await page.setViewportSize({ width: 390, height: 844 })
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBeTruthy()
   await page.screenshot({ path: 'test-results/admin-overview-mobile.png', fullPage: true })
   await page.screenshot({ path: 'test-results/admin-overview-mobile.jpg', type: 'jpeg', quality: 65 })
 
-  const csv = await admin.get('/api/admin/consent-export?category=all')
+  const csv = await admin.get('/api/admin/consent-export?category=all', { headers: adminHeaders })
   expect(csv.status()).toBe(200)
   expect(csv.headers()['cache-control']).toContain('no-store')
   expect(await csv.text()).toContain('consent-customer@example.test')
