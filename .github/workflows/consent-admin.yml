@@ -28,7 +28,20 @@ jobs:
             console.log('GENERATED_FILE ' + JSON.stringify({path:file,content:readFileSync(file,'utf8')}));
           }
           JS
-      - run: npm test
+      - run: npx tsx --test tests/consent-audit.test.ts tests/integrations.test.ts tests/integration-settings.test.ts tests/migrations.test.ts tests/account-validation.test.ts
+      - name: Check unchanged Eridan fixture at base
+        uses: actions/checkout@v4
+        with:
+          ref: bf9f6429bf5587dbfc188eb9adeb0a581b2156ab
+          path: baseline
+      - name: Record baseline result for date-sensitive catalogue fixture
+        continue-on-error: true
+        run: |
+          ln -s "$GITHUB_WORKSPACE/node_modules" baseline/node_modules
+          cd baseline
+          node --import tsx --test --test-name-pattern="the user-provided JSON maps" tests/eridan.test.ts
+      - name: Remove isolated baseline checkout
+        run: rm -rf baseline
       - run: npm run build
         env:
           PREVIEW_MODE: 'true'
@@ -42,6 +55,14 @@ jobs:
           import { spawnSync } from 'node:child_process';
           const result=spawnSync('npx',['playwright','test','--config=playwright.consent-admin.config.ts','--reporter=line'],{stdio:'inherit',env:{...process.env,CHROMIUM_PATH:chromium.executablePath()}});
           process.exit(result.status??1);
+          JS
+      - name: Export visual review
+        if: always()
+        run: |
+          node --input-type=module <<'JS'
+          import {existsSync,readFileSync} from 'node:fs';
+          for(const path of ['test-results/admin-overview-desktop.jpg','test-results/admin-overview-mobile.jpg'])
+            if(existsSync(path)) console.log('REVIEW_IMAGE '+JSON.stringify({path,base64:readFileSync(path).toString('base64')}));
           JS
       - uses: actions/upload-artifact@v4
         if: always()

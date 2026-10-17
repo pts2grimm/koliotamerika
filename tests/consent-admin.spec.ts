@@ -60,11 +60,13 @@ test('consent journal, customer linking, protected analytics and responsive dash
 
   await page.setViewportSize({ width: 1440, height: 1050 })
   await page.screenshot({ path: 'test-results/admin-overview-desktop.png', fullPage: true })
+  await page.screenshot({ path: 'test-results/admin-overview-desktop.jpg', type: 'jpeg', quality: 65 })
   await page.getByRole('button', { name: 'Смени темата' }).click()
   await page.screenshot({ path: 'test-results/admin-overview-other-theme.png', fullPage: true })
   await page.setViewportSize({ width: 390, height: 844 })
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBeTruthy()
   await page.screenshot({ path: 'test-results/admin-overview-mobile.png', fullPage: true })
+  await page.screenshot({ path: 'test-results/admin-overview-mobile.jpg', type: 'jpeg', quality: 65 })
 
   const csv = await admin.get('/api/admin/consent-export?category=all')
   expect(csv.status()).toBe(200)

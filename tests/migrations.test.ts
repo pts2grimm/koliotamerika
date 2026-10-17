@@ -255,3 +255,8 @@ test('confirmed terms update rolls back with its journal and respects later edit
  const {dir,run}=sandbox()
  try{run();run('tests/fixtures/clarity.ts')}finally{rmSync(dir,{recursive:true,force:true})}
 })
+
+test('consent retention expires old records and customer deletion removes identity links', { timeout: 120000 }, () => {
+ const {dir,run}=sandbox()
+ try { run(); run('tests/fixtures/consent-retention.ts') } finally { rmSync(dir,{recursive:true,force:true}) }
+})

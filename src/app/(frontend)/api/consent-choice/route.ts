@@ -48,7 +48,9 @@ export async function POST(request: Request) {
         AND (SELECT COUNT(*) FROM consent_events WHERE created_at >= ${cutoff}) < 5000
       ON CONFLICT(event) DO NOTHING RETURNING id
     `)
-    return reply(saved.length ? 204 : 429)
+    if (saved.length) return reply(204)
+    const duplicate = await payload.db.drizzle.all(sql`SELECT id FROM consent_events WHERE event = ${event} LIMIT 1`)
+    return reply(duplicate.length ? 204 : 429)
   } catch (error) {
     if (error instanceof SyntaxError) return reply(400)
     console.warn('Consent audit could not be saved; the browser preference remains valid.')
