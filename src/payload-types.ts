@@ -68,6 +68,7 @@ export interface Config {
   };
   blocks: {};
   collections: {
+    'bills-of-sale': BillOfSale;
     'consent-events': ConsentEvent;
     users: User;
     customers: Customer;
@@ -86,6 +87,7 @@ export interface Config {
   };
   collectionsJoins: {};
   collectionsSelect: {
+    'bills-of-sale': BillsOfSaleSelect<false> | BillsOfSaleSelect<true>;
     'consent-events': ConsentEventsSelect<false> | ConsentEventsSelect<true>;
     users: UsersSelect<false> | UsersSelect<true>;
     customers: CustomersSelect<false> | CustomersSelect<true>;
@@ -161,6 +163,58 @@ export interface CustomerAuthOperations {
     email: string;
     password: string;
   };
+}
+/**
+ * Bill of Sale за закупен автомобил. Всички суми са в USD. Запази документа преди изтегляне на PDF. Подписите се полагат отделно.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "bills-of-sale".
+ */
+export interface BillOfSale {
+  id: number;
+  /**
+   * Постоянен номер; генерира се при първия запис.
+   */
+  stock: string;
+  saleDate: string;
+  buyerName: string;
+  buyerAddress: string;
+  buyerCity: string;
+  buyerPostalCode: string;
+  buyerCountry: string;
+  buyerPhone?: string | null;
+  buyerHomePhone?: string | null;
+  buyerWorkPhone?: string | null;
+  buyerState?: string | null;
+  buyerCounty?: string | null;
+  buyerLicense?: string | null;
+  /**
+   * Формат: 2026-10-17.
+   */
+  buyerDOB?: string | null;
+  /**
+   * Формат: 2026-10-17.
+   */
+  buyerLicenseExpiry?: string | null;
+  vin: string;
+  make: string;
+  model: string;
+  year: number;
+  body: string;
+  cylinders: string;
+  color1?: string | null;
+  color2?: string | null;
+  style?: string | null;
+  transmission?: string | null;
+  mileage?: number | null;
+  vehiclePrice: number;
+  shipping: number;
+  paidAmount: number;
+  total?: number | null;
+  balance?: number | null;
+  remarks?: string | null;
+  updatedAt: string;
+  createdAt: string;
 }
 /**
  * Регистър на изричните избори за 180 дни. Идентификаторът означава браузър, не доказана самоличност.
@@ -543,6 +597,46 @@ export interface PayloadMigration {
   batch?: number | null;
   updatedAt: string;
   createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "bills-of-sale_select".
+ */
+export interface BillsOfSaleSelect<T extends boolean = true> {
+  stock?: T;
+  saleDate?: T;
+  buyerName?: T;
+  buyerAddress?: T;
+  buyerCity?: T;
+  buyerPostalCode?: T;
+  buyerCountry?: T;
+  buyerPhone?: T;
+  buyerHomePhone?: T;
+  buyerWorkPhone?: T;
+  buyerState?: T;
+  buyerCounty?: T;
+  buyerLicense?: T;
+  buyerDOB?: T;
+  buyerLicenseExpiry?: T;
+  vin?: T;
+  make?: T;
+  model?: T;
+  year?: T;
+  body?: T;
+  cylinders?: T;
+  color1?: T;
+  color2?: T;
+  style?: T;
+  transmission?: T;
+  mileage?: T;
+  vehiclePrice?: T;
+  shipping?: T;
+  paidAmount?: T;
+  total?: T;
+  balance?: T;
+  remarks?: T;
+  updatedAt?: T;
+  createdAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema

@@ -1,3 +1,6 @@
+import { BosSettlement as BosSettlement_657538249d19066ff12226af6abea4d6 } from '../../../../src/components/admin/BosControls'
+import { BosSeller as BosSeller_657538249d19066ff12226af6abea4d6 } from '../../../../src/components/admin/BosControls'
+import { BosDownload as BosDownload_657538249d19066ff12226af6abea4d6 } from '../../../../src/components/admin/BosControls'
 import { RscEntryLexicalCell as RscEntryLexicalCell_44fe37237e0ebf4470c9990d8cb7b07e } from '@payloadcms/richtext-lexical/rsc'
 import { RscEntryLexicalField as RscEntryLexicalField_44fe37237e0ebf4470c9990d8cb7b07e } from '@payloadcms/richtext-lexical/rsc'
 import { LexicalDiffComponent as LexicalDiffComponent_44fe37237e0ebf4470c9990d8cb7b07e } from '@payloadcms/richtext-lexical/rsc'
@@ -33,6 +36,9 @@ import { CollectionCards as CollectionCards_f9c02e79a4aed9a3924487c0cd4cafb1 } f
 
 /** @type import('payload').ImportMap */
 export const importMap = {
+  "/src/components/admin/BosControls#BosSettlement": BosSettlement_657538249d19066ff12226af6abea4d6,
+  "/src/components/admin/BosControls#BosSeller": BosSeller_657538249d19066ff12226af6abea4d6,
+  "/src/components/admin/BosControls#BosDownload": BosDownload_657538249d19066ff12226af6abea4d6,
   "@payloadcms/richtext-lexical/rsc#RscEntryLexicalCell": RscEntryLexicalCell_44fe37237e0ebf4470c9990d8cb7b07e,
   "@payloadcms/richtext-lexical/rsc#RscEntryLexicalField": RscEntryLexicalField_44fe37237e0ebf4470c9990d8cb7b07e,
   "@payloadcms/richtext-lexical/rsc#LexicalDiffComponent": LexicalDiffComponent_44fe37237e0ebf4470c9990d8cb7b07e,

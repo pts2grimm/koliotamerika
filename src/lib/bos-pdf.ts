@@ -6,11 +6,10 @@ import type { BillOfSale } from '../payload-types'
 import { bosAmounts, bosDate, bosMoney, bosSeller, bosShippingLabel } from './bos'
 
 export class BosLayoutError extends Error {}
-const fontFiles = ['latin', 'cyrillic', 'latin-ext', 'cyrillic-ext', 'greek']
 let fontBytes: Promise<Buffer[]> | undefined
-const loadFonts = () => fontBytes ||= Promise.all(fontFiles.map(set =>
-  readFile(path.join(process.cwd(), 'node_modules/@fontsource-variable/manrope/files', 'manrope-' + set + '-wght-normal.woff2')),
-)).catch(error => { fontBytes = undefined; throw error })
+const loadFonts = () => fontBytes ||= Promise.all([
+  readFile(path.join(process.cwd(), 'assets/fonts/NotoSans-Regular.ttf')),
+]).catch(error => { fontBytes = undefined; throw error })
 
 export async function createBosPDF(doc: BillOfSale) {
   const pdf = await PDFDocument.create()

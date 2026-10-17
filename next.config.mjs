@@ -1,7 +1,7 @@
 import { withPayload } from '@payloadcms/next/withPayload'
 export default withPayload({
   poweredByHeader: false,
-  outputFileTracingIncludes: { '/api/admin/bos/*/pdf': ['./node_modules/@fontsource-variable/manrope/files/*.woff2'] },
+  outputFileTracingIncludes: { '/api/admin/bos/*/pdf': ['./assets/fonts/*.ttf'] },
   devIndicators: false,
   distDir: process.env.NEXT_DIST_DIR || '.next',
   experimental: { cpus: 2 },
