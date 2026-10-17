@@ -1,8 +1,8 @@
-import { DefaultTemplate } from '@payloadcms/next/templates'
 import { Gutter, Link, SetStepNav } from '@payloadcms/ui'
 import { notFound, redirect } from 'next/navigation'
 import type { AdminViewServerProps } from 'payload'
 import { MessageSquare, Users, Cookie, ChartNoAxesCombined, ArrowUpRight, Clock3, FileText, CalendarDays } from 'lucide-react'
+import { consentLifetime } from '@/lib/tracking-consent'
 import { adminPeriod } from '@/lib/admin-period'
 import { overviewData } from '@/lib/admin-overview'
 import { consentActionLabels, consentCategory, type ConsentAction } from '@/lib/consent-audit'
@@ -17,7 +17,7 @@ function Change({ current, previous }: { current: number; previous: number }) {
   return <span className={'koa-overview__change' + (delta > 0 ? ' is-up' : delta < 0 ? ' is-down' : '')}>{delta > 0 ? '+' : ''}{delta}%</span>
 }
 export async function Overview(props: AdminViewServerProps) {
-  const { req, permissions, visibleEntities } = props.initPageResult
+  const { req, permissions } = props.initPageResult
   const root = req.payload.config.routes.admin
   if (!req.user) redirect(root + '/login')
   if (req.user.collection !== 'users' || !permissions.canAccessAdmin) notFound()
@@ -34,6 +34,7 @@ export async function Overview(props: AdminViewServerProps) {
   const pageURL = (next: number) => { const q = new URLSearchParams(query); q.set('page', String(next)); return root + '?' + q + '#consent-history' }
   if (page > pages) redirect(pageURL(pages))
   const total = Number(data.current.browsers)
+  const consentComparisonAvailable = Date.parse(period.previousStart) >= Date.now() - consentLifetime * 1000
   const rate = total ? Math.round(Number(data.current.analytics) / total * 100) : 0
   const distribution = [
     { label: 'Всички категории', value: Number(data.current.all_count), tone: 'all' },
@@ -45,9 +46,7 @@ export async function Overview(props: AdminViewServerProps) {
   const coords = (key: 'total' | 'accepted') => data.daily.map((point, index) =>
     (30 + index * 740 / Math.max(1, data.daily.length - 1)) + ',' + (180 - point[key] / max * 150)).join(' ')
   const statusNames: Record<string, string> = { new: 'Ново', progress: 'В процес', done: 'Приключено' }
-  return <DefaultTemplate {...props} req={req} permissions={permissions}
-    visibleEntities={{ collections: visibleEntities.collections, globals: visibleEntities.globals }}>
-    <Gutter className="koa-overview">
+  return <Gutter className="koa-overview">
       <SetStepNav nav={[{ label: 'Обзор и аналитика' }]} />
       <header className="koa-overview__header">
         <div><p className="koa-overview__eyebrow">КОЛИ ОТ АМЕРИКА · УПРАВЛЕНИЕ</p><h1>Обзор на сайта</h1><p>Запитванията, съдържанието и изборите за бисквитки — на едно място.</p></div>
@@ -59,7 +58,7 @@ export async function Overview(props: AdminViewServerProps) {
       <div className="koa-overview__metrics">
         <article className="koa-overview__metric"><div><span>Получени запитвания</span><MessageSquare size={20} /></div><strong>{number(data.inquiries)}</strong><footer><Change current={data.inquiries} previous={data.previousInquiries} /><span>Спрямо предишния период</span></footer></article>
         <article className="koa-overview__metric"><div><span>Нови клиентски профили</span><Users size={20} /></div><strong>{number(data.customers)}</strong><footer><Change current={data.customers} previous={data.previousCustomers} /><span>Регистрации в периода</span></footer></article>
-        <article className="koa-overview__metric"><div><span>Браузъри с направен избор</span><Cookie size={20} /></div><strong>{number(total)}</strong><footer><Change current={total} previous={Number(data.previous.browsers)} /><span>{number(data.eventCount)} записани избора</span></footer></article>
+        <article className="koa-overview__metric"><div><span>Браузъри с направен избор</span><Cookie size={20} /></div><strong>{number(total)}</strong><footer>{consentComparisonAvailable ? <Change current={total} previous={Number(data.previous.browsers)} /> : <span className="koa-overview__change">Няма пълна история</span>}<span>{number(data.eventCount)} записани избора</span></footer></article>
         <article className="koa-overview__metric"><div><span>Разрешили статистика</span><ChartNoAxesCombined size={20} /></div><strong>{total ? rate + '%' : '—'}</strong><footer><span>{number(Number(data.current.analytics))} от {number(total)} браузъра с избор</span></footer></article>
       </div>
       <div className="koa-overview__main">
@@ -112,5 +111,4 @@ export async function Overview(props: AdminViewServerProps) {
         {data.latestInquiries.length ? <div className="koa-overview__scroll"><table><thead><tr><th>Клиент</th><th>Автомобил</th><th>Статус</th><th>Получено</th></tr></thead><tbody>{data.latestInquiries.map(inquiry => <tr key={inquiry.id}><td><Link href={root + '/collections/inquiries/' + inquiry.id}>{inquiry.name}</Link></td><td>{inquiry.car || '—'}</td><td>{statusNames[inquiry.status || 'new']}</td><td>{moment(inquiry.createdAt)}</td></tr>)}</tbody></table></div> : <p className="koa-overview__empty-row">Няма запитвания в този период.</p>}
       </section>
     </Gutter>
-  </DefaultTemplate>
 }

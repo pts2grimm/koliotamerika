@@ -5,9 +5,20 @@ on:
 permissions:
   contents: read
 jobs:
-  verify:
+  unit:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci --include=dev
+      - run: npx tsx --test tests/consent-audit.test.ts tests/integrations.test.ts tests/integration-settings.test.ts tests/migrations.test.ts tests/account-validation.test.ts
+  browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -20,28 +31,8 @@ jobs:
         env:
           PREVIEW_MODE: 'true'
           PAYLOAD_SECRET: isolated-consent-ci-not-a-live-secret
-      - name: Export generated files for review
-        run: |
-          node --input-type=module <<'JS'
-          import {readFileSync} from 'node:fs';
-          for(const file of ['src/payload-types.ts','src/app/(payload)/admin/importMap.js']) {
-            console.log('GENERATED_FILE ' + JSON.stringify({path:file,content:readFileSync(file,'utf8')}));
-          }
-          JS
-      - run: npx tsx --test tests/consent-audit.test.ts tests/integrations.test.ts tests/integration-settings.test.ts tests/migrations.test.ts tests/account-validation.test.ts
-      - name: Check unchanged Eridan fixture at base
-        uses: actions/checkout@v4
-        with:
-          ref: bf9f6429bf5587dbfc188eb9adeb0a581b2156ab
-          path: baseline
-      - name: Record baseline result for date-sensitive catalogue fixture
-        continue-on-error: true
-        run: |
-          ln -s "$GITHUB_WORKSPACE/node_modules" baseline/node_modules
-          cd baseline
-          node --import tsx --test --test-name-pattern="the user-provided JSON maps" tests/eridan.test.ts
-      - name: Remove isolated baseline checkout
-        run: rm -rf baseline
+      - name: Verify generated files are committed
+        run: git diff --exit-code -- src/payload-types.ts 'src/app/(payload)/admin/importMap.js'
       - run: npm run build
         env:
           PREVIEW_MODE: 'true'
