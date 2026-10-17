@@ -1,0 +1,25 @@
+name: BOS verification
+on:
+  push:
+    branches: ['codex/bos-documents-*']
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci --include=dev
+      - run: npm install --save-exact pdf-lib@1.17.1 @pdf-lib/fontkit@1.1.1
+      - name: Export dependency files
+        run: |
+          node --input-type=module <<'JS'
+          import {readFileSync,readdirSync} from 'node:fs';
+          for (const path of ['package.json','package-lock.json']) console.log('BOS_FILE '+JSON.stringify({path,content:readFileSync(path,'utf8')}));
+          console.log(readdirSync('node_modules/@fontsource-variable/manrope/files').filter(p=>p.includes('wght-normal')));
+          JS
