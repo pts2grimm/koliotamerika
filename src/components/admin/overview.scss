@@ -98,7 +98,6 @@
   .koa-overview__change.is-up, .koa-overview__badge.is-yes { color:#91d8b7; }
   .koa-overview__change.is-down { color:#f3a69f; }
 }
-.koa-overview-link { display:flex!important; align-items:center; gap:10px; padding:12px!important; margin-bottom:20px; border-radius:8px; background:rgba(70,167,177,.13); font-weight:700; text-decoration:none!important; }
 @media(max-width:1200px) {
   .koa-overview__header { align-items:flex-start; flex-direction:column; }
   .koa-overview__metrics { grid-template-columns:repeat(2,minmax(0,1fr)); }
