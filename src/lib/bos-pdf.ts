@@ -174,14 +174,17 @@ export async function createBosPDF(doc: BillOfSale) {
   text('The information you see on the window form for this vehicle is part of this contract. Information on the window form overrides any contrary provisions in the contract of sale.', 36, 664, 540, 7, false, 2)
   text('Buyer, by signing below, acknowledges receipt of a copy of this Bill of Sale.', 32, 690, 548, 8, false, 2)
 
-  for (const [x, label] of [[32, 'Seller / Authorized Representative'], [220, 'Buyer'], [408, 'Co-Buyer']] as const) {
+  for (const [x, label] of [[32, 'Seller / Authorized Representative'], [320, 'Buyer']] as const) {
     text('X', x, 729, 10, 8)
     line(x + 12, 742, x + 172, 742)
     text(label, x + 4, 752, 172, 6.5)
-    text('Date: ' + (label === 'Co-Buyer' ? '____________________' : date), x + 4, 765, 172, 7)
+    const dateX = x + 184
+    text(date, dateX + (76 - width(date, 8)) / 2, 729, 76, 8)
+    line(dateX, 742, x + 260, 742)
+    text('Date', dateX, 752, 76, 6.5)
   }
   // Approved seller signature overlays the original form spacing at the requested size.
-  // Buyer and co-buyer signature fields remain empty.
+  // The buyer signature field remains empty.
   const signature = await pdf.embedPng(await loadSignature())
   const signatureSize = signature.scale(68 / signature.height)
   page.drawImage(signature, { x: 64, y: 792 - 757, ...signatureSize })
