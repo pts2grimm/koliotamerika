@@ -184,7 +184,7 @@ export async function createBosPDF(doc: BillOfSale) {
   // Buyer and co-buyer signature fields remain empty.
   const signature = await pdf.embedPng(await loadSignature())
   const signatureSize = signature.scale(68 / signature.height)
-  page.drawImage(signature, { x: 64, y: 792 - 749, ...signatureSize })
+  page.drawImage(signature, { x: 64, y: 792 - 757, ...signatureSize })
   text('BOS ' + doc.stock + ' | ' + doc.vin, 32, 777, 548, 6)
   return pdf.save()
 }
