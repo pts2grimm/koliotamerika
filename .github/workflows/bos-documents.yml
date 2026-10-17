@@ -70,7 +70,7 @@ jobs:
           node --input-type=module <<'JS'
           import {existsSync,readFileSync,globSync} from 'node:fs';
           for(const path of ['src/payload-types.ts','src/app/(payload)/admin/importMap.js']) if(existsSync(path)) console.log('BOS_FILE '+JSON.stringify({path,content:readFileSync(path,'utf8')}));
-          for(const path of ['test-results/bos-preview.jpg','test-results/bos-admin.jpg','test-results/bos-settlement.jpg',...globSync('test-results/**/test-failed-*.png')]) if(existsSync(path)) console.log('REVIEW_IMAGE '+JSON.stringify({path,base64:readFileSync(path).toString('base64')}));
+          for(const path of ['test-results/bos-preview.jpg','test-results/bos-admin.jpg','test-results/bos-settlement.jpg','test-results/bos-buyer-address.jpg','test-results/bos-buyer-mobile.jpg',...globSync('test-results/**/test-failed-*.png')]) if(existsSync(path)) console.log('REVIEW_IMAGE '+JSON.stringify({path,base64:readFileSync(path).toString('base64')}));
           JS
       - uses: actions/upload-artifact@v4
         if: always()
