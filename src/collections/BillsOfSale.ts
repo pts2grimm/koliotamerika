@@ -49,9 +49,10 @@ export const BillsOfSale: CollectionConfig = {
     { ...date('saleDate', 'Дата на продажбата', true), defaultValue: () => bosToday(), admin: { position: 'sidebar', placeholder: 'YYYY-MM-DD' } } as Field,
     { type: 'tabs', tabs: [
       { label: 'Купувач', fields: [
+        { name: 'buyerPicker', type: 'ui', admin: { components: { Field: '/src/components/admin/BosBuyerFields#BosBuyerPicker' } } },
         text('buyerName', 'Име / фирма на купувача', true, 100),
         text('buyerAddress', 'Улица и номер', true, 140),
-        { type: 'row', fields: [text('buyerCity', 'Град', true, 60), text('buyerPostalCode', 'Пощенски код', true, 20), text('buyerCountry', 'Държава', true, 50)] },
+        { type: 'row', fields: [{ ...text('buyerCity', 'Град', true, 60), admin: { components: { Field: '/src/components/admin/BosBuyerFields#BosCityField' } } } as Field, text('buyerPostalCode', 'Пощенски код', true, 20), text('buyerCountry', 'Държава', true, 50)] },
         { type: 'row', fields: [text('buyerPhone', 'Мобилен телефон', false, 30), text('buyerHomePhone', 'Домашен телефон', false, 30), text('buyerWorkPhone', 'Служебен телефон', false, 30)] },
         { type: 'row', fields: [text('buyerState', 'Щат / област', false, 30), text('buyerCounty', 'Окръг (County)', false, 30)] },
         { type: 'row', fields: [text('buyerLicense', 'D.L. / State ID (по избор)', false, 40), date('buyerDOB', 'Дата на раждане (по избор)'), date('buyerLicenseExpiry', 'Валидност на документа (по избор)')] },
