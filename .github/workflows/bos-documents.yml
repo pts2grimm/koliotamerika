@@ -15,6 +15,20 @@ jobs:
           node-version: '24'
           cache: npm
       - run: npm ci --include=dev
+      - name: Inspect signature asset
+        run: |
+          node --input-type=module <<'JS'
+          import sharp from 'sharp';
+          const { data, info } = await sharp('assets/bos/seller-signature.png').ensureAlpha().raw().toBuffer({resolveWithObject:true});
+          let left=info.width, top=info.height, right=-1, bottom=-1, transparent=0;
+          for(let y=0;y<info.height;y++) for(let x=0;x<info.width;x++) {
+            const i=(y*info.width+x)*info.channels;
+            if(data[i+3]===0) transparent++;
+            if(data[i+3]>32) {left=Math.min(left,x);top=Math.min(top,y);right=Math.max(right,x);bottom=Math.max(bottom,y);}
+          }
+          if(!transparent || right<left) throw new Error('Signature must contain visible ink and transparency');
+          console.log('SIGNATURE_ASSET '+JSON.stringify({info,left,top,right,bottom,transparent}));
+          JS
       - name: Generate Payload artifacts
         run: npm run generate:types && npm run generate:importmap
         env:

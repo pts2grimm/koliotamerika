@@ -165,7 +165,7 @@ export interface CustomerAuthOperations {
   };
 }
 /**
- * Bill of Sale за закупен автомобил. Всички суми са в USD. Запази документа преди изтегляне на PDF. Подписите се полагат отделно.
+ * Bill of Sale за закупен автомобил. Всички суми са в USD. Запази документа преди изтегляне на PDF. Подписът на продавача се добавя автоматично. Купувачът подписва отделно.
  *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "bills-of-sale".

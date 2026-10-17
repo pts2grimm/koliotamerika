@@ -11,6 +11,10 @@ const loadFonts = () => fontBytes ||= Promise.all([
   readFile(path.join(process.cwd(), 'assets/fonts/NotoSans-Regular.ttf')),
 ]).catch(error => { fontBytes = undefined; throw error })
 
+let signatureBytes: Promise<Buffer> | undefined
+const loadSignature = () => signatureBytes ||= readFile(path.join(process.cwd(), 'assets/bos/seller-signature.png'))
+  .catch(error => { signatureBytes = undefined; throw error })
+
 export async function createBosPDF(doc: BillOfSale) {
   const pdf = await PDFDocument.create()
   pdf.registerFontkit(fontkit)
@@ -53,7 +57,7 @@ export async function createBosPDF(doc: BillOfSale) {
   }
   const text = (value: unknown, x: number, top: number, maxWidth: number, size = 8, strong = false, lines = 1) => {
     const clean = String(value ?? '').replace(/\s+/g, ' ').trim()
-    if (!clean) return
+    if (!clean) return 0
     let rows: string[] = []
     for (let currentSize = size; currentSize >= 6; currentSize -= .25) {
       rows = ['']
@@ -66,7 +70,7 @@ export async function createBosPDF(doc: BillOfSale) {
       }
       if (rows.length <= lines) {
         rows.forEach((row, index) => drawLine(row, x, top + index * (currentSize + 2), currentSize, strong))
-        return
+        return rows.length * (currentSize + 2)
       }
     }
     throw new BosLayoutError('Текстът е твърде дълъг за полето в PDF: ' + clean.slice(0, 30) + '… Съкрати го преди изтегляне.')
@@ -88,17 +92,20 @@ export async function createBosPDF(doc: BillOfSale) {
 
   box(32, 50, 548, 116); line(306, 50, 306, 166)
   heading('BUYER INFORMATION:', 32, 50, 274)
-  text(doc.buyerName, 36, 64, 266, 9, true, 2)
-  text(doc.buyerAddress, 36, 85, 266, 8, false, 2)
-  text([doc.buyerCity, doc.buyerPostalCode, doc.buyerCountry].filter(Boolean).join(', '), 36, 106, 266, 8)
-  pair('HOME:', doc.buyerHomePhone, 36, 121, 125)
-  pair('CELL:', doc.buyerPhone, 169, 121, 132)
-  pair('D.L./STATE ID:', doc.buyerLicense, 36, 134, 164)
-  pair('WORK:', doc.buyerWorkPhone, 203, 134, 98)
-  pair('D.O.B.:', doc.buyerDOB ? bosDate(doc.buyerDOB) : '', 36, 147, 93)
-  pair('STATE:', doc.buyerState, 132, 147, 75)
-  pair('EXP.:', doc.buyerLicenseExpiry ? bosDate(doc.buyerLicenseExpiry) : '', 210, 147, 92)
-  pair('COUNTY:', doc.buyerCounty, 36, 157, 266)
+  // Advance by the actual wrapped height instead of reserving two rows for every field.
+  let buyerTop = 64
+  buyerTop += text(doc.buyerName, 36, buyerTop, 266, 9, true, 2)
+  buyerTop += text(doc.buyerAddress, 36, buyerTop, 266, 8, false, 2)
+  buyerTop += text([doc.buyerCity, doc.buyerPostalCode, doc.buyerCountry].filter(Boolean).join(', '), 36, buyerTop, 266, 8)
+  buyerTop += 3
+  pair('HOME:', doc.buyerHomePhone, 36, buyerTop, 125)
+  pair('CELL:', doc.buyerPhone, 169, buyerTop, 132)
+  pair('D.L./STATE ID:', doc.buyerLicense, 36, buyerTop + 10, 164)
+  pair('WORK:', doc.buyerWorkPhone, 203, buyerTop + 10, 98)
+  pair('D.O.B.:', doc.buyerDOB ? bosDate(doc.buyerDOB) : '', 36, buyerTop + 20, 93)
+  pair('STATE:', doc.buyerState, 132, buyerTop + 20, 75)
+  pair('EXP.:', doc.buyerLicenseExpiry ? bosDate(doc.buyerLicenseExpiry) : '', 210, buyerTop + 20, 92)
+  pair('COUNTY:', doc.buyerCounty, 36, buyerTop + 30, 266)
   heading('SELLER INFORMATION:', 306, 50, 274)
   text(bosSeller.name, 310, 64, 264, 12, true)
   text(bosSeller.address, 310, 79, 264, 12)
@@ -165,6 +172,10 @@ export async function createBosPDF(doc: BillOfSale) {
     text(label, x + 4, 741, 172, 6.5)
     text('Date: ____________________', x + 4, 757, 172, 7)
   }
+  // Approved seller signature image; buyer and co-buyer fields remain empty.
+  const signature = await pdf.embedPng(await loadSignature())
+  const signatureSize = signature.scale(34 / signature.height)
+  page.drawImage(signature, { x: 64, y: 792 - 738, ...signatureSize })
   text('BOS ' + doc.stock + ' | ' + doc.vin, 32, 777, 548, 6)
   return pdf.save()
 }
