@@ -97,7 +97,7 @@ export async function createBosPDF(doc: BillOfSale) {
   buyerTop += text(doc.buyerName, 36, buyerTop, 266, 9, true, 2)
   buyerTop += text(doc.buyerAddress, 36, buyerTop, 266, 8, false, 2)
   buyerTop += text([doc.buyerCity, doc.buyerPostalCode, doc.buyerCountry].filter(Boolean).join(', '), 36, buyerTop, 266, 8)
-  buyerTop += 3
+  buyerTop += 10
   pair('HOME:', doc.buyerHomePhone, 36, buyerTop, 125)
   pair('CELL:', doc.buyerPhone, 169, buyerTop, 132)
   pair('D.L./STATE ID:', doc.buyerLicense, 36, buyerTop + 10, 164)
@@ -164,18 +164,18 @@ export async function createBosPDF(doc: BillOfSale) {
   text('Unless Seller provides a written warranty, or enters into a service contract within 90 days from the date of this contract, this vehicle is being sold "AS IS" "WITH ALL FAULTS" and Seller makes no warranties, express or implied, on the vehicle, and there will be no implied warranties of merchantability or of fitness for a particular purpose.', 36, 583, 308, 7, false, 6)
   box(32, 650, 548, 38); heading('CONTRACTUAL DISCLOSURE STATEMENT (USED VEHICLES ONLY):', 32, 650, 548)
   text('The information you see on the window form for this vehicle is part of this contract. Information on the window form overrides any contrary provisions in the contract of sale.', 36, 664, 540, 7, false, 2)
-  text('Buyer, by signing below, acknowledges receipt of a copy of this Bill of Sale.', 32, 694, 548, 8, false, 2)
+  text('Buyer, by signing below, acknowledges receipt of a copy of this Bill of Sale.', 32, 690, 548, 8, false, 2)
 
   for (const [x, label] of [[32, 'Seller / Authorized Representative'], [220, 'Buyer'], [408, 'Co-Buyer']] as const) {
-    text('X', x, 725, 10, 8)
-    line(x + 12, 738, x + 172, 738)
-    text(label, x + 4, 741, 172, 6.5)
-    text('Date: ____________________', x + 4, 757, 172, 7)
+    text('X', x, 729, 10, 8)
+    line(x + 12, 742, x + 172, 742)
+    text(label, x + 4, 752, 172, 6.5)
+    text('Date: ____________________', x + 4, 765, 172, 7)
   }
   // Approved seller signature image; buyer and co-buyer fields remain empty.
   const signature = await pdf.embedPng(await loadSignature())
-  const signatureSize = signature.scale(34 / signature.height)
-  page.drawImage(signature, { x: 64, y: 792 - 738, ...signatureSize })
+  const signatureSize = signature.scale(50 / signature.height)
+  page.drawImage(signature, { x: 64, y: 792 - 749, ...signatureSize })
   text('BOS ' + doc.stock + ' | ' + doc.vin, 32, 777, 548, 6)
   return pdf.save()
 }
