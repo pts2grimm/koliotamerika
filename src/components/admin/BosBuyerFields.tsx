@@ -71,7 +71,7 @@ export function BosBuyerPicker() {
 
 export const BosCityField: TextFieldClientComponent = props => {
   const { dispatchFields, setModified, disabled } = useForm()
-  const [city, country] = useFormFields(([fields]) => [String(fields.buyerCity?.value ?? ''), fields.buyerCountry?.value])
+  const [city, country] = useFormFields(([fields]) => [String(fields.buyerCity?.value ?? ''), fields.buyerCountry?.value] as const)
   const [places, setPlaces] = useState<PostalPlace[]>([])
   const [loadError, setLoadError] = useState(false)
   const [focused, setFocused] = useState(false)
@@ -88,7 +88,7 @@ export const BosCityField: TextFieldClientComponent = props => {
     return () => { active = false }
   }, [bg, focused])
   const matches = bg && focused && !readOnly && chosen?.city !== city ? searchPlaces(places, city) : []
-  const selected = bg && chosen?.city === city ? chosen.place : null
+  const selected = bg && chosen && chosen.city === city ? chosen.place : null
   function write(path: string, value: string) {
     dispatchFields({ type: 'UPDATE', path, value }); setModified(true)
   }
