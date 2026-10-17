@@ -74,7 +74,7 @@ test('consent journal, customer linking, protected analytics and responsive dash
   await page.setViewportSize({ width: 390, height: 844 })
   if (await page.locator('.nav--nav-open').count()) await page.locator('.nav__mobile-close').click()
   await expect(page.locator('.nav--nav-open')).toHaveCount(0)
-  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBeTruthy()
+  await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBeTruthy()
   await page.screenshot({ path: 'test-results/admin-overview-mobile.png', fullPage: true })
   await page.screenshot({ path: 'test-results/admin-overview-mobile.jpg', type: 'jpeg', quality: 65 })
 
