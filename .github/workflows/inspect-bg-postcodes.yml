@@ -1,0 +1,27 @@
+name: Inspect Bulgarian postal source
+on:
+  push:
+    branches: ['codex/bg-postcode-source-2026-10-18']
+permissions:
+  contents: read
+jobs:
+  source:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Download public GeoNames Bulgaria postal data
+        run: |
+          python3 - <<'PY'
+          import urllib.request, zipfile, io, json, hashlib
+          url = 'https://download.geonames.org/export/zip/BG.zip'
+          with urllib.request.urlopen(url, timeout=45) as response:
+              raw = response.read()
+              modified = response.headers.get('Last-Modified')
+          archive = zipfile.ZipFile(io.BytesIO(raw))
+          rows = [line.split('\t') for line in archive.read('BG.txt').decode('utf-8-sig').splitlines() if line.strip()]
+          assert 4000 < len(rows) < 20000
+          assert all(len(row) == 12 and row[0] == 'BG' for row in rows)
+          print('POSTAL_META ' + json.dumps({'url':url,'lastModified':modified,'sha256':hashlib.sha256(raw).hexdigest(),'rows':len(rows),'readme':archive.read('readme.txt').decode('utf-8-sig')},ensure_ascii=False))
+          for i in range(0,len(rows),100):
+              print('POSTAL_ROWS ' + json.dumps(rows[i:i+100],ensure_ascii=False))
+          PY
