@@ -38,7 +38,9 @@ jobs:
           process.exit(result.status??1);
           JS
       - name: Render and inspect PDF
+        if: always()
         run: |
+          if [ ! -f test-results/bos.pdf ]; then exit 0; fi
           sudo apt-get update -qq
           sudo apt-get install -y poppler-utils
           pdftoppm -jpeg -scale-to 1400 -singlefile test-results/bos.pdf test-results/bos-preview
