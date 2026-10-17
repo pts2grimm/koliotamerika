@@ -1,4 +1,6 @@
 'use client'
+import { recordConsentChoice } from '@/lib/consent-audit-browser'
+import type { ConsentAction } from '@/lib/consent-audit'
 import { useEffect, useRef, useState } from 'react'
 import { usePathname } from 'next/navigation'
 import type { PublicIntegrations } from '@/lib/integration-config'
@@ -67,9 +69,10 @@ export function Tracking({ config }: { config: PublicIntegrations }) {
     window.addEventListener('koa:lead', lead); document.addEventListener('click', contact)
     return () => { window.removeEventListener('koa:lead', lead); document.removeEventListener('click', contact) }
   }, [config])
-  function save(analytics: boolean, marketing: boolean) {
+  function save(analytics: boolean, marketing: boolean, action: ConsentAction) {
     const previous = browserConsent()
     const next = storeConsent({ analytics, marketing })
+    recordConsentChoice(analytics, marketing, action)
     setConsent(next); setOpen(false)
     if (previous && ((previous.analytics && !analytics) || (previous.marketing && !marketing))) {
       withdrawTracking(next)
@@ -90,9 +93,9 @@ export function Tracking({ config }: { config: PublicIntegrations }) {
       {config.installation === 'gtm' && <p>Tag Manager се зарежда само когато и двете категории са разрешени.</p>}
     </div>}
     <div className="cookie-actions">
-      <button type="button" onClick={() => save(false, false)}>Само необходимите</button>
-      <button type="button" onClick={() => save(true, true)}>Приеми всички</button>
-      {details ? <button type="button" onClick={() => save(analytics, marketing)}>Запази избора</button> : <button type="button" onClick={() => setDetails(true)}>Избери настройки</button>}
+      <button type="button" onClick={() => save(false, false, 'necessary_only')}>Само необходимите</button>
+      <button type="button" onClick={() => save(true, true, 'accept_all')}>Приеми всички</button>
+      {details ? <button type="button" onClick={() => save(analytics, marketing, 'save_preferences')}>Запази избора</button> : <button type="button" onClick={() => setDetails(true)}>Избери настройки</button>}
       {consent && <button type="button" onClick={() => { setOpen(false); previousFocus.current?.focus() }}>Затвори</button>}
     </div>
   </section>

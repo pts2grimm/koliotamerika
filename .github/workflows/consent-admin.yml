@@ -1,0 +1,53 @@
+name: Consent analytics and admin verification
+on:
+  push:
+    branches: ['codex/consent-admin-*']
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci --include=dev
+      - name: Generate Payload artifacts
+        run: npm run generate:types && npm run generate:importmap
+        env:
+          PREVIEW_MODE: 'true'
+          PAYLOAD_SECRET: isolated-consent-ci-not-a-live-secret
+      - name: Export generated files for review
+        run: |
+          node --input-type=module <<'JS'
+          import {readFileSync} from 'node:fs';
+          for(const file of ['src/payload-types.ts','src/app/(payload)/admin/importMap.js']) {
+            console.log('GENERATED_FILE ' + JSON.stringify({path:file,content:readFileSync(file,'utf8')}));
+          }
+          JS
+      - run: npm test
+      - run: npm run build
+        env:
+          PREVIEW_MODE: 'true'
+          PAYLOAD_SECRET: isolated-consent-ci-not-a-live-secret
+      - run: npm run typecheck
+      - run: npx playwright install --with-deps chromium
+      - name: Consent and admin browser checks
+        run: |
+          node --input-type=module <<'JS'
+          import { chromium } from '@playwright/test';
+          import { spawnSync } from 'node:child_process';
+          const result=spawnSync('npx',['playwright','test','--config=playwright.consent-admin.config.ts','--reporter=line'],{stdio:'inherit',env:{...process.env,CHROMIUM_PATH:chromium.executablePath()}});
+          process.exit(result.status??1);
+          JS
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: consent-admin-results
+          path: |
+            test-results
+            src/payload-types.ts
+            src/app/(payload)/admin/importMap.js

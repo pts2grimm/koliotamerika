@@ -1,3 +1,4 @@
+import { ConsentEvents } from './collections/ConsentEvents'
 import { smtpConfiguration } from './lib/smtp-config'
 import { nodemailerAdapter } from '@payloadcms/email-nodemailer'
 import { Customers, SavedVehicles } from './collections/Customers'
@@ -32,13 +33,14 @@ export default buildConfig({
     components: {
       beforeNavLinks: ['/src/components/admin/ContentNav#ContentNav'],
       views: {
+        dashboard: { Component: '/src/components/admin/Overview#Overview', meta: { title: 'Обзор и аналитика' } },
         sitePages: { Component: '/src/components/admin/ContentList#SitePagesView', path: '/site-pages', exact: true, meta: { title: 'Страници' } },
         blogPosts: { Component: '/src/components/admin/ContentList#BlogPostsView', path: '/blog-posts', exact: true, meta: { title: 'Блог' } },
       },
     },
   },
   i18n: { fallbackLanguage: 'bg', supportedLanguages: { bg, en } },
-  collections: [Users, Customers, SavedVehicles, Media, Cars, Pages, Inquiries, AuctionQuotes, Redirects, RateLimits],
+  collections: [ConsentEvents, Users, Customers, SavedVehicles, Media, Cars, Pages, Inquiries, AuctionQuotes, Redirects, RateLimits],
   globals: [SiteSettings, CalculatorSettings, Integrations],
   ...(smtp ? { email: nodemailerAdapter(smtp) } : {}),
   db: sqliteAdapter({

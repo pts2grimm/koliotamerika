@@ -1,0 +1,93 @@
+import { test, expect } from '@playwright/test'
+import { randomUUID } from 'node:crypto'
+import { consentPolicyVersion } from '../src/lib/consent-audit'
+
+test('consent journal, customer linking, protected analytics and responsive dashboard', async ({ page, playwright, baseURL }) => {
+  const admin = await playwright.request.newContext({ baseURL })
+  const visitor = await playwright.request.newContext({ baseURL })
+  const origin = { Origin: baseURL! }
+  const credentials = { email: 'consent-admin@example.test', password: 'Consent-admin-2026' }
+  expect((await admin.post('/api/users/first-register', { data: credentials })).ok()).toBeTruthy()
+  expect((await admin.post('/api/users/login', { data: credentials })).ok()).toBeTruthy()
+  const receipt = randomUUID()
+  const choice = { receipt, event: randomUUID(), analytics: false, marketing: false, action: 'necessary_only', policyVersion: consentPolicyVersion }
+  const post = (data: object) => visitor.post('/api/consent-choice', { headers: origin, data })
+  expect((await post(choice)).status()).toBe(204)
+  expect((await post(choice)).status()).toBe(204)
+  let records = (await (await admin.get('/api/consent-events')).json()).docs
+  expect(records).toHaveLength(1)
+  expect(records[0].customer).toBeFalsy()
+  expect(records[0].subject).not.toBe(receipt)
+  expect((await visitor.get('/api/consent-events')).status()).toBe(403)
+  expect((await visitor.get('/api/admin/consent-export')).status()).toBe(403)
+  expect((await visitor.post('/api/consent-events', { data: choice })).status()).toBe(403)
+  expect((await visitor.post('/api/consent-choice', { data: choice, headers: { Origin: 'https://attacker.example' } })).status()).toBe(403)
+  expect((await post({ ...choice, analytics: 'false' })).status()).toBe(400)
+  expect((await post({ ...choice, analytics: true })).status()).toBe(400)
+  expect((await post({ ...choice, extra: 'x'.repeat(3000) })).status()).toBe(413)
+
+  expect((await visitor.post('/api/account/register', { headers: origin, data: {
+    email: 'consent-customer@example.test', password: 'Consent-customer-2026', name: 'Клиент за проверка', consent: true,
+  } })).ok()).toBeTruthy()
+  expect((await post({ ...choice, event: randomUUID(), analytics: true, marketing: true, action: 'accept_all' })).status()).toBe(204)
+  records = (await (await admin.get('/api/consent-events', { params: { sort: '-createdAt' } })).json()).docs
+  const linked = records.find((row: { analytics: boolean }) => row.analytics)
+  expect(linked.customer.email).toBe('consent-customer@example.test')
+  expect(records.find((row: { analytics: boolean }) => !row.analytics).customer).toBeFalsy()
+  expect(new Set(records.map((row: { subject: string }) => row.subject)).size).toBe(1)
+  expect((await visitor.get('/api/admin/consent-export')).status()).toBe(403)
+  expect((await admin.patch('/api/consent-events/' + linked.id, { data: { analytics: false } })).status()).toBe(403)
+  for (let index = 0; index < 22; index++) expect((await post({ ...choice, receipt: randomUUID(), event: randomUUID() })).status()).toBe(204)
+
+  await page.goto('/admin')
+  await expect(page).toHaveURL(/\/admin\/login/)
+  await expect(page.getByText('Клиент за проверка')).toHaveCount(0)
+  await page.locator('input[name=email]').fill(credentials.email)
+  await page.locator('input[name=password]').fill(credentials.password)
+  await page.locator('button[type=submit]').click()
+  await expect(page.getByRole('heading', { name: 'Обзор на сайта', exact: true })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Кой какво приема' })).toBeVisible()
+  await page.goto('/admin?category=all')
+  await expect(page.getByText('consent-customer@example.test', { exact: true })).toBeVisible()
+  await expect(page.locator('.koa-overview__metrics')).toContainText('23')
+  await page.getByRole('link', { name: /Браузър/ }).click()
+  await expect(page.locator('.koa-overview__history')).toContainText('1 записа')
+  await page.goto('/admin')
+  await page.getByRole('navigation', { name: 'Страници от историята на бисквитките' }).getByRole('link', { name: 'Следваща →' }).click()
+  await expect(page).toHaveURL(/page=2/)
+  await page.goto('/admin?period=custom&from=bad&to=2026-02-30')
+  await expect(page.getByRole('heading', { name: 'Обзор на сайта' })).toBeVisible()
+
+  await page.setViewportSize({ width: 1440, height: 1050 })
+  await page.screenshot({ path: 'test-results/admin-overview-desktop.png', fullPage: true })
+  await page.getByRole('button', { name: 'Смени темата' }).click()
+  await page.screenshot({ path: 'test-results/admin-overview-other-theme.png', fullPage: true })
+  await page.setViewportSize({ width: 390, height: 844 })
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBeTruthy()
+  await page.screenshot({ path: 'test-results/admin-overview-mobile.png', fullPage: true })
+
+  const csv = await admin.get('/api/admin/consent-export?category=all')
+  expect(csv.status()).toBe(200)
+  expect(csv.headers()['cache-control']).toContain('no-store')
+  expect(await csv.text()).toContain('consent-customer@example.test')
+
+  const browser = await page.context().browser()!.newContext()
+  const fresh = await browser.newPage()
+  let auditRequests = 0
+  fresh.on('request', request => { if (request.url().includes('/api/consent-choice')) auditRequests++ })
+  await fresh.goto('/')
+  await expect(fresh.getByRole('heading', { name: 'Ти избираш бисквитките' })).toBeVisible()
+  expect(auditRequests).toBe(0)
+  const saved = fresh.waitForResponse(response => response.url().includes('/api/consent-choice'))
+  await fresh.getByRole('button', { name: 'Само необходимите', exact: true }).click()
+  expect((await saved).status()).toBe(204)
+  await fresh.reload()
+  expect(auditRequests).toBe(1)
+  await expect(fresh.getByRole('heading', { name: 'Ти избираш бисквитките' })).toHaveCount(0)
+  await fresh.route('**/api/consent-choice', route => route.abort())
+  await fresh.evaluate(() => window.dispatchEvent(new Event('koa:cookie-settings')))
+  await fresh.getByRole('button', { name: 'Приеми всички', exact: true }).click()
+  expect(await fresh.evaluate(() => JSON.parse(decodeURIComponent(document.cookie.split('; ').find(c => c.startsWith('koa-consent='))!.split('=')[1])).analytics)).toBe(true)
+  await browser.close()
+  await admin.dispose(); await visitor.dispose()
+})
