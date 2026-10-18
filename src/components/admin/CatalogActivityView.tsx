@@ -5,6 +5,7 @@ import type { AdminViewServerProps, Where } from 'payload'
 import { sql } from '@payloadcms/db-sqlite'
 import { adminPeriod } from '@/lib/admin-period'
 import { purgeCatalogActivity } from '@/lib/catalog-activity-server'
+import { purgeCatalogTotals } from '@/lib/catalog-totals-server'
 import { auctionFilterLabel } from '@/lib/auction-filters'
 import { PeriodControls } from './OverviewControls'
 import { AdminAnalyticsTabs } from './AdminAnalyticsTabs'
@@ -26,24 +27,29 @@ export async function CatalogActivityView(props: AdminViewServerProps) {
   const make = typeof params.make === 'string' ? params.make.trim().slice(0,100) : ''
   const model = typeof params.model === 'string' ? params.model.trim().slice(0,100) : ''
   const page = typeof params.page === 'string' && /^[1-9]\d{0,4}$/.test(params.page) ? Number(params.page) : 1
-  await purgeCatalogActivity(req.payload)
+  await Promise.all([purgeCatalogActivity(req.payload),purgeCatalogTotals(req.payload)])
   const db = req.payload.db.drizzle
   const where = sql`created_at >= ${period.start} AND created_at < ${period.end}
     ${kind ? sql`AND kind = ${kind}` : sql``}
     ${make ? sql`AND lower(make) = lower(${make})` : sql``}
     ${model ? sql`AND instr(lower(model), lower(${model})) > 0` : sql``}`
-  const [totals, popular, viewed, rows] = await Promise.all([
+  const bucketWhere = sql`day >= ${period.from} AND day <= ${period.to}
+    ${kind ? sql`AND kind = ${kind}` : sql``}
+    ${make ? sql`AND lower(make) = lower(${make})` : sql``}
+    ${model ? sql`AND instr(lower(model), lower(${model})) > 0` : sql``}`
+  const [totals, popular, viewed, rows, detailTotals] = await Promise.all([
     db.all<{ total: number; searches: number; views: number; empty: number }>(sql`
-      SELECT COUNT(*) AS total, COALESCE(SUM(kind='search'),0) AS searches, COALESCE(SUM(kind='view'),0) AS views,
-        COALESCE(SUM(kind='search' AND outcome='empty'),0) AS empty FROM catalog_events WHERE ${where}`),
+      SELECT COALESCE(SUM(count),0) AS total, COALESCE(SUM(CASE WHEN kind='search' THEN count ELSE 0 END),0) AS searches, COALESCE(SUM(CASE WHEN kind='view' THEN count ELSE 0 END),0) AS views,
+        COALESCE(SUM(CASE WHEN kind='search' AND outcome='empty' THEN count ELSE 0 END),0) AS empty FROM catalog_totals WHERE ${bucketWhere}`),
     db.all<{ make: string; model: string; total: number }>(sql`
-      SELECT make, COALESCE(model,'Всички модели') AS model, COUNT(*) AS total FROM catalog_events
-      WHERE ${where} AND kind='search' AND make IS NOT NULL AND make != '' GROUP BY make, model ORDER BY total DESC, make, model LIMIT 10`),
+      SELECT make, COALESCE(NULLIF(model,''),'Всички модели') AS model, SUM(count) AS total FROM catalog_totals
+      WHERE ${bucketWhere} AND kind='search' AND make != '' GROUP BY make, model ORDER BY total DESC, make, model LIMIT 10`),
     db.all<{ lot: string; site: string; make: string; model: string; total: number }>(sql`
-      SELECT lot, site, MAX(make) AS make, MAX(model) AS model, COUNT(*) AS total FROM catalog_events
-      WHERE ${where} AND kind='view' GROUP BY lot, site ORDER BY total DESC, lot LIMIT 10`),
+      SELECT lot, site, MAX(make) AS make, MAX(model) AS model, SUM(count) AS total FROM catalog_totals
+      WHERE ${bucketWhere} AND kind='view' GROUP BY lot, site ORDER BY total DESC, lot LIMIT 10`),
     db.all<Row>(sql`SELECT *, (SELECT name FROM customers WHERE customers.id=catalog_events.customer_id) AS customer_name
       FROM catalog_events WHERE ${where} ORDER BY created_at DESC, id DESC LIMIT 30 OFFSET ${(page - 1)*30}`),
+    db.all<{ total:number }>(sql`SELECT COUNT(*) AS total FROM catalog_events WHERE ${where}`),
   ])
   const inquiryPage = typeof params.inquiryPage === 'string' && /^[1-9]\d{0,4}$/.test(params.inquiryPage) ? Number(params.inquiryPage) : 1
   const inquiryWhere: Where = { and: [
@@ -56,7 +62,7 @@ export async function CatalogActivityView(props: AdminViewServerProps) {
     select: { name: true, car: true, status: true, createdAt: true },
   })
   const totalsRow = totals[0]
-  const pages = Math.max(1, Math.ceil(totalsRow.total / 30))
+  const pages = Math.max(1, Math.ceil(detailTotals[0].total / 30))
   const query = new URLSearchParams({ period: 'custom', from: period.from, to: period.to })
   if (kind) query.set('kind',kind)
   if (make) query.set('make',make)
@@ -73,7 +79,7 @@ export async function CatalogActivityView(props: AdminViewServerProps) {
     <header className="koa-overview__header"><div><p className="koa-overview__eyebrow">ИНТЕРЕС КЪМ АВТОМОБИЛИТЕ</p><h1>Активност в каталога</h1><p>Какво търсят посетителите, кои автомобили отварят и за какво изпращат запитвания.</p></div>
       <a className="koa-overview__button koa-overview__button--quiet" href={root + '/collections/inquiries'}>Изпратени запитвания ↗</a></header>
     <AdminAnalyticsTabs active="catalog" root={root} />
-    <p className="koa-catalog-report__notice">Отчитат се действията с разрешена „Статистика“, а не всички посещения или технически API заявки. Данните започват от включването на отчета и се пазят 90 дни. Броят действия не е брой различни хора. Изпратените запитвания се показват от съществуващия регистър, независимо от съгласието за статистика.</p>
+    <p className="koa-catalog-report__notice">Обобщените броячи отчитат действия и без разрешена „Статистика“, без връзка с посетител или профил. Започват от включването им и се пазят 90 дни. По-старите записи остават в подробната история, която се води само при съгласие. Броят действия не е брой различни хора; блокирани заявки не се отчитат.</p>
     <PeriodControls key={period.from + period.to} preset={period.preset} from={period.from} to={period.to} />
     <form method="get" className="koa-overview__filters">
       <input type="hidden" name="period" value="custom" /><input type="hidden" name="from" value={period.from} /><input type="hidden" name="to" value={period.to} />
@@ -83,6 +89,7 @@ export async function CatalogActivityView(props: AdminViewServerProps) {
       <button type="submit" className="koa-overview__button koa-overview__button--quiet">Филтрирай</button>
       <Link href={root + '/catalog-activity'}>Изчисти</Link>
     </form>
+    <h2>Обобщени броячи</h2>
     <div className="koa-overview__metrics">
       {[['Търсения',totalsRow.searches],['Отворени автомобили',totalsRow.views],['Търсения без резултат',totalsRow.empty],['Изпратени запитвания',inquiries.totalDocs]].map(([label,value]) =>
         <article key={String(label)} className="koa-overview__metric"><span>{label}</span><strong>{number(Number(value))}</strong></article>)}
@@ -92,7 +99,8 @@ export async function CatalogActivityView(props: AdminViewServerProps) {
       <section><h2>Най-търсени модели</h2>{popular.length ? <ol>{popular.map((item,index) => <li key={index}><span>{item.make} · {item.model}</span><strong>{number(item.total)}</strong></li>)}</ol> : <p>Още няма търсения с избрана марка за този период и филтри.</p>}</section>
       <section><h2>Най-разглеждани автомобили</h2>{viewed.length ? <ol>{viewed.map(item => <li key={item.site+':'+item.lot}><a href={'/targove/kola?' + new URLSearchParams({lot:item.lot,site:item.site})} target="_blank" rel="noreferrer">{item.make} {item.model} · Лот {item.lot}</a><strong>{number(item.total)}</strong></li>)}</ol> : <p>Още няма отворени автомобили за този период и филтри.</p>}</section>
     </div>
-    <section id="catalog-history" className="koa-catalog-report__history"><h2>Последни действия <small>· {number(totalsRow.total)} записа</small></h2>
+    <section id="catalog-history" className="koa-catalog-report__history"><h2>Подробна история <small>· {number(detailTotals[0].total)} записа</small></h2>
+      <p>Само при разрешена статистика. Общите броячи по-горе не се прибавят към тази история и не могат да се свържат с отделен посетител.</p>
       <div className="koa-catalog-report__table"><table><thead><tr><th>Кога</th><th>Действие</th><th>Автомобил / търсене</th><th>Резултат</th><th>Посетител</th></tr></thead><tbody>
         {rows.map(row => <tr key={row.id}>
           <td>{moment(row.created_at)}</td><td>{row.kind==='view'?'Отворен автомобил':'Търсене'}<small>{row.section==='powersports'?'Мотори и ATV':'Коли'}{row.archive?' · Архив':''}</small></td>

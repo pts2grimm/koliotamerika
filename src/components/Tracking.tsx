@@ -92,7 +92,7 @@ export function Tracking({ config }: { config: PublicIntegrations }) {
     </div>
     {details && <div className="cookie-options">
       <p><strong>Необходими — винаги включени.</strong> Вход, сигурност и запазени предпочитания. Изборът за бисквитките се пази {consentLifetime / 86400} дни.</p>
-      <label><input type="checkbox" checked={analytics} onChange={e => setAnalytics(e.target.checked)} /><span><strong>Статистика</strong><small>Статистика за търсенията и разгледаните автомобили, Google Analytics и Microsoft Clarity.</small></span></label>
+      <label><input type="checkbox" checked={analytics} onChange={e => setAnalytics(e.target.checked)} /><span><strong>Статистика</strong><small>Подробна история на търсенията и разгледаните автомобили, Google Analytics и Microsoft Clarity.</small></span></label>
       <label><input type="checkbox" checked={marketing} onChange={e => setMarketing(e.target.checked)} /><span><strong>Реклама</strong><small>Meta Pixel/CAPI и Google Ads. При запитване CAPI може да изпрати защитени с хеш имейл и телефон към Meta за измерване на рекламите.</small></span></label>
       {config.installation === 'gtm' && <p>Tag Manager се зарежда само когато и двете категории са разрешени.</p>}
     </div>}

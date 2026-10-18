@@ -1,5 +1,6 @@
 'use client'
 import { useEffect, useRef } from 'react'
+import { catalogTotalData } from '@/lib/catalog-totals'
 import { consentFromCookies } from '@/lib/tracking-consent'
 import { catalogReceiptKey, type CatalogActivity as Activity } from '@/lib/catalog-activity'
 
@@ -8,10 +9,24 @@ import { catalogReceiptKey, type CatalogActivity as Activity } from '@/lib/catal
 export function CatalogActivity({ data, enabled }: { data: Activity; enabled: boolean }) {
   const serialized = JSON.stringify(data)
   const sent = useRef('')
+  const counted = useRef('')
   useEffect(() => {
     if (!enabled) return
     const send = () => {
-      if (document.visibilityState !== 'visible' || sent.current === serialized || !consentFromCookies(document.cookie)?.analytics) return
+      if (document.visibilityState !== 'visible') return
+      // No cookies, authentication, storage, event/session ID or referring URL.
+      // Count once per mounted result even if consent changes afterwards.
+      if(counted.current!==serialized) {
+        counted.current=serialized
+        try {
+          void fetch('/api/catalog-totals', {
+            method:'POST',credentials:'omit',referrerPolicy:'no-referrer',keepalive:true,
+            headers:{'Content-Type':'application/json'},
+            body:JSON.stringify(catalogTotalData(JSON.parse(serialized))),
+          }).catch(()=>{})
+        } catch { /* Counting never blocks browsing. */ }
+      }
+      if (sent.current === serialized || !consentFromCookies(document.cookie)?.analytics) return
       try {
         let receipt = crypto.randomUUID()
         try {
