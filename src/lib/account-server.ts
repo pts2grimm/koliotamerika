@@ -1,3 +1,4 @@
+import { catalogueRequestIP } from './catalog-request-ip'
 import { createHmac } from 'node:crypto'
 import { NextResponse } from 'next/server'
 import { cms, siteURL } from './data'
@@ -29,7 +30,7 @@ export async function accountBody(request: Request): Promise<Record<string, unkn
 }
 export async function accountLimit(request: Request, action: string, email?: string) {
  const payload = await cms()
- const client = process.env.TRUST_PROXY === 'true' ? request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown' : 'shared'
+ const client = process.env.TRUST_PROXY === 'true' ? catalogueRequestIP(request.headers, true)?.address || 'unknown' : 'shared'
  const cutoff = new Date(Date.now() - 3600000).toISOString()
  const limits: [string, number][] = [[`account:${action}:ip:${client}`, client === 'shared' ? 120 : 30]]
  if (email) limits.push([`account:${action}:email:${email}`, action === 'forgot' ? 5 : 15])

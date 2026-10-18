@@ -1,3 +1,4 @@
+import { catalogueRequestIP } from '@/lib/catalog-request-ip'
 import { notifyInquiryBeforeResponse } from '@/lib/inquiry-notification'
 import { passwordRecoveryEnabled } from '@/lib/accounts-enabled'
 import { recordLead } from '@/lib/record-lead'
@@ -23,7 +24,7 @@ export async function POST(request: Request) {
  try {
    const payload = await cms()
    // Only trust forwarding headers when a controlled reverse proxy overwrites them.
-   const client = process.env.TRUST_PROXY === 'true' ? request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown' : 'shared'
+   const client = process.env.TRUST_PROXY === 'true' ? catalogueRequestIP(request.headers, true)?.address || 'unknown' : 'shared'
    const key = createHmac('sha256', process.env.PAYLOAD_SECRET!).update(client).digest('hex')
    const cutoff = new Date(Date.now() - 60 * 60 * 1000).toISOString()
    const recent = await payload.count({ collection: 'submission-limits', where: { and: [{ key: { equals: key } }, { createdAt: { greater_than: cutoff } }] } })
