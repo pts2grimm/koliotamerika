@@ -15,7 +15,7 @@ export function requestLimitIdentity(headers: Pick<Headers, 'get'>) {
  */
 export async function reserveSubmission(payload: Payload, value: string, limit: number, now = Date.now()) {
   if (!Number.isSafeInteger(limit) || limit < 1) throw new Error('Invalid submission limit')
-  const key = createHmac('sha256', payload.secret).update(value).digest('hex')
+  const key = createHmac('sha256', payload.config.secret).update(value).digest('hex')
   const cutoff = new Date(now - 3600000).toISOString()
   const created = new Date(now).toISOString()
   await payload.db.drizzle.run(sql`DELETE FROM submission_limits WHERE created_at <= ${cutoff}`)

@@ -9,7 +9,7 @@ test('hardening preserves public SEO, admin login, reset mail and legitimate for
  if(!bootstrap.ok()){
   const login=await admin.post('/api/users/login',{data:{email:'catalog-admin@example.test',password:'Catalog-admin-2026'}})
   expect(login.ok()).toBeTruthy()
-  expect((await admin.post('/api/users',{data:credentials})).ok()).toBeTruthy()
+  expect((await admin.post('/api/users',{headers:{Authorization:'JWT '+(await login.json()).token},data:credentials})).ok()).toBeTruthy()
  }
  for(const path of ['/','/blog','/robots.txt','/sitemap.xml']){
   const response=await admin.get(path)

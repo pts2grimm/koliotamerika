@@ -12,7 +12,9 @@ export async function guardAdminAuth(request: Request, action: string, getPayloa
   const origin = request.headers.get('origin')
   const expected = new URL(process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:3000').origin
   if (request.headers.get('sec-fetch-site') === 'cross-site' || origin && origin !== expected) return reply(403, 'Невалиден източник на заявката.')
-  if (!request.headers.get('content-type')?.toLowerCase().startsWith('application/json')) return reply(415, 'Очакват се JSON данни.')
+  const contentType = request.headers.get('content-type') || ''
+  const mediaType = contentType.split(';')[0].trim().toLowerCase()
+  if (!['application/json', 'multipart/form-data'].includes(mediaType)) return reply(415, 'Неподдържан формат на заявката.')
   const reader = request.body?.getReader()
   if (!reader) return reply(400, 'Липсват данни.')
   const chunks: Uint8Array[] = []
@@ -29,7 +31,16 @@ export async function guardAdminAuth(request: Request, action: string, getPayloa
   const text = Buffer.concat(chunks).toString('utf8')
   let data: Record<string, unknown>
   try {
-    const input = JSON.parse(text)
+    let json = text
+    if (mediaType === 'multipart/form-data') {
+      // Payload's own login/reset forms send one _payload field. Parse only after
+      // the complete body is bounded, reject files/duplicate fields, then forward JSON.
+      const form = await new Response(text, { headers: { 'Content-Type': contentType } }).formData()
+      const entries = [...form.entries()]
+      if (entries.length !== 1 || entries[0][0] !== '_payload' || typeof entries[0][1] !== 'string') return reply(400, 'Невалидни данни.')
+      json = entries[0][1]
+    }
+    const input = JSON.parse(json)
     if (!input || typeof input !== 'object' || Array.isArray(input)) return reply(400, 'Невалидни данни.')
     data = input
   } catch { return reply(400, 'Невалидни данни.') }
@@ -48,5 +59,6 @@ export async function guardAdminAuth(request: Request, action: string, getPayloa
   }
   const headers = new Headers(request.headers)
   headers.delete('content-length')
-  return new Request(request.url, { method: request.method, headers, body: text })
+  headers.set('content-type', 'application/json')
+  return new Request(request.url, { method: request.method, headers, body: JSON.stringify(data) })
 }

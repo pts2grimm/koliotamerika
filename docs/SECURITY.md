@@ -3,7 +3,7 @@
 ## Implemented controls
 - Payload staff access for administrator data, BOS/PDF, inquiries, consent/catalogue history and integration settings. Customer access is separate. GraphQL is disabled.
 - Administrator bootstrap via /api/users/first-register requires explicit ALLOW_ADMIN_SETUP=true independently of customer-account enablement. Provisioning through INITIAL_ADMIN_EMAIL/PASSWORD still works. Leave setup disabled on the live site.
-- Administrator authentication: 16 KiB streamed JSON limit; credential length/type checks; cross-origin browser rejection; persistent HMAC limits (30 attempts/IP/action/hour, shared fallback 120; email 15/hour, password recovery 5/hour). Existing five failed logins/10-minute lock remains.
+- Administrator authentication: 16 KiB streamed limit for JSON and Payload's native multipart authentication forms (one _payload field, no files); credential length/type checks; cross-origin browser rejection; persistent HMAC limits (30 attempts/IP/action/hour, shared fallback 120; email 15/hour, password recovery 5/hour). Existing five failed logins/10-minute lock remains.
 - Customer login/registration/reset and inquiries now reserve their limits atomically before the operation. Concurrent requests cannot exceed a key's quota. Existing inquiry quota keys remain valid across deployment.
 - submission_limits stores HMAC keys only, expires after one hour, maximum 20,000 active reservations. Capacity/storage failure prevents protected operations. No raw passwords, reset tokens, emails or IPs in this limiter.
 - Inquiry honeypot, schema/body bounds, exact Origin and cross-site checks, existing awaited SMTP notifications preserved.
@@ -24,7 +24,7 @@ DDoS/network firewall protections must operate at the hosting edge; application 
 ## Operational checks
 Keep ALLOW_ADMIN_SETUP=false after provisioning; enable MFA on hosting/GitHub/email accounts and review account access. Check Turso and media backup/restore coverage separately (not assumed from a hosting backup).
 No secrets or DNS changes are included. This review does not establish that the site is immune to attacks.
-Dependency findings and automated checks are recorded in the PR; do not use npm audit fix --force on production.
+The 2026-10-18 audit initially found 9 affected dependency entries (1 high, 6 moderate, 2 low, including inherited findings). Patched overrides: Nodemailer 10.0.9, DOMPurify 3.4.16 and esbuild 0.28.1 specifically under @esbuild-kit/core-utils. The resolved lockfile audit reports zero known vulnerabilities. Production build, migrations and SMTP regressions validate compatibility; do not use npm audit fix --force on production.
 
 ## Primary references
 - https://www.hostinger.com/support/10695636-hostinger-cdn-security-levels/

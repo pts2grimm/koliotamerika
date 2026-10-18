@@ -37,3 +37,21 @@ test('admin guard rejects unsafe inputs before initializing Payload', async()=>{
  assert.ok(result instanceof Response)
  assert.equal(result.status,503)
 })
+
+test('Payload multipart authentication is bounded and rejects files/duplicate fields', async()=>{
+ const unavailable=async()=>{throw new Error('Storage unavailable in validation test')}
+ const form=new FormData()
+ form.set('_payload',JSON.stringify({email:'test@example.test',password:'test12345'}))
+ const valid=await guardAdminAuth(new Request('http://localhost:3000/api/users/login',{method:'POST',body:form}),'login',unavailable)
+ assert.ok(valid instanceof Response)
+ assert.equal(valid.status,503) // passed parsing, reached the storage gate
+ form.append('_payload','{}')
+ const duplicate=await guardAdminAuth(new Request('http://localhost:3000/api/users/login',{method:'POST',body:form}),'login',unavailable)
+ assert.ok(duplicate instanceof Response)
+ assert.equal(duplicate.status,400)
+ form.delete('_payload')
+ form.set('file',new Blob(['data']),'test.txt')
+ const file=await guardAdminAuth(new Request('http://localhost:3000/api/users/login',{method:'POST',body:form}),'login',unavailable)
+ assert.ok(file instanceof Response)
+ assert.equal(file.status,400)
+})
