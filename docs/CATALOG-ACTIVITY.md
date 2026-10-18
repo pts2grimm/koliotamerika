@@ -2,6 +2,16 @@
 
 Administrator path: /admin/catalog-activity, linked from navigation and overview tabs.
 
+## Server catalogue requests (no browser consent dependency)
+
+The first table in the report is catalog_requests, a private operational journal at the searchAuctions / auctionCar / lookupAuction service boundary. It runs on the server without reading cookies, headers, session storage or customer authentication, including for visitors who have not chosen or have refused analytics. It records start time, operation, provider, allowlisted make/model, year range, page, lot/site, returned-page item count, generic outcome and elapsed time. It never saves raw query/VIN, URL, seller text, request/response bodies, exception messages, IP/User-Agent, session/customer identifiers or credentials. Unknown properties are dropped.
+
+This is a catalogue-service request log, **not a count of external HTTP calls to Eridan**. Cache/snapshot hits also produce rows; one search may cause several upstream requests, and warm cache may cause none. Bots, metadata and prefetch calls may appear. React cache still coalesces detail calls within one render. Browser events are not required; no additional auction-provider call is made for logging. Search counts are returned page items, not the total matching inventory. Failed lookups have no retained raw query.
+
+Writes are scheduled with Next 16.4 after outside the data-cache functions. Provider errors/results remain unchanged if scheduling, storage or diagnostics fail; warnings are generic and bounded to once/minute/process. Preview builds skip logging. Non-request scripts cannot schedule after and produce no record. Full-page/CDN responses that do not execute this service also produce no new row. Delivery on process termination is best effort.
+
+The additive migration creates an internal SQL table with no Payload public endpoint or customer relation. Only authenticated users with admin permission can read the view. Logs retain 30 days and at most 50000 rows using an atomic insert cap; cleanup is on the next write/report, not a timed job. Once full, new entries are dropped until capacity becomes available. There is no backfill or join to consented history, counters, inquiries or hosting logs. The cookie information separately discloses this operational journal; it does not claim an exemption for arbitrary cookieless visitor tracking.
+
 ## Daily aggregate counters (no analytics consent required by the application)
 
 The browser submits one counter increment when a first-page catalogue result or a successfully resolved lot becomes visible. Requests use credentials: omit and referrerPolicy: no-referrer. They do not access cookies/localStorage/sessionStorage for counting, and contain no browser, event, session or customer identifier, VIN, raw URL/query, arbitrary filters, exact time, IP or User-Agent. Only kind, catalogue section, archive flag, make/model, view lot/site and result/empty/error category are sent. The strict endpoint rejects extra keys and invalid labels; it never reads cookies or resolves customers.

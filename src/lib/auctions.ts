@@ -1,3 +1,4 @@
+import { observeCatalogRequest } from './catalog-request-log'
 import { formatCurrency } from './currency'
 import { canonicalEridanSearch } from './auction-cache-key'
 import { sameEridanMake } from './auction-providers/make-aliases'
@@ -79,13 +80,16 @@ const cachedMakes=unstable_cache(async(_provider:string)=>coalesce(JSON.stringif
 const cachedCar=unstable_cache(async(_provider:string,lot:string,site:string)=>coalesce(JSON.stringify(['car',_provider,lot,site]),()=>provider().detail(lot,site)),['auction-car-v8-seller-category'],{revalidate:60})
 const cachedLookup=unstable_cache(async(_provider:string,q:string,lifecycle:'active'|'sold')=>coalesce(JSON.stringify(['lookup',_provider,q,lifecycle]),()=>provider().lookup(q,lifecycle)),['auction-lookup-v6-active-or-archive'],{revalidate:60})
 export async function searchAuctions(params:string){
- const start=Date.now(),name=auctionProviderName()
+ const name=auctionProviderName()
  const sorted=new URLSearchParams(name==='eridan'?canonicalEridanSearch(params):params)
  sorted.sort()
- const result=await cachedSearch(name,sorted.toString())
- if(process.env.AUCTION_LOGGING==='true') console.info(JSON.stringify({service:'auctions',event:'search',provider:name,instance,durationMs:Date.now()-start,dataAgeMs:Math.max(0,Date.now()-result.fetchedAt),items:result.data.items.length,queryHash:createHash('sha256').update(sorted.toString()).digest('hex').slice(0,16)}))
- if(name==='eridan')catalogueSnapshots.remember(result.data.items,result.fetchedAt)
- return result.data
+ return observeCatalogRequest({kind:'search',provider:name,params:sorted},async()=>{
+  const start=Date.now()
+  const result=await cachedSearch(name,sorted.toString())
+  if(process.env.AUCTION_LOGGING==='true') console.info(JSON.stringify({service:'auctions',event:'search',provider:name,instance,durationMs:Date.now()-start,dataAgeMs:Math.max(0,Date.now()-result.fetchedAt),items:result.data.items.length,queryHash:createHash('sha256').update(sorted.toString()).digest('hex').slice(0,16)}))
+  if(name==='eridan')catalogueSnapshots.remember(result.data.items,result.fetchedAt)
+  return result.data
+ },data=>({count:data.items.length}))
 }
 export const auctionMakes=()=>cachedMakes(auctionProviderName())
 const cachedModels=unstable_cache(async(_provider:string,make:string,vehicleType:string)=>coalesce(JSON.stringify(['models',_provider,make,vehicleType]),async()=>{const adapter=provider();return adapter.models?adapter.models(make,vehicleType):(await adapter.makes())[make]||[]}),['auction-models-v7-renegade-family'],{revalidate:3600})
@@ -102,10 +106,17 @@ export async function auctionModels(make:string,vehicleType='') {
 // Metadata and page content can request the same lot concurrently on a cold cache.
 export const auctionCar=cache((lot:string,site:string)=>{
  const name=auctionProviderName()
- const snapshot=name==='eridan'?catalogueSnapshots.get(lot,site):undefined
- return snapshot?.auction_status==='active'?Promise.resolve(snapshot):cachedCar(name,lot,site)
+ return observeCatalogRequest({kind:'view',provider:name,params:new URLSearchParams({lot,site})},async()=>{
+  const snapshot=name==='eridan'?catalogueSnapshots.get(lot,site):undefined
+  return snapshot?.auction_status==='active'?snapshot:await cachedCar(name,lot,site)
+ },car=>({make:car?.make,model:car?.model,lot:car?String(car.lot_id):lot,site:car?String(car.site):site,count:car?1:0}))
 })
-export const lookupAuction=(q:string,archive=false)=>cachedLookup(auctionProviderName(),q,archive?'sold':'active')
+export const lookupAuction=(q:string,archive=false)=>{
+ const name=auctionProviderName()
+ // Never retain raw VIN/query text. A successful lookup can expose only its lot/site.
+ return observeCatalogRequest({kind:'lookup',provider:name,params:new URLSearchParams()},
+  ()=>cachedLookup(name,q,archive?'sold':'active'),result=>({...result,count:1}))
+}
 export function auctionImages(car:AuctionCar) {
  const safe=(value:string)=>{try{const url=new URL(value);return url.protocol==='https:'&&!url.username&&!url.password&&['cs.copart.com','vis.iaai.com',...(auctionProviderName()==='eridan'?(process.env.ERIDAN_IMAGE_HOSTS||'').split(',').map(host=>host.trim().toLowerCase()).filter(host=>/^[a-z0-9]+(?:[.-][a-z0-9]+)+$/.test(host)):[])].includes(url.hostname)}catch{return false}}
  const hd=(car.link_img_hd||[]).filter(safe)
