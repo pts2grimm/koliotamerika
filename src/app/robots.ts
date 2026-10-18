@@ -7,7 +7,10 @@ export const dynamic = 'force-dynamic'
 export default async function robots(): Promise<MetadataRoute.Robots> {
  const indexable = requestIsIndexable((await headers()).get('host'))
  return {
-  rules: indexable ? { userAgent: '*', allow: ['/', '/api/media/file/'], disallow: ['/admin', '/api/'] } : { userAgent: '*', disallow: '/' },
+  rules: indexable ? [
+    { userAgent: '*', allow: ['/', '/api/media/file/'], disallow: ['/admin', '/api/'] },
+    { userAgent: ['ClaudeBot', 'Claude-SearchBot'], allow: ['/', '/api/media/file/'], disallow: ['/admin', '/api/'], crawlDelay: 5 },
+  ] : { userAgent: '*', disallow: '/' },
   ...(indexable ? { sitemap: auctionProviderName() === 'eridan' ? [`${siteURL()}/sitemap.xml`, `${siteURL()}/sitemap-index.xml`] : `${siteURL()}/sitemap.xml` } : {}),
  }
 }

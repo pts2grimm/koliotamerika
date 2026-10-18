@@ -31,3 +31,19 @@ The 2026-10-18 audit initially found 9 affected dependency entries (1 high, 6 mo
 - https://www.hostinger.com/support/hostinger-cdn-search-engine-crawlers-and-seo/
 - https://www.hostinger.com/support/hostinger-cdn-how-to-fix-blocked-legitimate-requests/
 - https://www.hostinger.com/support/hostinger-cdn-visitor-ip-addresses-in-logs-and-analytics/
+
+## Catalogue anti-scraping controls — 2026-10-18
+- Count GET/HEAD at Next Proxy for /targove (including archives, motorcycles/ATV and vehicle details) and /api/auction-models. One boundary request, not every internal service call. Prefetch/RSC requests consume quota; spoofing prefetch headers does not bypass protection. Requests served entirely by the CDN are not seen.
+- Default 120 requests per fixed minute and 1200 per fixed hour, shared across these routes for a trusted IPv4 or IPv6 /64. Counts include rejected attempts. Fixed windows allow bursts at the boundary. Shared NAT users share a quota; these conservative starting limits must be reviewed using real traffic.
+- CATALOG_RATE_PER_MINUTE (30–1000) / CATALOG_RATE_PER_HOUR (300–20000) customize quotas. CATALOG_GUARD_MODE=observe records would-block decisions, off bypasses it; default enforce returns 429 with Retry-After/private no-store. No noindex added to temporary rate-limit responses.
+- Requires TRUST_PROXY=true behind controlled ingress. Missing/invalid trusted IP skips the per-IP guard rather than blocking every user under a shared identity. Never enable it on a directly exposed origin that accepts arbitrary X-Real-IP.
+- Atomic shared SQLite/Turso hourly counters survive restarts and multiple instances. Up to 50,000 hourly IP groups, retained 7 days; expiry cleanup on traffic (hourly) and admin reports. At full capacity existing groups continue updating; new groups get temporary 503. The private table has no public REST collection.
+- Staff-only report under API log → Anti-scraping protection: hourly request totals, over-quota counts, most recent IP, claimed User-Agent (300-character maximum), route category and verified crawler. No raw URL/query, VIN, cookies or customer linkage. Over-quota totals mean blocked only in enforce mode; historical mode switches should be considered. Infrastructure failures/concurrency rejection may not be in this report.
+- Googlebot/Google-InspectionTool/Bingbot exemptions require a provider-owned PTR hostname AND matching forward resolution. Generic Google Cloud or Amazon hostnames and spoofed User-Agent do not qualify. DNS verification has a 1.8s deadline, eight simultaneous lookups, single-flight by IP/claim, 2,000-entry cache (positive 1 hour, negative 5 minutes). A failed verification uses ordinary quota, not an unconditional block.
+- At most 32 concurrent guard operations per process; 4s response deadline, retain occupied slots until actual operations settle. Unavailable protection storage returns 503 for catalogue routes; home/blog/robots/sitemaps/admin remain available. Edge rate limits are still needed for distributed DDoS and volumetric floods; DB cost and latency should be monitored.
+- ClaudeBot and Claude-SearchBot get Crawl-delay:5 while retaining existing private-path exclusions. This is a cooperative robots directive, not a firewall or a guaranteed global request rate. Google/Bing robots rules and sitemaps are unchanged.
+- No CAPTCHA provider, country blacklist, IP blacklist, DNS, secret, or CDN configuration change. No guarantee against copying public data. Preview mode stays isolated and disallows admin/API as before.
+References:
+https://developers.google.com/crawling/docs/crawlers-fetchers/verify-google-requests
+https://www.bing.com/webmasters/help/how-to-verify-bingbot-3905dc26
+https://support.claude.com/en/articles/8896518-does-anthropic-crawl-data-from-the-web-and-how-can-site-owners-block-the-crawler

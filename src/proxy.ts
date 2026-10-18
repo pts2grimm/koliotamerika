@@ -1,13 +1,16 @@
-import { NextResponse, type NextRequest } from 'next/server'
+import { NextResponse, type NextFetchEvent, type NextRequest } from 'next/server'
+import { protectCatalogue } from './lib/catalog-guard-runtime'
 import { blockedProbePath } from './lib/request-screening'
 import { isPreview } from './lib/preview'
 import { requestIsIndexable } from './lib/indexing-policy'
 
-export function proxy(request: NextRequest) {
+export async function proxy(request: NextRequest, event: NextFetchEvent) {
   if (blockedProbePath(request.nextUrl.pathname)) {
     return new NextResponse(null, { status: 404, headers: { 'Cache-Control': 'no-store', 'X-Robots-Tag': 'noindex' } })
   }
   if (!isPreview()) {
+    const rejected = await protectCatalogue(request, task => event.waitUntil(task))
+    if (rejected) return rejected
     const response = NextResponse.next()
     if (!requestIsIndexable(request.headers.get('host'))) response.headers.set('X-Robots-Tag', 'noindex, nofollow')
     return response
