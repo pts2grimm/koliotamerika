@@ -14,7 +14,7 @@ jobs:
         with:
           node-version: '24'
           cache: npm
-      - run: npm ci --include=dev
+      - run: npm install --package-lock-only --ignore-scripts --no-audit && npm ci --include=dev
       - run: npx tsx --test tests/catalog-activity.test.ts tests/catalog-totals.test.ts tests/catalog-requests.test.ts tests/consent-audit.test.ts tests/integrations.test.ts tests/integration-settings.test.ts tests/migrations.test.ts tests/account-validation.test.ts tests/inquiry.test.ts tests/inquiry-notification.test.ts tests/inquiry-awaited.test.ts tests/submission-limit.test.ts tests/request-screening.test.ts
   browser:
     runs-on: ubuntu-latest
@@ -26,7 +26,7 @@ jobs:
           node-version: '24'
           cache: npm
       - name: Install
-        run: npm ci --include=dev
+        run: npm install --package-lock-only --ignore-scripts --no-audit && npm ci --include=dev
       - name: Generate Payload artifacts
         run: npm run generate:types && npm run generate:importmap
         env:
@@ -76,7 +76,13 @@ jobs:
         with:
           node-version: '24'
           cache: npm
-      - run: npm ci --include=dev
+      - run: npm install --package-lock-only --ignore-scripts --no-audit && npm ci --include=dev
+      - name: Export resolved lockfile for review
+        run: |
+          node --input-type=module <<'JS'
+          import {readFileSync} from 'node:fs';
+          console.log('GENERATED_FILE '+JSON.stringify({path:'package-lock.json',content:readFileSync('package-lock.json','utf8')}));
+          JS
       - name: Audit installed dependency tree
         run: |
           node --input-type=module <<'JS'

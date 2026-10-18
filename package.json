@@ -52,6 +52,11 @@
   "overrides": {
     "sharp": "$sharp",
     "sass": "1.105.1",
-    "undici": "^7.30.0"
+    "undici": "^7.30.0",
+    "nodemailer": "10.0.9",
+    "dompurify": "3.4.16",
+    "@esbuild-kit/core-utils": {
+      "esbuild": "0.28.1"
+    }
   }
 }

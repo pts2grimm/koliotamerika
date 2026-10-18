@@ -39,6 +39,15 @@ test('hardening preserves public SEO, admin login, reset mail and legitimate for
  expect((await admin.post('/api/users/forgot-password',{headers:origin,data:{email:credentials.email}})).ok()).toBeTruthy()
  const messages=await (await admin.get('http://127.0.0.1:3199/test-mail')).json()
  expect(JSON.stringify(messages)).toContain(credentials.email)
+ const mail=messages.messages.find((m:{recipient:string})=>m.recipient.includes(credentials.email))
+ const [mailHeaders,...parts]=mail.message.split('\r\n\r\n')
+ const decoded=mailHeaders.includes('Content-Transfer-Encoding: base64')?Buffer.from(parts.join('\r\n\r\n'),'base64').toString('utf8'):parts.join('\r\n\r\n').replace(/=\r\n/g,'').replace(/=3D/g,'=')
+ const token=decoded.match(/reset\/([a-f0-9]{40})/)?.[1]
+ expect(token).toBeTruthy()
+ const newPassword='Security-reset-2026'
+ expect((await admin.post('/api/users/reset-password',{headers:origin,data:{token,password:newPassword}})).ok()).toBeTruthy()
+ expect((await admin.post('/api/users/login',{headers:origin,data:{email:credentials.email,password:newPassword}})).ok()).toBeTruthy()
+ expect((await admin.post('/api/users/reset-password',{headers:origin,data:{token,password:'Another-test-2026'}})).ok()).toBeFalsy()
  // Per-email quota applies across different trusted IPs. Payload returns the same success
  // response for unknown addresses, so the test never relies on account enumeration.
  for(let i=0;i<6;i++){
