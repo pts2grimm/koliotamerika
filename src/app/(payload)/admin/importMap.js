@@ -31,6 +31,7 @@ import { ContentBackLink as ContentBackLink_08515d20fb304dbf398652f152115458 } f
 import { ContentIndex as ContentIndex_2a5f66d5a0bb27212dd0f278d2516e6d } from '../../../../src/components/admin/ContentList'
 import { IntegrationToken as IntegrationToken_e70da7af772c2a2d13cd32f9fa00b44d } from '../../../../src/components/admin/IntegrationToken'
 import { ContentNav as ContentNav_88d7b320c4e00dd9c5491893d296e86d } from '../../../../src/components/admin/ContentNav'
+import { CatalogActivityView as CatalogActivityView_e43ee2803503b1ad1adaf5f4db80739f } from '../../../../src/components/admin/CatalogActivityView'
 import { Overview as Overview_e5651d6924e17fd84819a475d0de17ae } from '../../../../src/components/admin/Overview'
 import { SitePagesView as SitePagesView_2a5f66d5a0bb27212dd0f278d2516e6d } from '../../../../src/components/admin/ContentList'
 import { BlogPostsView as BlogPostsView_2a5f66d5a0bb27212dd0f278d2516e6d } from '../../../../src/components/admin/ContentList'
@@ -71,6 +72,7 @@ export const importMap = {
   "/src/components/admin/ContentList#ContentIndex": ContentIndex_2a5f66d5a0bb27212dd0f278d2516e6d,
   "/src/components/admin/IntegrationToken#IntegrationToken": IntegrationToken_e70da7af772c2a2d13cd32f9fa00b44d,
   "/src/components/admin/ContentNav#ContentNav": ContentNav_88d7b320c4e00dd9c5491893d296e86d,
+  "/src/components/admin/CatalogActivityView#CatalogActivityView": CatalogActivityView_e43ee2803503b1ad1adaf5f4db80739f,
   "/src/components/admin/Overview#Overview": Overview_e5651d6924e17fd84819a475d0de17ae,
   "/src/components/admin/ContentList#SitePagesView": SitePagesView_2a5f66d5a0bb27212dd0f278d2516e6d,
   "/src/components/admin/ContentList#BlogPostsView": BlogPostsView_2a5f66d5a0bb27212dd0f278d2516e6d,

@@ -24,6 +24,7 @@ export function Tracking({ config }: { config: PublicIntegrations }) {
 
   useEffect(() => {
     const saved = browserConsent()
+    if (!saved?.analytics) { try { sessionStorage.removeItem('koa-catalog-session') } catch {} }
     setConsent(saved); setAnalytics(saved?.analytics || false); setMarketing(saved?.marketing || false); setReady(true)
     const show = () => {
       previousFocus.current = document.activeElement as HTMLElement
@@ -33,6 +34,7 @@ export function Tracking({ config }: { config: PublicIntegrations }) {
     }
     const changed = () => {
       const current = browserConsent()
+      if (!current?.analytics) { try { sessionStorage.removeItem('koa-catalog-session') } catch {} }
       withdrawTracking(current || { analytics: false, marketing: false })
       location.reload() // Remove already-loaded libraries, listeners and pending queues.
     }
