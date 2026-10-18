@@ -1,0 +1,91 @@
+name: Catalogue anti-scraping verification
+on:
+  push:
+    branches: ['codex/catalog-guard-*']
+permissions:
+  contents: read
+jobs:
+  unit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci --include=dev
+      - run: npx tsx --test --test-timeout=120000 tests/catalog-guard.test.ts tests/catalog-activity.test.ts tests/catalog-totals.test.ts tests/catalog-requests.test.ts tests/consent-audit.test.ts tests/integrations.test.ts tests/integration-settings.test.ts tests/migrations.test.ts tests/account-validation.test.ts tests/inquiry.test.ts tests/inquiry-notification.test.ts tests/inquiry-awaited.test.ts tests/submission-limit.test.ts tests/request-screening.test.ts tests/eridan.test.ts tests/eridan-transport-security.test.ts
+  browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - name: Install
+        run: npm ci --include=dev
+      - name: Generate Payload artifacts
+        run: npm run generate:types && npm run generate:importmap
+        env:
+          PREVIEW_MODE: 'true'
+          PAYLOAD_SECRET: isolated-catalog-ci-not-a-live-secret
+      - name: Build
+        run: npm run build
+        env:
+          PREVIEW_MODE: 'true'
+          PAYLOAD_SECRET: isolated-catalog-ci-not-a-live-secret
+      - run: npm run typecheck
+      - run: npx playwright install --with-deps chromium
+      - name: Security and catalogue browser checks
+        run: |
+          node --input-type=module <<'JS'
+          import { chromium } from '@playwright/test';
+          import { spawnSync } from 'node:child_process';
+          const result=spawnSync('npx',['playwright','test','--config=playwright.catalog-guard.config.ts','--reporter=line'],{stdio:'inherit',env:{...process.env,CHROMIUM_PATH:chromium.executablePath()}});
+          process.exit(result.status??1);
+          JS
+      - name: Verify generated files are committed
+        run: git diff --exit-code -- src/payload-types.ts 'src/app/(payload)/admin/importMap.js'
+      - name: Export review artifacts
+        if: always()
+        run: |
+          node --input-type=module <<'JS'
+          import {existsSync,readFileSync,globSync} from 'node:fs';
+          for(const path of ['src/payload-types.ts','src/app/(payload)/admin/importMap.js'])
+            if(existsSync(path)) console.log('GENERATED_FILE '+JSON.stringify({path,content:readFileSync(path,'utf8')}));
+          for(const path of ['test-results/catalog-guard-desktop.png','test-results/catalog-activity-desktop.jpg','test-results/catalog-activity-dark.jpg','test-results/catalog-activity-mobile.jpg','test-results/catalog-inquiries.jpg','test-results/catalog-totals.jpg','test-results/catalog-requests.jpg',...globSync('test-results/**/test-failed-*.png')])
+            if(existsSync(path)) console.log('REVIEW_IMAGE '+JSON.stringify({path,base64:readFileSync(path).toString('base64')}));
+          JS
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: catalog-guard-results
+          path: |
+            test-results
+            src/payload-types.ts
+            src/app/(payload)/admin/importMap.js
+  dependencies:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci --include=dev
+      - name: Audit installed dependency tree
+        run: |
+          node --input-type=module <<'JS'
+          import {spawnSync} from 'node:child_process';
+          const r=spawnSync('npm',['audit','--json'],{encoding:'utf8'});
+          let report;
+          try { report=JSON.parse(r.stdout); } catch { console.log(r.stderr); process.exit(1); }
+          if(report.error){console.log(report.error);process.exit(1)}
+          console.log('AUDIT_COUNTS '+JSON.stringify(report.metadata?.vulnerabilities));
+          for(const [name,v] of Object.entries(report.vulnerabilities||{})) console.log('AUDIT_FINDING '+JSON.stringify({name,severity:v.severity,range:v.range,fixAvailable:v.fixAvailable,via:v.via,nodes:v.nodes}));
+          process.exit(report.metadata?.vulnerabilities?.high||report.metadata?.vulnerabilities?.critical?1:0);
+          JS

@@ -1,3 +1,4 @@
+import { CatalogGuardReport } from './CatalogGuardReport'
 import { DefaultTemplate } from '@payloadcms/next/templates'
 import { Gutter, Link, SetStepNav } from '@payloadcms/ui'
 import { notFound, redirect } from 'next/navigation'
@@ -98,7 +99,8 @@ export async function CatalogActivityView(props: AdminViewServerProps) {
       <button type="submit" className="koa-overview__button koa-overview__button--quiet">Филтрирай</button>
       <Link href={root + '/catalog-activity'}>Изчисти</Link>
     </form>
-    <nav className="koa-analytics-tabs" aria-label="Раздели на активността"><a href="#catalog-requests">Сървърни заявки — без бисквитки</a><a href="#catalog-history">История със съгласие</a><a href="#catalog-inquiries">Изпратени запитвания</a></nav>
+    <nav className="koa-analytics-tabs" aria-label="Раздели на активността"><a href="#catalog-protection">Anti-scraping защита</a><a href="#catalog-requests">Сървърни заявки — без бисквитки</a><a href="#catalog-history">История със съгласие</a><a href="#catalog-inquiries">Изпратени запитвания</a></nav>
+    <CatalogGuardReport payload={req.payload} />
     <section id="catalog-requests" className="koa-catalog-report__history">
       {process.env.TRUST_PROXY !== 'true' && <p className="koa-catalog-report__notice">IP адресите не се записват: TRUST_PROXY не е включено. Активирайте го само когато хостинг проксито контролира forwarding headers.</p>}
       <RefreshReport />
