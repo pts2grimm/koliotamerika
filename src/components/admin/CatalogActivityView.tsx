@@ -1,3 +1,4 @@
+import { DefaultTemplate } from '@payloadcms/next/templates'
 import { Gutter, Link, SetStepNav } from '@payloadcms/ui'
 import { notFound, redirect } from 'next/navigation'
 import type { AdminViewServerProps, Where } from 'payload'
@@ -15,7 +16,7 @@ function filtersText(value: string | null) {
   try { return Object.entries(JSON.parse(value || '{}')).map(([key, val]) => auctionFilterLabel(key, String(val))).join(' · ') } catch { return '' }
 }
 export async function CatalogActivityView(props: AdminViewServerProps) {
-  const { req, permissions } = props.initPageResult
+  const { req, permissions, visibleEntities } = props.initPageResult
   const root = req.payload.config.routes.admin
   if (!req.user) redirect(root + '/login')
   if (req.user.collection !== 'users' || !permissions.canAccessAdmin) notFound()
@@ -65,7 +66,9 @@ export async function CatalogActivityView(props: AdminViewServerProps) {
   if (inquiryPage > Math.max(1,inquiries.totalPages)) redirect(inquiryURL(Math.max(1,inquiries.totalPages)))
   const pageURL = (next: number) => { const q = new URLSearchParams(query); q.set('page',String(next)); return root + '/catalog-activity?' + q }
   if (page > pages) redirect(pageURL(pages))
-  return <Gutter className="koa-overview koa-catalog-report">
+  return <DefaultTemplate {...props} req={req} permissions={permissions}
+    visibleEntities={{ collections: visibleEntities.collections, globals: visibleEntities.globals }}>
+    <Gutter className="koa-overview koa-catalog-report">
     <SetStepNav nav={[{ label: 'API лог — каталог' }]} />
     <header className="koa-overview__header"><div><p className="koa-overview__eyebrow">ИНТЕРЕС КЪМ АВТОМОБИЛИТЕ</p><h1>Активност в каталога</h1><p>Какво търсят посетителите, кои автомобили отварят и за какво изпращат запитвания.</p></div>
       <a className="koa-overview__button koa-overview__button--quiet" href={root + '/collections/inquiries'}>Изпратени запитвания ↗</a></header>
@@ -112,5 +115,5 @@ export async function CatalogActivityView(props: AdminViewServerProps) {
       </tbody></table></div>
       <nav className="koa-catalog-report__pages" aria-label="Страници на запитванията">{inquiryPage>1 && <Link href={inquiryURL(inquiryPage-1)}>← Предишна</Link>}<span>Страница {inquiryPage} / {Math.max(1,inquiries.totalPages)}</span>{inquiries.hasNextPage && <Link href={inquiryURL(inquiryPage+1)}>Следваща →</Link>}</nav>
     </section>
-  </Gutter>
+  </Gutter></DefaultTemplate>
 }
