@@ -9,7 +9,7 @@
 - Inquiry honeypot, schema/body bounds, exact Origin and cross-site checks, existing awaited SMTP notifications preserved.
 - Early 404 for obsolete PHP/WordPress executable paths and requests for .env/version-control files. Migrated uploads, sitemap redirects and normal catalogue pages remain accessible.
 - CSP base-uri/object-src/frame-ancestors/form-action, nosniff, referrer policy, restricted camera/microphone/geolocation; HSTS for configured HTTPS origin only, without includeSubDomains/preload. This is a baseline CSP, not a full script-src XSS policy.
-- Existing upstream catalogue caching/concurrency/timeouts remain in place. Cookie consent is not required for security limits. No User-Agent-based exemption.
+- Upstream catalogue caching, two-request concurrency and the shared 15-second deadline remain in place; the pending Eridan queue is now capped at 32 per process to bound memory during bursts. Cookie consent is not required for security limits. No User-Agent-based exemption.
 
 ## Hostinger — outside repository
 Owner confirmed CDN enabled with Security=Medium on 2026-10-18. No hPanel changes made by this PR.

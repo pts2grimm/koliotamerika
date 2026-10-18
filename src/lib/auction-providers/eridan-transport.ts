@@ -33,6 +33,8 @@ export function createEridanTransport(options: Options): AuctionTransport {
   }
   if (signal.aborted) return abort()
   if (active < 2) return grant()
+  // A burst must not accumulate an unbounded queue while the provider is slow.
+  if (waiting.size >= 32) return reject(new Error('Eridan request queue is full'))
   waiting.add(grant)
   signal.addEventListener('abort', abort, { once: true })
  })
