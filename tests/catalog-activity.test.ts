@@ -3,7 +3,7 @@ import { randomUUID } from 'node:crypto'
 import test from 'node:test'
 import { validateCatalogActivity, catalogRetentionDays } from '../src/lib/catalog-activity'
 const envelope = (data: Record<string,unknown>) => ({ event:randomUUID(), receipt:randomUUID(), data })
-const search = { kind:'search', section:'cars', archive:false, make:'BMW', model:'3 SERIES', yearFrom:'2018', outcome:'results', resultCount:25, filters:{ make:'BMW',model:'3 SERIES',cylinders:'4 Cyl',site:'1,2' } }
+const search = { kind:'search', section:'cars', archive:false, make:'BMW', model:'3 SERIES', yearFrom:'2018', outcome:'results', resultCount:25, filters:{ make:'BMW',model:'3 SERIES',cylinders:'4',site:'1,2' } }
 test('searches preserve grouped models and normalize filters', () => {
  const result=validateCatalogActivity(envelope(search))!
  assert.equal(result.data.model,'3 SERIES')
