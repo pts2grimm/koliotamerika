@@ -286,6 +286,12 @@ test('server request history works without cookies or browser telemetry, includi
  await expect(row.locator('a')).toHaveAttribute('href','/targove/kola?lot='+lot+'&site='+site)
  await expect(table).not.toContainText('Сесия')
  await expect(table.locator('thead')).not.toContainText('Посетител')
+ // Refresh stays on the same filters and shows a new request without consent.
+ expect((await raw.get('/targove/kola?lot='+lot+'&site='+site,{headers:{Cookie:'koa-consent='+refused}})).ok()).toBeTruthy()
+ await expect.poll(async()=>{
+  await table.getByRole('button',{name:'Обнови списъка'}).click()
+  return table.locator('tbody tr').filter({hasText:lot}).count()
+ }).toBe(3)
  await page.setViewportSize({width:1440,height:1050})
  await table.screenshot({path:'test-results/catalog-requests.jpg',type:'jpeg',quality:75})
  await page.goto('/admin/catalog-activity?make=Toyota&model=RAV4')

@@ -8,7 +8,7 @@ import { purgeCatalogActivity } from '@/lib/catalog-activity-server'
 import { purgeCatalogRequests } from '@/lib/catalog-requests-server'
 import { purgeCatalogTotals } from '@/lib/catalog-totals-server'
 import { auctionFilterLabel } from '@/lib/auction-filters'
-import { PeriodControls } from './OverviewControls'
+import { PeriodControls, RefreshReport } from './OverviewControls'
 import { AdminAnalyticsTabs } from './AdminAnalyticsTabs'
 
 type RequestRow = { id:number; created_at:string; kind:string; provider:string; make:string; model:string; lot:string; site:string; year_from:string; year_to:string; page:number; outcome:string; result_count:number|null; duration_ms:number }
@@ -98,10 +98,12 @@ export async function CatalogActivityView(props: AdminViewServerProps) {
       <button type="submit" className="koa-overview__button koa-overview__button--quiet">Филтрирай</button>
       <Link href={root + '/catalog-activity'}>Изчисти</Link>
     </form>
+    <nav className="koa-analytics-tabs" aria-label="Раздели на активността"><a href="#catalog-requests">Сървърни заявки — без бисквитки</a><a href="#catalog-history">История със съгласие</a><a href="#catalog-inquiries">Изпратени запитвания</a></nav>
     <section id="catalog-requests" className="koa-catalog-report__history">
+      <RefreshReport />
       <h2>Сървърни заявки за автомобили <small>· {number(requestTotals[0].total)} записа · без бисквитки</small></h2>
       <p>Всяка заявка към сървърната услуга за търсене или автомобил, включително при отказана статистика и отговор от кеша. Може да включва роботи, предварително зареждане и заявки за метаданни; това не е брой посетители или външни HTTP повиквания към доставчика.</p>
-      <p className="koa-catalog-report__notice">Без IP, сесия, профил или VIN. Последни 30 дни, до 50 000 записа. Старите общи броячи не могат да се възстановят като отделни заявки. <a href={apiURL(apiPage)}>Обнови списъка ↻</a></p>
+      <p className="koa-catalog-report__notice">Без IP, сесия, профил или VIN. Последни 30 дни, до 50 000 записа. Старите общи броячи не могат да се възстановят като отделни заявки.</p>
       <div className="koa-catalog-report__table"><table><thead><tr><th>Кога</th><th>Заявка</th><th>Автомобил / търсене</th><th>Резултат</th><th>Време</th></tr></thead><tbody>
         {requestRows.map(row=><tr key={row.id}>
           <td>{moment(row.created_at)}</td>
@@ -122,7 +124,6 @@ export async function CatalogActivityView(props: AdminViewServerProps) {
       {[['Търсения',totalsRow.searches],['Отворени автомобили',totalsRow.views],['Търсения без резултат',totalsRow.empty],['Изпратени запитвания',inquiries.totalDocs]].map(([label,value]) =>
         <article key={String(label)} className="koa-overview__metric"><span>{label}</span><strong>{number(Number(value))}</strong></article>)}
     </div>
-    <nav className="koa-analytics-tabs" aria-label="Раздели на активността"><a href="#catalog-requests">Сървърни заявки — без бисквитки</a><a href="#catalog-history">История със съгласие</a><a href="#catalog-inquiries">Изпратени запитвания</a></nav>
     <div className="koa-catalog-report__rankings">
       <section><h2>Най-търсени модели</h2>{popular.length ? <ol>{popular.map((item,index) => <li key={index}><span>{item.make} · {item.model}</span><strong>{number(item.total)}</strong></li>)}</ol> : <p>Още няма търсения с избрана марка за този период и филтри.</p>}</section>
       <section><h2>Най-разглеждани автомобили</h2>{viewed.length ? <ol>{viewed.map(item => <li key={item.site+':'+item.lot}><a href={'/targove/kola?' + new URLSearchParams({lot:item.lot,site:item.site})} target="_blank" rel="noreferrer">{item.make} {item.model} · Лот {item.lot}</a><strong>{number(item.total)}</strong></li>)}</ol> : <p>Още няма отворени автомобили за този период и филтри.</p>}</section>
