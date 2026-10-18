@@ -5,7 +5,7 @@ import { sql } from '@payloadcms/db-sqlite'
 import { reserveSubmission } from '../../src/lib/submission-limit'
 import { createHmac } from 'node:crypto'
 const payload=await getPayload({config}),db=payload.db.drizzle,now=Date.now()
-const bootstrap=payload.collections.users.config.endpoints.find(e=>e.path==='/first-register'&&e.method==='post')
+const bootstrap=(payload.collections.users.config.endpoints || []).find(e=>e.path==='/first-register'&&e.method==='post')
 assert.ok(bootstrap)
 assert.equal((await bootstrap.handler({} as Parameters<typeof bootstrap.handler>[0])).status,403)
 const legacyValue='198.51.100.44'
