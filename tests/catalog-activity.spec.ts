@@ -206,8 +206,12 @@ test('cookieless counters omit identity and do not double count on consent chang
  expect(withCookie.status()).toBe(204)
  expect(withCookie.headers()['set-cookie']).toBeUndefined()
  const check=await playwright.request.newContext({baseURL})
- await check.post('/api/users/login',{data:{email:'catalog-admin@example.test',password:'Catalog-admin-2026'}})
- const records=await (await check.get('/api/catalog-events',{params:{'where[make][equals]':'CAN-AM'}})).json()
+ const checkLogin=await check.post('/api/users/login',{data:{email:'catalog-admin@example.test',password:'Catalog-admin-2026'}})
+ expect(checkLogin.ok()).toBeTruthy()
+ const checkHeaders={Authorization:'JWT '+(await checkLogin.json()).token}
+ const checkResponse=await check.get('/api/catalog-events',{headers:checkHeaders,params:{'where[make][equals]':'CAN-AM'}})
+ expect(checkResponse.status()).toBe(200)
+ const records=await checkResponse.json()
  expect(records.totalDocs).toBe(1) // Only the consented detailed event.
  await page.goto('/admin/login')
  await page.locator('input[name=email]').fill('catalog-admin@example.test')
