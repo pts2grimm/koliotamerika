@@ -317,3 +317,17 @@ test('server request history works without cookies or browser telemetry, includi
  }).toBeGreaterThan(0)
  await raw.dispose();await admin.dispose()
 })
+
+test('trusted proxy limits cannot be bypassed by changing the first forwarded address',async({playwright,baseURL})=>{
+ const client=await playwright.request.newContext({baseURL})
+ for(let i=0;i<6;i++) {
+  const response=await client.post('/api/inquiry',{headers:{Origin:baseURL!,'x-forwarded-for':`203.0.113.${i+1}, 198.51.100.77`},
+   data:{name:'Proxy fixture',email:'proxy-fixture@example.test',phone:'+359888123456',car:'BMW X5',message:'Isolated proxy rate limit test.',consent:true}})
+  expect(response.status()).toBe(i<5?201:429)
+ }
+ // Hostinger's real-IP header takes precedence over any earlier forwarded text.
+ const next=await client.post('/api/inquiry',{headers:{Origin:baseURL!,'x-real-ip':'198.51.100.78','x-forwarded-for':'203.0.113.99, 198.51.100.77'},
+  data:{name:'Second proxy fixture',email:'proxy-second@example.test',phone:'+359888123456',car:'BMW X5',message:'Isolated proxy precedence test.',consent:true}})
+ expect(next.status()).toBe(201)
+ await client.dispose()
+})
