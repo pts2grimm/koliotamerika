@@ -1,4 +1,7 @@
 import 'server-only'
+import { unstable_rethrow } from 'next/navigation'
+import { headers } from 'next/headers'
+import { catalogueRequestIP } from './catalog-request-ip'
 import { after } from 'next/server'
 import { isPreview } from './preview'
 import { runCatalogRequest, type CatalogRequestInput, type CatalogRequestSummary, type CatalogRequestRecord } from './catalog-requests'
@@ -19,6 +22,12 @@ function schedule(data: CatalogRequestRecord) {
     })
   } catch { warn() } // Scripts outside a Next request do not produce untracked background promises.
 }
-export function observeCatalogRequest<T>(input: CatalogRequestInput, run: () => Promise<T>, describe: (result:T) => CatalogRequestSummary) {
-  return runCatalogRequest(input, run, describe, schedule)
+export async function observeCatalogRequest<T>(input: CatalogRequestInput, run: () => Promise<T>, describe: (result:T) => CatalogRequestSummary) {
+  // Resolve per-request data OUTSIDE provider caches and before scheduling after().
+  // Never read cookies, authorization, user-agent or the full headers object into the log.
+  let requestIP
+  if (!isPreview() && process.env.TRUST_PROXY === 'true') {
+    try { requestIP=catalogueRequestIP(await headers(), true) } catch (error) { unstable_rethrow(error) /* No request context: no IP. */ }
+  }
+  return runCatalogRequest({...input,requestIP}, run, describe, schedule)
 }

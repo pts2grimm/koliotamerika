@@ -11,7 +11,7 @@ import { auctionFilterLabel } from '@/lib/auction-filters'
 import { PeriodControls, RefreshReport } from './OverviewControls'
 import { AdminAnalyticsTabs } from './AdminAnalyticsTabs'
 
-type RequestRow = { id:number; created_at:string; kind:string; provider:string; make:string; model:string; lot:string; site:string; year_from:string; year_to:string; page:number; outcome:string; result_count:number|null; duration_ms:number }
+type RequestRow = { vin:string; ip:string; ip_source:string; id:number; created_at:string; kind:string; provider:string; make:string; model:string; lot:string; site:string; year_from:string; year_to:string; page:number; outcome:string; result_count:number|null; duration_ms:number }
 type Row = { id: number; kind: string; section: string; archive: number; make: string | null; model: string | null; year_from: string | null; year_to: string | null; lot: string | null; site: string | null; vin: string | null; query: string | null; filters: string | null; outcome: string | null; result_count: number | null; customer_id: number | null; customer_name: string | null; subject: string; created_at: string }
 const number = (value: number) => new Intl.NumberFormat('bg-BG').format(value)
 const moment = (value: string) => new Intl.DateTimeFormat('bg-BG', { dateStyle: 'short', timeStyle: 'short', timeZone: 'Europe/Sofia' }).format(new Date(value))
@@ -88,7 +88,7 @@ export async function CatalogActivityView(props: AdminViewServerProps) {
     <header className="koa-overview__header"><div><p className="koa-overview__eyebrow">ИНТЕРЕС КЪМ АВТОМОБИЛИТЕ</p><h1>Активност в каталога</h1><p>Сървърни заявки за автомобили, интерес към каталога и изпратени запитвания.</p></div>
       <a className="koa-overview__button koa-overview__button--quiet" href={root + '/collections/inquiries'}>Изпратени запитвания ↗</a></header>
     <AdminAnalyticsTabs active="catalog" root={root} />
-    <p className="koa-catalog-report__notice">Сървърният журнал по-долу работи без бисквитки и пази заявки за 30 дни, без посетител или профил. Обобщените броячи отчитат действия и без разрешена „Статистика“, без връзка с посетител или профил. Започват от включването им и се пазят 90 дни. По-старите записи остават в подробната история, която се води само при съгласие. Броят действия не е брой различни хора; блокирани заявки не се отчитат.</p>
+    <p className="koa-catalog-report__notice">Сървърният журнал по-долу работи без бисквитки и пази заявки, VIN и наличния IP за 30 дни, без връзка със сесия или клиентски профил. Обобщените броячи отчитат действия и без разрешена „Статистика“, без връзка с посетител или профил. Започват от включването им и се пазят 90 дни. По-старите записи остават в подробната история, която се води само при съгласие. Броят действия не е брой различни хора; блокирани заявки не се отчитат.</p>
     <PeriodControls key={period.from + period.to} preset={period.preset} from={period.from} to={period.to} />
     <form method="get" className="koa-overview__filters">
       <input type="hidden" name="period" value="custom" /><input type="hidden" name="from" value={period.from} /><input type="hidden" name="to" value={period.to} />
@@ -100,22 +100,25 @@ export async function CatalogActivityView(props: AdminViewServerProps) {
     </form>
     <nav className="koa-analytics-tabs" aria-label="Раздели на активността"><a href="#catalog-requests">Сървърни заявки — без бисквитки</a><a href="#catalog-history">История със съгласие</a><a href="#catalog-inquiries">Изпратени запитвания</a></nav>
     <section id="catalog-requests" className="koa-catalog-report__history">
+      {process.env.TRUST_PROXY !== 'true' && <p className="koa-catalog-report__notice">IP адресите не се записват: TRUST_PROXY не е включено. Активирайте го само когато хостинг проксито контролира forwarding headers.</p>}
       <RefreshReport />
       <h2>Сървърни заявки за автомобили <small>· {number(requestTotals[0].total)} записа · без бисквитки</small></h2>
       <p>Всяка заявка към сървърната услуга за търсене или автомобил, включително при отказана статистика и отговор от кеша. Може да включва роботи, предварително зареждане и заявки за метаданни; това не е брой посетители или външни HTTP повиквания към доставчика.</p>
-      <p className="koa-catalog-report__notice">Без IP, сесия, профил или VIN. Последни 30 дни, до 50 000 записа. Старите общи броячи не могат да се възстановят като отделни заявки.</p>
-      <div className="koa-catalog-report__table"><table><thead><tr><th>Кога</th><th>Заявка</th><th>Автомобил / търсене</th><th>Резултат</th><th>Време</th></tr></thead><tbody>
+      <p className="koa-catalog-report__notice">VIN и IP се записват за новите заявки, когато са налични. IP може да е споделен или на VPN/прокси и не удостоверява самоличност. Последни 30 дни, до 50 000 записа. Старите общи броячи не могат да се възстановят като отделни заявки.</p>
+      <div className="koa-catalog-report__table"><table><thead><tr><th>Кога</th><th>Заявка</th><th>Автомобил / търсене</th><th>Резултат</th><th>Време</th><th>IP адрес</th></tr></thead><tbody>
         {requestRows.map(row=><tr key={row.id}>
           <td>{moment(row.created_at)}</td>
           <td>{row.kind==='view'?'Автомобил':row.kind==='lookup'?'Проверка по лот / VIN':'Търсене'}<small>{row.provider==='eridan'?'Eridan':row.provider==='apicar'?'ApiCar':row.provider==='legacy'?'Legacy':'Друг доставчик'}</small></td>
           <td><strong>{[row.make,row.model].filter(Boolean).join(' ') || (row.kind==='lookup'?'Проверка на автомобил':row.kind==='view'?'Автомобил':'Каталог без марка / модел')}</strong>
             {row.lot && row.site && <small><a href={'/targove/kola?'+new URLSearchParams({lot:row.lot,site:row.site})} target="_blank" rel="noreferrer">{row.site==='1'?'Copart':'IAAI'} · Лот {row.lot} ↗</a></small>}
+            {row.vin && <small>VIN <strong>{row.vin}</strong></small>}
             {row.kind==='search' && <small>Страница {row.page}{row.year_from?' · От '+row.year_from:''}{row.year_to?' · До '+row.year_to:''}</small>}
           </td>
           <td>{row.outcome==='error'?'Грешка при заявката':row.outcome==='empty'?'Без резултати':row.result_count!==null?'Върнати: '+number(row.result_count):'Успешна заявка'}</td>
           <td>{number(row.duration_ms)} ms</td>
+          <td>{row.ip || 'Не е записан'}{row.ip && <small>{row.ip_source==='x-real-ip'?'X-Real-IP':'X-Forwarded-For'}</small>}</td>
         </tr>)}
-        {!requestRows.length && <tr><td colSpan={5}>Още няма сървърни заявки за избрания период и филтри. Записването започва след включването на журнала.</td></tr>}
+        {!requestRows.length && <tr><td colSpan={6}>Още няма сървърни заявки за избрания период и филтри. Записването започва след включването на журнала.</td></tr>}
       </tbody></table></div>
       <nav className="koa-catalog-report__pages" aria-label="Страници на сървърните заявки">{apiPage>1 && <Link href={apiURL(apiPage-1)}>← Предишна</Link>}<span>Страница {apiPage} / {apiPages}</span>{apiPage<apiPages && <Link href={apiURL(apiPage+1)}>Следваща →</Link>}</nav>
     </section>

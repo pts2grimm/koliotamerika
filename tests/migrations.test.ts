@@ -43,7 +43,7 @@ function sandbox() {
 }
 function journal(db: DatabaseSync) {
   assert.deepEqual(db.prepare('SELECT name FROM payload_migrations ORDER BY name').all().map(row => row.name), [
-    '20261010_120440_initial', '20261010_135337_customer_accounts', '20261012_010000_contact_details', '20261012_020000_integrations', '20261012_030000_calculator_eur', '20261017_120000_consent_events', '20261017_180000_bills_of_sale', '20261018_120000_catalog_events', '20261018_160000_catalog_totals', '20261018_190000_catalog_requests',
+    '20261010_120440_initial', '20261010_135337_customer_accounts', '20261012_010000_contact_details', '20261012_020000_integrations', '20261012_030000_calculator_eur', '20261017_120000_consent_events', '20261017_180000_bills_of_sale', '20261018_120000_catalog_events', '20261018_160000_catalog_totals', '20261018_190000_catalog_requests', '20261018_200000_catalog_request_details',
   ])
   for (const name of ['pages', 'site_settings', 'customers', 'saved_vehicles', 'inquiries', 'integrations', 'consent_events', 'bills_of_sale', 'catalog_events', 'catalog_totals', 'catalog_requests']) {
     assert.ok(db.prepare("SELECT name FROM sqlite_master WHERE type = 'table' AND name = ?").get(name))
@@ -271,7 +271,7 @@ test('daily catalogue counters have no identity columns and increment atomically
  try {run();run('tests/fixtures/catalog-totals.ts')} finally {rmSync(dir,{recursive:true,force:true})}
 })
 
-test('private server request journal is additive, identity-free, retained and atomically capped', {timeout:120000},()=>{
+test('private server request journal preserves VIN/IP, retries migrations and retains atomic bounds', {timeout:120000},()=>{
  const {dir,run}=sandbox()
  try {run();run('tests/fixtures/catalog-requests.ts')} finally {rmSync(dir,{recursive:true,force:true})}
 })

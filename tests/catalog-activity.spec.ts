@@ -254,10 +254,10 @@ test('server request history works without cookies or browser telemetry, includi
  const before=await upstream()
  // Plain server requests execute no JS and cannot send either browser analytics beacon.
  expect((await raw.storageState()).cookies).toHaveLength(0)
- expect((await raw.get('/targove/kola?lot='+lot+'&site='+site)).ok()).toBeTruthy()
+ expect((await raw.get('/targove/kola?lot='+lot+'&site='+site,{headers:{'x-real-ip':'198.51.100.10','x-forwarded-for':'203.0.113.99, 192.0.2.1'}})).ok()).toBeTruthy()
  const first=await upstream()
  expect(first).toBeGreaterThan(before)
- expect((await raw.get('/targove/kola?lot='+lot+'&site='+site)).ok()).toBeTruthy()
+ expect((await raw.get('/targove/kola?lot='+lot+'&site='+site,{headers:{'x-forwarded-for':'203.0.113.99, 198.51.100.11'}})).ok()).toBeTruthy()
  expect(await upstream()).toBe(first) // Real cache hit, no second upstream vehicle request.
  const refused=encodeURIComponent(JSON.stringify({version:1,analytics:false,marketing:false,updatedAt:Date.now()}))
  expect((await raw.get('/targove?make=Toyota&model=RAV4&year_from=2039',{headers:{Cookie:'koa-consent='+refused}})).ok()).toBeTruthy()
@@ -281,17 +281,23 @@ test('server request history works without cookies or browser telemetry, includi
  await expect(table).toContainText('без бисквитки')
  const row=table.locator('tbody tr').filter({hasText:lot}).first()
  await expect(row).toContainText('BMW X5')
+ await expect(row).toContainText('VIN WBS8M9C59J5J79848')
+ await expect(table).toContainText('198.51.100.10')
+ await expect(table).toContainText('198.51.100.11')
+ await expect(table).not.toContainText('203.0.113.99')
  await expect(row).toContainText('IAAI')
  await expect(row).toContainText('Върнати: 1')
  await expect(row.locator('a')).toHaveAttribute('href','/targove/kola?lot='+lot+'&site='+site)
  await expect(table).not.toContainText('Сесия')
  await expect(table.locator('thead')).not.toContainText('Посетител')
  // Refresh stays on the same filters and shows a new request without consent.
- expect((await raw.get('/targove/kola?lot='+lot+'&site='+site,{headers:{Cookie:'koa-consent='+refused}})).ok()).toBeTruthy()
+ expect((await raw.get('/targove/kola?lot='+lot+'&site='+site,{headers:{Cookie:'koa-consent='+refused,'x-real-ip':'2001:db8::3'}})).ok()).toBeTruthy()
  await expect.poll(async()=>{
   await table.getByRole('button',{name:'Обнови списъка'}).click()
   return table.locator('tbody tr').filter({hasText:lot}).count()
  }).toBe(3)
+ await expect(table).toContainText('2001:db8::3')
+ await expect(table.locator('tbody tr').filter({hasText:lot})).toHaveCount(3)
  await page.setViewportSize({width:1440,height:1050})
  await table.screenshot({path:'test-results/catalog-requests.jpg',type:'jpeg',quality:75})
  await page.goto('/admin/catalog-activity?make=Toyota&model=RAV4')
@@ -302,5 +308,26 @@ test('server request history works without cookies or browser telemetry, includi
  await expect(page).not.toHaveURL(/apiPage=99999/)
  await page.goto('/admin/catalog-activity?make='+encodeURIComponent("BMW' OR 1=1 --"))
  await expect(table).toContainText('Още няма сървърни заявки')
+ // A valid VIN lookup is also visible without accepting browser statistics.
+ await raw.get('/targove?q=WBS8M9C59J5J79848')
+ await page.goto('/admin/catalog-activity?kind=lookup')
+ await expect.poll(async()=>{
+  await page.reload()
+  return table.locator('tbody tr').filter({hasText:'VIN WBS8M9C59J5J79848'}).count()
+ }).toBeGreaterThan(0)
  await raw.dispose();await admin.dispose()
+})
+
+test('trusted proxy limits cannot be bypassed by changing the first forwarded address',async({playwright,baseURL})=>{
+ const client=await playwright.request.newContext({baseURL})
+ for(let i=0;i<6;i++) {
+  const response=await client.post('/api/inquiry',{headers:{Origin:baseURL!,'x-forwarded-for':`203.0.113.${i+1}, 198.51.100.77`},
+   data:{name:'Proxy fixture',email:'proxy-fixture@example.test',phone:'+359888123456',car:'BMW X5',message:'Isolated proxy rate limit test.',consent:true}})
+  expect(response.status()).toBe(i<5?201:429)
+ }
+ // Hostinger's real-IP header takes precedence over any earlier forwarded text.
+ const next=await client.post('/api/inquiry',{headers:{Origin:baseURL!,'x-real-ip':'198.51.100.78','x-forwarded-for':'203.0.113.99, 198.51.100.77'},
+  data:{name:'Second proxy fixture',email:'proxy-second@example.test',phone:'+359888123456',car:'BMW X5',message:'Isolated proxy precedence test.',consent:true}})
+ expect(next.status()).toBe(201)
+ await client.dispose()
 })
