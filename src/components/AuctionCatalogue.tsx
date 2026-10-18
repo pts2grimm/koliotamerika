@@ -1,3 +1,5 @@
+import { CatalogActivity } from './CatalogActivity'
+import { isPreview } from '@/lib/preview'
 import { AuctionSearchForm } from './AuctionSearchForm'
 import { canonicalEridanMake } from '@/lib/auction-providers/make-aliases'
 import { SiteLink as Link } from '@/components/SiteLink'
@@ -63,6 +65,14 @@ export async function AuctionCatalogue({ searchParams, archive = false, section 
     ...(data?.items.length ? { mainEntity: { '@type': 'ItemList', itemListElement: data.items.map((car, index) => ({ '@type': 'ListItem', position: index + 1, name: car.title, url: `${siteURL()}/targove/kola?lot=${car.lot_id}&site=${car.site}` })) } } : {}),
   }
   return <>
+    {page === 1 && <CatalogActivity enabled={!isPreview()} data={{
+      kind: 'search', section, archive, make: initial.make, model: initial.model,
+      yearFrom: initial.year_from, yearTo: initial.year_to,
+      query: typeof input.q === 'string' && /^(?:[0-9]{6,12}|[A-HJ-NPR-Z0-9]{17})$/.test(input.q.trim().toUpperCase()) ? input.q.trim().toUpperCase() : undefined,
+      filters: Object.fromEntries(Object.entries(initial).filter(([key]) => key !== 'seller')),
+      outcome: !data ? 'error' : data.items.length ? 'results' : 'empty',
+      resultCount: data?.total ?? undefined,
+    }} />}
     <section className="page-heading container auction-heading"><div><span className="eyebrow orange">COPART / IAAI</span><h1>{pageTitle}</h1><p>{archive ? 'Обяви с минала дата на търга. „Продаден“ означава потвърдена продажба от доставчика; за останалите резултатът не е потвърден. Това не са наши реализирани сделки.' : moto ? pageDescription : 'Избери марка и модел. Сравни автомобилите и планирай следващата стъпка.'}</p></div><Link className="text-link" href="/targove/zapazeni"><Heart size={17} />Запазени автомобили</Link></section>
     <section className="container catalogue-list auction-catalogue">
       {auctionProviderName() === 'eridan' && <>
