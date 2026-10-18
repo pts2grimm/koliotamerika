@@ -32,7 +32,7 @@ export function guardIdentity(ip: string): string {
 export function safeAgent(value: string | null): string {
   return (value || '').replace(/[\u0000-\u001f\u007f]/g, ' ').slice(0,300)
 }
-export function guardLimits(env: NodeJS.ProcessEnv = process.env) {
+export function guardLimits(env: Partial<NodeJS.ProcessEnv> = process.env) {
   const number = (value: string | undefined, fallback: number, min: number, max: number) =>
     value && /^\d+$/.test(value) && Number(value) >= min && Number(value) <= max ? Number(value) : fallback
   return { minute: number(env.CATALOG_RATE_PER_MINUTE,120,30,1000), hour: number(env.CATALOG_RATE_PER_HOUR,1200,300,20000) }

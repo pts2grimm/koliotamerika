@@ -23,6 +23,10 @@ test('HTTP guard counts once, limits without cookies, cannot be bypassed by pref
  for(const path of ['/','/robots.txt','/sitemap.xml','/admin/login']) expect((await client.get(path)).ok(),path).toBeTruthy()
  const other=await client.get('/api/auction-models?make=BMW',{headers:{'X-Real-IP':'198.51.100.89'}})
  expect(other.status()).not.toBe(429)
+ expect((await client.get('/api/catalog-guard')).ok()).toBeFalsy()
+ // A rendered vehicle can call related-car and metadata services, but counts as one HTTP request.
+ const vehicle=await client.get('/targove/kola?lot=70000000&site=1',{headers:{'X-Real-IP':'198.51.100.91'}})
+ expect(vehicle.ok()).toBeTruthy()
  const admin=await playwright.request.newContext({baseURL,extraHTTPHeaders:{'X-Real-IP':'198.51.100.90'}})
  const credentials={email:'guard-admin@example.test',password:'Guard-test-2026'}
  const bootstrap=await admin.post('/api/users/first-register',{data:credentials})
@@ -43,6 +47,9 @@ test('HTTP guard counts once, limits without cookies, cannot be bypassed by pref
  await expect(row).toContainText('Guard-browser-test')
  await expect(row.locator('td').nth(2)).toContainText(String(count))
  await expect(row.locator('td').nth(3)).toHaveText(/3/)
+ const vehicleRow=page.locator('#catalog-protection tr').filter({hasText:'198.51.100.91'})
+ await expect(vehicleRow).toHaveCount(1)
+ await expect(vehicleRow.locator('td').nth(2)).toContainText('1')
  await page.screenshot({path:'test-results/catalog-guard-desktop.png',fullPage:true})
  await client.dispose();await admin.dispose()
 })
