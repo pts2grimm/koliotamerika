@@ -109,12 +109,12 @@ export const auctionCar=cache((lot:string,site:string)=>{
  return observeCatalogRequest({kind:'view',provider:name,params:new URLSearchParams({lot,site})},async()=>{
   const snapshot=name==='eridan'?catalogueSnapshots.get(lot,site):undefined
   return snapshot?.auction_status==='active'?snapshot:await cachedCar(name,lot,site)
- },car=>({make:car?.make,model:car?.model,lot:car?String(car.lot_id):lot,site:car?String(car.site):site,count:car?1:0}))
+ },car=>({make:car?.make,model:car?.model,vin:car?.vin,lot:car?String(car.lot_id):lot,site:car?String(car.site):site,count:car?1:0}))
 })
 export const lookupAuction=(q:string,archive=false)=>{
  const name=auctionProviderName()
- // Never retain raw VIN/query text. A successful lookup can expose only its lot/site.
- return observeCatalogRequest({kind:'lookup',provider:name,params:new URLSearchParams()},
+ // Retain only a structurally valid VIN; never arbitrary lookup text.
+ return observeCatalogRequest({kind:'lookup',provider:name,params:new URLSearchParams({vin:q})},
   ()=>cachedLookup(name,q,archive?'sold':'active'),result=>({...result,count:1}))
 }
 export function auctionImages(car:AuctionCar) {

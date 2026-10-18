@@ -12,6 +12,8 @@ const cars = Array.from({ length: 30 }, (_, index) => ({
  auction_date: index === 1 ? undefined : index === 2 ? 'invalid-date' : index === 3 ? '2020-10-12T14:00:00.000Z' : '2030-10-12T14:00:00.000Z',
  link_img_hd: images, link_img_small: images,
 }))
+// A structurally valid fixture VIN for the private request-log regression.
+cars[24].vin = 'WBS8M9C59J5J79848'
 cars[4].video_url = ['https://cs.copart.com/test-engine.mp4']
 cars[5].videoLink = 'https://youtu.be/abcdefghijk'
 cars[6].video = 'https://cs.copart.com/test-engine-broken.mp4'

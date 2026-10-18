@@ -1,3 +1,4 @@
+import * as catalogRequestDetails from './20261018_200000_catalog_request_details'
 import * as catalogRequests from './20261018_190000_catalog_requests'
 import * as catalogTotals from './20261018_160000_catalog_totals'
 import * as catalogEvents from './20261018_120000_catalog_events'
@@ -29,4 +30,5 @@ export const migrations = [
   { up: catalogEvents.up, down: catalogEvents.down, name: '20261018_120000_catalog_events' },
   { up: catalogTotals.up, down: catalogTotals.down, name: '20261018_160000_catalog_totals' },
   { up: catalogRequests.up, down: catalogRequests.down, name: '20261018_190000_catalog_requests' },
+  { up: catalogRequestDetails.up, down: catalogRequestDetails.down, name: '20261018_200000_catalog_request_details' },
 ]

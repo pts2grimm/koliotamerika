@@ -1,10 +1,11 @@
-// Operational catalogue-service records. No browser identifiers or raw request objects.
+// Operational catalogue-service records. No session/profile linkage or raw request objects.
+import { validRequestIP, type CatalogueRequestIP } from './catalog-request-ip'
 export type CatalogRequestKind = 'search' | 'view' | 'lookup'
-export type CatalogRequestInput = { kind: CatalogRequestKind; provider: string; params: URLSearchParams }
-export type CatalogRequestSummary = { make?: string; model?: string; lot?: string; site?: string; count?: number }
+export type CatalogRequestInput = { kind: CatalogRequestKind; provider: string; params: URLSearchParams; requestIP?: CatalogueRequestIP }
+export type CatalogRequestSummary = { make?: string; model?: string; lot?: string; site?: string; vin?: string; count?: number }
 export type CatalogRequestRecord = {
   createdAt: string; kind: CatalogRequestKind; provider: string; make: string; model: string;
-  lot: string; site: string; yearFrom: string; yearTo: string; page: number;
+  lot: string; site: string; vin: string; ip: string; ipSource: string; yearFrom: string; yearTo: string; page: number;
   outcome: 'results' | 'empty' | 'error'; resultCount: number | null; durationMs: number;
 }
 const label = (value: string | null | undefined) => {
@@ -12,14 +13,22 @@ const label = (value: string | null | undefined) => {
   return text.length <= 100 && /^[A-Z0-9 &+()./-]*$/.test(text) && !/^[A-HJ-NPR-Z0-9]{17}$/.test(text) ? text : ''
 }
 const digits = (value: string | null | undefined, pattern: RegExp) => value && pattern.test(value) ? value : ''
+const validVIN = (value: string | null | undefined) => {
+  const vin=(value || '').trim().toUpperCase()
+  return /^[A-HJ-NPR-Z0-9]{17}$/.test(vin) ? vin : ''
+}
 export function catalogRequestRecord(input: CatalogRequestInput, summary: CatalogRequestSummary, start: number, failed: boolean, end = Date.now()): CatalogRequestRecord {
   const p = input.params
   const count = Number.isSafeInteger(summary.count) && Number(summary.count) >= 0 ? Number(summary.count) : null
   const page = Number(p.get('page') || 1)
+  const ip = validRequestIP(input.requestIP?.address)
+  const ipSource = ip && ['x-real-ip','x-forwarded-for'].includes(input.requestIP?.source || '') ? input.requestIP!.source : ''
   return {
     createdAt: new Date(start).toISOString(), kind: input.kind,
     provider: ['eridan','apicar','legacy'].includes(input.provider) ? input.provider : 'unknown',
     make: label(summary.make || p.get('make')), model: label(summary.model || p.get('model')),
+    vin: input.kind==='search' ? '' : validVIN(summary.vin || p.get('vin')),
+    ip: ipSource ? ip : '', ipSource,
     lot: digits(summary.lot || p.get('lot'), /^\d{5,12}$/),
     site: ['1','2'].includes(summary.site || p.get('site') || '') ? (summary.site || p.get('site'))! : '',
     yearFrom: digits(p.get('year_from'), /^(19|20)\d{2}$/), yearTo: digits(p.get('year_to'), /^(19|20)\d{2}$/),
