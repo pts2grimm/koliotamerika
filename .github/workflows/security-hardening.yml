@@ -15,7 +15,7 @@ jobs:
           node-version: '24'
           cache: npm
       - run: npm ci --include=dev
-      - run: npx tsx --test tests/catalog-activity.test.ts tests/catalog-totals.test.ts tests/catalog-requests.test.ts tests/consent-audit.test.ts tests/integrations.test.ts tests/integration-settings.test.ts tests/migrations.test.ts tests/account-validation.test.ts tests/inquiry.test.ts tests/inquiry-notification.test.ts tests/inquiry-awaited.test.ts tests/submission-limit.test.ts tests/request-screening.test.ts tests/eridan.test.ts tests/eridan-transport-security.test.ts
+      - run: npx tsx --test --test-timeout=120000 tests/catalog-activity.test.ts tests/catalog-totals.test.ts tests/catalog-requests.test.ts tests/consent-audit.test.ts tests/integrations.test.ts tests/integration-settings.test.ts tests/migrations.test.ts tests/account-validation.test.ts tests/inquiry.test.ts tests/inquiry-notification.test.ts tests/inquiry-awaited.test.ts tests/submission-limit.test.ts tests/request-screening.test.ts tests/eridan.test.ts tests/eridan-transport-security.test.ts
   browser:
     runs-on: ubuntu-latest
     timeout-minutes: 15
