@@ -29,3 +29,8 @@ export function PeriodControls({ preset, from, to }: { preset: string; from: str
     <span>Българско време · до 90 дни</span>
   </form>
 }
+
+export function RefreshReport() {
+  const router=useRouter()
+  return <button type="button" className="koa-overview__button koa-overview__button--quiet" onClick={()=>router.refresh()}><RefreshCw size={16}/> Обнови списъка</button>
+}

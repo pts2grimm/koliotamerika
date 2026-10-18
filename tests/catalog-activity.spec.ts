@@ -242,3 +242,65 @@ test('cookieless counters omit identity and do not double count on consent chang
  await context.close()
  await check.dispose()
 })
+
+test('server request history works without cookies or browser telemetry, including cache hits',async({page,playwright,baseURL})=>{
+ const raw=await playwright.request.newContext({baseURL})
+ const lot='70000024',site='2'
+ const upstream=async()=> {
+  const r=await raw.get('http://127.0.0.1:3199/test-requests')
+  const data=await r.json()
+  return data.requests.filter((r:{path:string;params:Record<string,string>})=>r.path==='/car'&&r.params.lot_id===lot).length
+ }
+ const before=await upstream()
+ // Plain server requests execute no JS and cannot send either browser analytics beacon.
+ expect((await raw.storageState()).cookies).toHaveLength(0)
+ expect((await raw.get('/targove/kola?lot='+lot+'&site='+site)).ok()).toBeTruthy()
+ const first=await upstream()
+ expect(first).toBeGreaterThan(before)
+ expect((await raw.get('/targove/kola?lot='+lot+'&site='+site)).ok()).toBeTruthy()
+ expect(await upstream()).toBe(first) // Real cache hit, no second upstream vehicle request.
+ const refused=encodeURIComponent(JSON.stringify({version:1,analytics:false,marketing:false,updatedAt:Date.now()}))
+ expect((await raw.get('/targove?make=Toyota&model=RAV4&year_from=2039',{headers:{Cookie:'koa-consent='+refused}})).ok()).toBeTruthy()
+ expect((await raw.get('/api/catalog-requests')).status()).not.toBe(200)
+ const admin=await playwright.request.newContext({baseURL})
+ const login=await admin.post('/api/users/login',{data:{email:'catalog-admin@example.test',password:'Catalog-admin-2026'}})
+ const headers={Authorization:'JWT '+(await login.json()).token}
+ const detail=await admin.get('/api/catalog-events',{headers,params:{'where[lot][equals]':lot}})
+ expect((await detail.json()).totalDocs).toBe(0)
+ await page.goto('/admin/login')
+ await page.locator('input[name=email]').fill('catalog-admin@example.test')
+ await page.locator('input[name=password]').fill('Catalog-admin-2026')
+ await page.locator('button[type=submit]').click()
+ await expect(page.getByRole('heading',{name:'Обзор на сайта',exact:true})).toBeVisible()
+ await page.goto('/admin/catalog-activity?kind=view&make=BMW')
+ const table=page.locator('#catalog-requests')
+ await expect.poll(async()=>{
+  await page.reload()
+  return table.locator('tbody tr').filter({hasText:lot}).count()
+ }).toBe(2) // Metadata and page render share React cache: one log per server request.
+ await expect(table).toContainText('без бисквитки')
+ const row=table.locator('tbody tr').filter({hasText:lot}).first()
+ await expect(row).toContainText('BMW X5')
+ await expect(row).toContainText('IAAI')
+ await expect(row).toContainText('Върнати: 1')
+ await expect(row.locator('a')).toHaveAttribute('href','/targove/kola?lot='+lot+'&site='+site)
+ await expect(table).not.toContainText('Сесия')
+ await expect(table.locator('thead')).not.toContainText('Посетител')
+ // Refresh stays on the same filters and shows a new request without consent.
+ expect((await raw.get('/targove/kola?lot='+lot+'&site='+site,{headers:{Cookie:'koa-consent='+refused}})).ok()).toBeTruthy()
+ await expect.poll(async()=>{
+  await table.getByRole('button',{name:'Обнови списъка'}).click()
+  return table.locator('tbody tr').filter({hasText:lot}).count()
+ }).toBe(3)
+ await page.setViewportSize({width:1440,height:1050})
+ await table.screenshot({path:'test-results/catalog-requests.jpg',type:'jpeg',quality:75})
+ await page.goto('/admin/catalog-activity?make=Toyota&model=RAV4')
+ await expect(table).toContainText('TOYOTA RAV4')
+ await expect(table).toContainText('Без резултати')
+ await expect(table).toContainText('От 2039')
+ await page.goto('/admin/catalog-activity?apiPage=99999')
+ await expect(page).not.toHaveURL(/apiPage=99999/)
+ await page.goto('/admin/catalog-activity?make='+encodeURIComponent("BMW' OR 1=1 --"))
+ await expect(table).toContainText('Още няма сървърни заявки')
+ await raw.dispose();await admin.dispose()
+})
