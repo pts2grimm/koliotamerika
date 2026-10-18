@@ -483,7 +483,9 @@ test('a fuel absent from one auction does not block valid results from the other
  await assert.rejects(()=>provider.search(new URLSearchParams('site=2&fuel=Gasoline')),UnsupportedEridanFilterError)
 })
 
-test('the user-provided JSON maps sale_date, auction, amounts, nested names and nulls without invented data', () => {
+test('the user-provided JSON maps sale_date, auction, amounts, nested names and nulls without invented data', t => {
+ // This fixture's sale has a fixed date: do not let calendar time change its active-price assertions.
+ t.mock.timers.enable({ apis: ['Date'], now: Date.parse('2026-10-13T12:00:00Z') })
  const car = normalizeEridanCar(userLot)!
  assert.equal(car.id, '1:68880346'); assert.equal(car.lot_id, 68880346)
  assert.equal(car.auction_date, '2026-10-16T18:00:00Z'); assert.equal(car.auction_status, 'active')
@@ -500,6 +502,8 @@ test('the user-provided JSON maps sale_date, auction, amounts, nested names and 
  const schedule = auctionSchedule(parseAuctionDate(car.auction_date), Date.parse('2026-10-13T12:00:00Z'), car.auction_status)
  assert.equal(userLot.is_future_sale, false)
  assert.equal(schedule.state, 'upcoming'); assert.equal(schedule.time, '21:00')
+ t.mock.timers.setTime(Date.parse('2026-10-18T12:00:00Z'))
+ assert.equal(normalizeEridanCar(userLot)?.buy_now, undefined)
 })
 
 test('history is excluded from every catalogue stream, even if upstream ignores the active filter', async () => {
