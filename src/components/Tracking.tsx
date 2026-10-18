@@ -24,6 +24,7 @@ export function Tracking({ config }: { config: PublicIntegrations }) {
 
   useEffect(() => {
     const saved = browserConsent()
+    if (!saved?.analytics) { try { sessionStorage.removeItem('koa-catalog-session') } catch {} }
     setConsent(saved); setAnalytics(saved?.analytics || false); setMarketing(saved?.marketing || false); setReady(true)
     const show = () => {
       previousFocus.current = document.activeElement as HTMLElement
@@ -33,6 +34,7 @@ export function Tracking({ config }: { config: PublicIntegrations }) {
     }
     const changed = () => {
       const current = browserConsent()
+      if (!current?.analytics) { try { sessionStorage.removeItem('koa-catalog-session') } catch {} }
       withdrawTracking(current || { analytics: false, marketing: false })
       location.reload() // Remove already-loaded libraries, listeners and pending queues.
     }
@@ -72,6 +74,8 @@ export function Tracking({ config }: { config: PublicIntegrations }) {
   function save(analytics: boolean, marketing: boolean, action: ConsentAction) {
     const previous = browserConsent()
     const next = storeConsent({ analytics, marketing })
+    if (!analytics) { try { sessionStorage.removeItem('koa-catalog-session') } catch {} }
+    window.dispatchEvent(new Event('koa:consent-updated'))
     recordConsentChoice(analytics, marketing, action)
     setConsent(next); setOpen(false)
     if (previous && ((previous.analytics && !analytics) || (previous.marketing && !marketing))) {
@@ -88,7 +92,7 @@ export function Tracking({ config }: { config: PublicIntegrations }) {
     </div>
     {details && <div className="cookie-options">
       <p><strong>Необходими — винаги включени.</strong> Вход, сигурност и запазени предпочитания. Изборът за бисквитките се пази {consentLifetime / 86400} дни.</p>
-      <label><input type="checkbox" checked={analytics} onChange={e => setAnalytics(e.target.checked)} /><span><strong>Статистика</strong><small>Google Analytics и Microsoft Clarity: посещения и използване на сайта.</small></span></label>
+      <label><input type="checkbox" checked={analytics} onChange={e => setAnalytics(e.target.checked)} /><span><strong>Статистика</strong><small>Статистика за търсенията и разгледаните автомобили, Google Analytics и Microsoft Clarity.</small></span></label>
       <label><input type="checkbox" checked={marketing} onChange={e => setMarketing(e.target.checked)} /><span><strong>Реклама</strong><small>Meta Pixel/CAPI и Google Ads. При запитване CAPI може да изпрати защитени с хеш имейл и телефон към Meta за измерване на рекламите.</small></span></label>
       {config.installation === 'gtm' && <p>Tag Manager се зарежда само когато и двете категории са разрешени.</p>}
     </div>}

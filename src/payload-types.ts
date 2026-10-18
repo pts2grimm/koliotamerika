@@ -68,6 +68,7 @@ export interface Config {
   };
   blocks: {};
   collections: {
+    'catalog-events': CatalogEvent;
     'bills-of-sale': BillOfSale;
     'consent-events': ConsentEvent;
     users: User;
@@ -87,6 +88,7 @@ export interface Config {
   };
   collectionsJoins: {};
   collectionsSelect: {
+    'catalog-events': CatalogEventsSelect<false> | CatalogEventsSelect<true>;
     'bills-of-sale': BillsOfSaleSelect<false> | BillsOfSaleSelect<true>;
     'consent-events': ConsentEventsSelect<false> | ConsentEventsSelect<true>;
     users: UsersSelect<false> | UsersSelect<true>;
@@ -165,6 +167,69 @@ export interface CustomerAuthOperations {
   };
 }
 /**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "catalog-events".
+ */
+export interface CatalogEvent {
+  id: number;
+  event: string;
+  subject?: string | null;
+  customer?: (number | null) | Customer;
+  kind: 'search' | 'view';
+  section: 'cars' | 'powersports';
+  archive?: boolean | null;
+  make?: string | null;
+  model?: string | null;
+  yearFrom?: string | null;
+  yearTo?: string | null;
+  lot?: string | null;
+  site?: string | null;
+  vin?: string | null;
+  query?: string | null;
+  resultCount?: number | null;
+  outcome?: ('results' | 'empty' | 'error') | null;
+  filters?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "customers".
+ */
+export interface Customer {
+  id: number;
+  name: string;
+  phone?: string | null;
+  consentedAt: string;
+  updatedAt: string;
+  createdAt: string;
+  email: string;
+  resetPasswordToken?: string | null;
+  resetPasswordExpiration?: string | null;
+  salt?: string | null;
+  hash?: string | null;
+  resetPasswordRequestedAt?: string | null;
+  loginAttempts?: number | null;
+  lockUntil?: string | null;
+  sessions?:
+    | {
+        id: string;
+        createdAt?: string | null;
+        expiresAt: string;
+      }[]
+    | null;
+  password?: string | null;
+  collection: 'customers';
+}
+/**
  * Bill of Sale за закупен автомобил. Всички суми са в USD. Запази документа преди изтегляне на PDF. Подписът на продавача се добавя автоматично. Купувачът подписва отделно.
  *
  * This interface was referenced by `Config`'s JSON-Schema
@@ -233,35 +298,6 @@ export interface ConsentEvent {
   policyVersion: string;
   updatedAt: string;
   createdAt: string;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "customers".
- */
-export interface Customer {
-  id: number;
-  name: string;
-  phone?: string | null;
-  consentedAt: string;
-  updatedAt: string;
-  createdAt: string;
-  email: string;
-  resetPasswordToken?: string | null;
-  resetPasswordExpiration?: string | null;
-  salt?: string | null;
-  hash?: string | null;
-  resetPasswordRequestedAt?: string | null;
-  loginAttempts?: number | null;
-  lockUntil?: string | null;
-  sessions?:
-    | {
-        id: string;
-        createdAt?: string | null;
-        expiresAt: string;
-      }[]
-    | null;
-  password?: string | null;
-  collection: 'customers';
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -597,6 +633,31 @@ export interface PayloadMigration {
   batch?: number | null;
   updatedAt: string;
   createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "catalog-events_select".
+ */
+export interface CatalogEventsSelect<T extends boolean = true> {
+  event?: T;
+  subject?: T;
+  customer?: T;
+  kind?: T;
+  section?: T;
+  archive?: T;
+  make?: T;
+  model?: T;
+  yearFrom?: T;
+  yearTo?: T;
+  lot?: T;
+  site?: T;
+  vin?: T;
+  query?: T;
+  resultCount?: T;
+  outcome?: T;
+  filters?: T;
+  updatedAt?: T;
+  createdAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema

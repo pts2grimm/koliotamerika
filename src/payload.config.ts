@@ -1,3 +1,4 @@
+import { CatalogEvents } from './collections/CatalogEvents'
 import { BillsOfSale } from './collections/BillsOfSale'
 import { ConsentEvents } from './collections/ConsentEvents'
 import { smtpConfiguration } from './lib/smtp-config'
@@ -34,6 +35,7 @@ export default buildConfig({
     components: {
       beforeNavLinks: ['/src/components/admin/ContentNav#ContentNav'],
       views: {
+        catalogActivity: { Component: '/src/components/admin/CatalogActivityView#CatalogActivityView', path: '/catalog-activity', exact: true, meta: { title: 'API лог — каталог' } },
         dashboard: { Component: '/src/components/admin/Overview#Overview', meta: { title: 'Обзор и аналитика' } },
         sitePages: { Component: '/src/components/admin/ContentList#SitePagesView', path: '/site-pages', exact: true, meta: { title: 'Страници' } },
         blogPosts: { Component: '/src/components/admin/ContentList#BlogPostsView', path: '/blog-posts', exact: true, meta: { title: 'Блог' } },
@@ -41,7 +43,7 @@ export default buildConfig({
     },
   },
   i18n: { fallbackLanguage: 'bg', supportedLanguages: { bg, en } },
-  collections: [BillsOfSale, ConsentEvents, Users, Customers, SavedVehicles, Media, Cars, Pages, Inquiries, AuctionQuotes, Redirects, RateLimits],
+  collections: [CatalogEvents, BillsOfSale, ConsentEvents, Users, Customers, SavedVehicles, Media, Cars, Pages, Inquiries, AuctionQuotes, Redirects, RateLimits],
   globals: [SiteSettings, CalculatorSettings, Integrations],
   ...(smtp ? { email: nodemailerAdapter(smtp) } : {}),
   db: sqliteAdapter({

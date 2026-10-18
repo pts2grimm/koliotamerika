@@ -1,3 +1,4 @@
+import { AdminAnalyticsTabs } from './AdminAnalyticsTabs'
 import { Gutter, Link, SetStepNav } from '@payloadcms/ui'
 import { notFound, redirect } from 'next/navigation'
 import type { AdminViewServerProps } from 'payload'
@@ -52,6 +53,7 @@ export async function Overview(props: AdminViewServerProps) {
         <div><p className="koa-overview__eyebrow">КОЛИ ОТ АМЕРИКА · УПРАВЛЕНИЕ</p><h1>Обзор на сайта</h1><p>Запитванията, съдържанието и изборите за бисквитки — на едно място.</p></div>
         <OverviewActions />
       </header>
+      <AdminAnalyticsTabs active="overview" root={root} />
       <PeriodControls key={period.preset + period.from + period.to} preset={period.preset} from={period.from} to={period.to} />
       <div className="koa-overview__period"><span><strong>{date(period.start)} — {date(period.to + 'T12:00:00Z')}</strong> <small>спрямо {date(period.previousStart)} — {date(period.previousTo + 'T12:00:00Z')}</small></span>
         <a href={'/api/admin/consent-export?' + query}>↓ Изтегли историята CSV</a></div>

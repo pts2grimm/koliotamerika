@@ -43,9 +43,9 @@ function sandbox() {
 }
 function journal(db: DatabaseSync) {
   assert.deepEqual(db.prepare('SELECT name FROM payload_migrations ORDER BY name').all().map(row => row.name), [
-    '20261010_120440_initial', '20261010_135337_customer_accounts', '20261012_010000_contact_details', '20261012_020000_integrations', '20261012_030000_calculator_eur', '20261017_120000_consent_events', '20261017_180000_bills_of_sale',
+    '20261010_120440_initial', '20261010_135337_customer_accounts', '20261012_010000_contact_details', '20261012_020000_integrations', '20261012_030000_calculator_eur', '20261017_120000_consent_events', '20261017_180000_bills_of_sale', '20261018_120000_catalog_events',
   ])
-  for (const name of ['pages', 'site_settings', 'customers', 'saved_vehicles', 'inquiries', 'integrations', 'consent_events', 'bills_of_sale']) {
+  for (const name of ['pages', 'site_settings', 'customers', 'saved_vehicles', 'inquiries', 'integrations', 'consent_events', 'bills_of_sale', 'catalog_events']) {
     assert.ok(db.prepare("SELECT name FROM sqlite_master WHERE type = 'table' AND name = ?").get(name))
   }
 }
@@ -259,4 +259,9 @@ test('confirmed terms update rolls back with its journal and respects later edit
 test('consent retention expires old records and customer deletion removes identity links', { timeout: 120000 }, () => {
  const {dir,run}=sandbox()
  try { run(); run('tests/fixtures/consent-retention.ts') } finally { rmSync(dir,{recursive:true,force:true}) }
+})
+
+test('catalog retention and additive migration preserve data and remove deleted customer links', {timeout:120000},()=>{
+ const {dir,run}=sandbox()
+ try {run();run('tests/fixtures/catalog-retention.ts')} finally {rmSync(dir,{recursive:true,force:true})}
 })
