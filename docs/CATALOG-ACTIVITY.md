@@ -10,7 +10,7 @@ catalog_totals stores only a daily count grouped by those vehicle dimensions, us
 
 Everyone uses the same counters, regardless of consent; accepting cookies afterwards does not increment the current view again. Counters and consented history are separate datasets and are never summed or joined by visitor. Counters start at deployment with no backfill from the old history. No conversion or unique-person count is inferred.
 
-Retained: last 90 calendar days, cleaned on the next counter write or authenticated report. No wall-clock cleanup job. Storage is bounded to 100000 buckets and 50000 increments per Sofia day, enforced in the atomic upsert without identifying a visitor. No retries or persistent deduplication tokens: a reload counts again, delivery failures/blocked requests are absent, and manual duplicate requests count again. These are approximate action counts, not proof of human visits.
+Retained: last 90 calendar days, cleaned on the next counter write or authenticated report. No wall-clock cleanup job. Storage is bounded to 100000 buckets and 50000 increments per Sofia day, enforced in the atomic upsert without identifying a visitor. No retries or persistent deduplication tokens: a reload counts again, delivery failures/blocked requests are absent, and manual duplicate requests count again. A full page reload after withdrawing already-loaded third-party scripts also counts as a new load; no persistent identifier is introduced to deduplicate across reloads. These are approximate action counts, not proof of human visits.
 
 ## Detailed history (analytics consent required)
 

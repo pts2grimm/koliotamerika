@@ -87,7 +87,7 @@ export function Tracking({ config }: { config: PublicIntegrations }) {
   if (!ready || !open) return null
   return <section className="cookie-panel" ref={panel} tabIndex={-1} aria-labelledby="cookie-title" aria-describedby="cookie-description">
     <div className="cookie-copy"><h2 id="cookie-title">Ти избираш бисквитките</h2>
-      <p id="cookie-description">Необходимите бисквитки пазят входа и избора ти. С твое съгласие използваме статистика за подобряване на сайта и рекламни инструменти за измерване на запитванията. Можеш да промениш избора си по всяко време.</p>
+      <p id="cookie-description">Необходимите бисквитки пазят входа и избора ти. Съгласието управлява подробната статистика и рекламните инструменти. Обобщените броячи на каталога работят без бисквитки и без идентификатор на посетител. Можеш да промениш избора си по всяко време.</p>
       <a href="/zashtita-na-lichni-danni#site-cookies">Повече за данните и бисквитките</a>
     </div>
     {details && <div className="cookie-options">

@@ -194,6 +194,12 @@ test('cookieless counters omit identity and do not double count on consent chang
  await fresh.getByRole('button',{name:'Само необходимите',exact:true}).click()
  await expect.poll(()=>fresh.evaluate(()=>sessionStorage.getItem('koa-catalog-session'))).toBeNull()
  expect(requests).toHaveLength(2)
+ // A full reload is a new anonymous load, including after withdrawing consent.
+ const reloaded=fresh.waitForResponse(r=>new URL(r.url()).pathname==='/api/catalog-totals')
+ await fresh.reload()
+ expect((await reloaded).status()).toBe(204)
+ expect(requests).toHaveLength(3)
+ expect(await fresh.evaluate(()=>sessionStorage.getItem('koa-catalog-session'))).toBeNull()
  // No public reads, identifiers, arbitrary query text or cross-site submissions.
  expect((await context.request.get('/api/catalog-totals')).status()).toBe(405)
  expect((await context.request.get('/api/catalog-events')).status()).toBe(403)
@@ -220,8 +226,8 @@ test('cookieless counters omit identity and do not double count on consent chang
  await expect(page.getByRole('heading',{name:'Обзор на сайта',exact:true})).toBeVisible()
  await page.goto('/admin/catalog-activity?make=CAN-AM')
  const metrics=page.locator('.koa-overview__metric')
- await expect(metrics.nth(0).locator('strong')).toHaveText('2')
- await expect(metrics.nth(2).locator('strong')).toHaveText('2')
+ await expect(metrics.nth(0).locator('strong')).toHaveText('3')
+ await expect(metrics.nth(2).locator('strong')).toHaveText('3')
  await expect(page.locator('#catalog-history')).toContainText('1 записа')
  await expect(page.locator('.koa-catalog-report__rankings')).toContainText('CAN-AM')
  await page.screenshot({path:'test-results/catalog-totals.jpg',type:'jpeg',quality:75})
