@@ -1,9 +1,9 @@
-import { catalogueRequestIP } from '@/lib/catalog-request-ip'
+import { requestLimitIdentity, reserveSubmission } from '@/lib/submission-limit'
 import { notifyInquiryBeforeResponse } from '@/lib/inquiry-notification'
 import { passwordRecoveryEnabled } from '@/lib/accounts-enabled'
 import { recordLead } from '@/lib/record-lead'
 import { NextResponse, after } from 'next/server'
-import { createHmac, randomUUID } from 'node:crypto'
+import { randomUUID } from 'node:crypto'
 import { cms, siteURL } from '@/lib/data'
 import { validateInquiry } from '@/lib/inquiry-validation'
 import { customerFromRequest } from '@/lib/account-server'
@@ -11,7 +11,7 @@ import { isPreview } from '@/lib/preview'
 export async function POST(request: Request) {
  if (isPreview()) return NextResponse.json({ error: 'Запитванията са изключени в демонстрационната версия.' }, { status: 403 })
  const origin = request.headers.get('origin')
- if (origin && origin !== new URL(siteURL()).origin) return NextResponse.json({ error: 'Невалиден източник на заявката.' }, { status: 403 })
+ if (request.headers.get('sec-fetch-site') === 'cross-site' || origin !== new URL(siteURL()).origin) return NextResponse.json({ error: 'Невалиден източник на заявката.' }, { status: 403 })
  if (!request.headers.get('content-type')?.includes('application/json')) return NextResponse.json({ error: 'Очакват се JSON данни.' }, { status: 415 })
  // Bound streamed input as well as Content-Length to avoid oversized requests.
  const reader = request.body?.getReader(); if (!reader) return NextResponse.json({ error: 'Липсват данни.' }, { status: 400 })
@@ -23,19 +23,11 @@ export async function POST(request: Request) {
  if (!result.ok) return NextResponse.json({ error: result.error }, { status: 400 })
  try {
    const payload = await cms()
-   // Only trust forwarding headers when a controlled reverse proxy overwrites them.
-   const client = process.env.TRUST_PROXY === 'true' ? catalogueRequestIP(request.headers, true)?.address || 'unknown' : 'shared'
-   const key = createHmac('sha256', process.env.PAYLOAD_SECRET!).update(client).digest('hex')
-   const cutoff = new Date(Date.now() - 60 * 60 * 1000).toISOString()
-   const recent = await payload.count({ collection: 'submission-limits', where: { and: [{ key: { equals: key } }, { createdAt: { greater_than: cutoff } }] } })
-   if (recent.totalDocs >= (client === 'shared' ? 30 : 5)) return NextResponse.json({ error: 'Твърде много запитвания. Опитай отново след час.' }, { status: 429, headers: { 'Retry-After': '3600' } })
+   const client = requestLimitIdentity(request.headers)
+   // Reserve before persistence/mail, including concurrent submissions.
+   if (!await reserveSubmission(payload, client, client === 'shared' ? 30 : 5)) return NextResponse.json({ error: 'Твърде много запитвания. Опитай отново след час.' }, { status: 429, headers: { 'Retry-After': '3600', 'Cache-Control': 'no-store' } })
    const customer = await customerFromRequest(request)
    const inquiry = await payload.create({ collection: 'inquiries', data: { ...result.data, ...(customer ? { customer: customer.id, email: customer.email } : {}) } })
-   // A housekeeping error must not tell the customer their already-saved inquiry was lost.
-   try {
-    await payload.create({ collection: 'submission-limits', data: { key } })
-    await payload.delete({ collection: 'submission-limits', where: { createdAt: { less_than: cutoff } } })
-   } catch { payload.logger.warn('Inquiry saved; submission limit housekeeping failed.') }
    const eventId = randomUUID()
    const tracking = (input as { tracking?: { path?: unknown; marketing?: unknown } }).tracking
    // Schedule ONLY after persistence and validation, never from a public arbitrary-event endpoint.

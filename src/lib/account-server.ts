@@ -1,5 +1,4 @@
-import { catalogueRequestIP } from './catalog-request-ip'
-import { createHmac } from 'node:crypto'
+import { requestLimitIdentity, reserveSubmission } from './submission-limit'
 import { NextResponse } from 'next/server'
 import { cms, siteURL } from './data'
 import { accountsEnabled } from './accounts-enabled'
@@ -13,14 +12,14 @@ export async function customerFromRequest(request: Request) {
  const { user } = await payload.auth({ headers: new Headers({ Authorization: `JWT ${token}`, DisableAutologin: 'true' }) })
  return user?.collection === 'customers' ? user : null
 }
-export function accountResponse(data: unknown, status = 200) { return NextResponse.json(data, { status, headers: { 'Cache-Control': 'private, no-store', 'Vary': 'Cookie' } }) }
+export function accountResponse(data: unknown, status = 200) { return NextResponse.json(data, { status, headers: { 'Cache-Control': 'private, no-store', 'Vary': 'Cookie', ...(status === 429 ? { 'Retry-After': '3600' } : {}) } }) }
 export function setCustomerCookie(response: NextResponse, token: string, exp?: number) {
  response.cookies.set(customerCookie, token, { httpOnly: true, secure: new URL(siteURL()).protocol === 'https:', sameSite: 'lax', path: '/', maxAge: token ? Math.max(0, Math.floor((exp || Date.now() / 1000 + 604800) - Date.now() / 1000)) : 0 })
  return response
 }
 export async function accountBody(request: Request): Promise<Record<string, unknown>> {
  if (!accountsEnabled()) throw new AccountError('Акаунтите още не са активирани. Можеш да запазваш коли на това устройство.', 503)
- if (request.headers.get('origin') !== new URL(siteURL()).origin) throw new AccountError('Невалиден източник на заявката.', 403)
+ if (request.headers.get('sec-fetch-site') === 'cross-site' || request.headers.get('origin') !== new URL(siteURL()).origin) throw new AccountError('Невалиден източник на заявката.', 403)
  if (!request.headers.get('content-type')?.includes('application/json')) throw new AccountError('Очакват се JSON данни.', 415)
  const reader = request.body?.getReader(); if (!reader) throw new AccountError('Липсват данни.')
  let size = 0; const chunks: Uint8Array[] = []
@@ -30,15 +29,10 @@ export async function accountBody(request: Request): Promise<Record<string, unkn
 }
 export async function accountLimit(request: Request, action: string, email?: string) {
  const payload = await cms()
- const client = process.env.TRUST_PROXY === 'true' ? catalogueRequestIP(request.headers, true)?.address || 'unknown' : 'shared'
- const cutoff = new Date(Date.now() - 3600000).toISOString()
+ const client = requestLimitIdentity(request.headers)
  const limits: [string, number][] = [[`account:${action}:ip:${client}`, client === 'shared' ? 120 : 30]]
  if (email) limits.push([`account:${action}:email:${email}`, action === 'forgot' ? 5 : 15])
  for (const [value, max] of limits) {
-  const key = createHmac('sha256', process.env.PAYLOAD_SECRET!).update(value).digest('hex')
-  const recent = await payload.count({ collection: 'submission-limits', where: { and: [{ key: { equals: key } }, { createdAt: { greater_than: cutoff } }] } })
-  if (recent.totalDocs >= max) throw new AccountError('Твърде много опити. Опитай отново след час.', 429)
-  await payload.create({ collection: 'submission-limits', data: { key } })
+  if (!await reserveSubmission(payload, value, max)) throw new AccountError('Твърде много опити. Опитай отново след час.', 429)
  }
- await payload.delete({ collection: 'submission-limits', where: { createdAt: { less_than: cutoff } } })
 }
