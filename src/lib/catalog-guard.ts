@@ -3,7 +3,7 @@ import { validRequestIP } from './catalog-request-ip'
 
 export function guardScope(path: string): string | undefined {
   try { path = decodeURIComponent(path) } catch { return 'invalid-path' }
-  path = path.replace(/\/+$/, '') || '/'
+  path = (path.replace(/\/+$/, '') || '/').toLowerCase()
   if (path === '/api/auction-models') return 'models'
   if (path === '/targove/kola') return 'vehicle'
   if (path === '/targove' || path.startsWith('/targove/')) return 'catalogue'

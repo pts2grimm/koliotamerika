@@ -50,6 +50,6 @@ test('HTTP guard counts once, limits without cookies, cannot be bypassed by pref
  const vehicleRow=page.locator('#catalog-protection tr').filter({hasText:'198.51.100.91'})
  await expect(vehicleRow).toHaveCount(1)
  await expect(vehicleRow.locator('td').nth(2)).toContainText('1')
- await page.screenshot({path:'test-results/catalog-guard-desktop.png',fullPage:true})
+ await page.locator('#catalog-protection').screenshot({path:'test-results/catalog-guard-desktop.png'})
  await client.dispose();await admin.dispose()
 })

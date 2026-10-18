@@ -12,7 +12,7 @@ function warn() {
   if(Date.now()-lastWarning>60000) {lastWarning=Date.now();console.warn('[catalogue-guard] Protection storage unavailable; catalogue requests temporarily paused.')}
 }
 function rejection(status:number,retryAfter:number,api:boolean) {
-  const message='Твърде много заявки към каталога. Моля, изчакай и опитай отново.'
+  const message=status===429?'Твърде много заявки към каталога. Моля, изчакай и опитай отново.':'Каталогът е временно зает. Моля, изчакай и опитай отново.'
   const headers={'Cache-Control':'private, no-store','Retry-After':String(retryAfter),'Content-Type':api?'application/json; charset=utf-8':'text/html; charset=utf-8'}
   return new Response(api?JSON.stringify({error:message,retryAfter}):'<!doctype html><html lang="bg"><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Моля, изчакай · Коли от Америка</title><body style="background:#0c171d;color:#e4eff5;font:18px system-ui;padding:8vh 6vw"><main style="max-width:42rem;margin:auto"><h1>Моля, изчакай малко</h1><p>'+message+'</p><p>Опитай след '+retryAfter+' секунди.</p><a style="color:#7bd6dd" href="/">Към началната страница</a></main></body></html>',{status,headers})
 }

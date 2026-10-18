@@ -8,7 +8,7 @@ import { canonicalIP,guardIdentity,guardLimits,guardScope,safeAgent } from '../s
 import { createCrawlerVerifier } from '../src/lib/verified-crawler'
 
 test('catalogue boundary includes RSC paths, encoded paths, models and archives but not SEO/admin/assets',()=>{
- for(const p of ['/targove','/targove/','/targove/kola','/targove/motori-atv/arhiv','/api/auction-models','/%74argove/kola']) assert.ok(guardScope(p),p)
+ for(const p of ['/TARGOVE/KOLA','/targove','/targove/','/targove/kola','/targove/motori-atv/arhiv','/api/auction-models','/%74argove/kola']) assert.ok(guardScope(p),p)
  for(const p of ['/','/blog','/admin','/api/users/login','/robots.txt','/sitemap.xml','/sitemap-index.xml','/api/media/file/a.jpg','/_next/image','/targove-other']) assert.equal(guardScope(p),undefined,p)
  assert.equal(canonicalIP('2001:0db8:0:0:0:0:0:1'),'2001:db8::1')
  assert.equal(canonicalIP('::ffff:192.0.2.1'),'192.0.2.1')
@@ -47,4 +47,17 @@ test('production SQLite enforces shared atomic quotas, retention, capacity and I
   })
   assert.ifError(result.error);assert.equal(result.status,0,result.stdout+result.stderr)
  }finally{rmSync(dir,{recursive:true,force:true})}
+})
+
+test('DNS work is bounded and failed claims are cached',async()=>{
+ let calls=0
+ const releases:Array<(hosts:string[])=>void>=[]
+ const verify=createCrawlerVerifier(()=>({reverse:()=>{calls++;return new Promise<string[]>(resolve=>releases.push(resolve))},forward:async()=>[],cancel:()=>{}}))
+ const tasks=Array.from({length:8},(_,i)=>verify('192.0.2.'+(i+1),'Googlebot'))
+ assert.equal(await verify('192.0.2.99','Googlebot'),'')
+ assert.equal(calls,8)
+ releases.forEach(resolve=>resolve([]))
+ assert.deepEqual(await Promise.all(tasks),Array(8).fill(''))
+ assert.equal(await verify('192.0.2.1','Googlebot'),'')
+ assert.equal(calls,8)
 })
