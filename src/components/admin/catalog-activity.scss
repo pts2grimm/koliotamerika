@@ -19,3 +19,27 @@
 .koa-catalog-report__history { margin:24px 0; scroll-margin-top:30px; }
 
 .koa-catalog-report .koa-overview__filters { margin:20px 0; }
+
+/* Keep the security summary compact without hiding the full request details. */
+.koa-catalog-guard__header { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; }
+.koa-catalog-report .koa-catalog-guard__header h2 { margin:0 0 6px; }
+.koa-catalog-guard__header p, .koa-catalog-guard__totals { margin:0; font-size:13px; }
+.koa-catalog-guard__totals { padding:12px 0 8px; }
+.koa-catalog-guard__help { margin-bottom:14px; font-size:12px; color:var(--theme-elevation-600); }
+.koa-catalog-guard summary { cursor:pointer; }
+.koa-catalog-guard summary:focus-visible, .koa-catalog-guard__scroll:focus-visible { outline:2px solid var(--theme-text); outline-offset:3px; }
+.koa-catalog-guard__help p { margin:8px 0; line-height:1.5; }
+.koa-catalog-guard__scroll { max-height:26rem; overflow:auto; scrollbar-gutter:stable; }
+.koa-catalog-guard__scroll th { position:sticky; top:0; z-index:1; background:var(--theme-elevation-100); }
+.koa-catalog-report .koa-catalog-guard td, .koa-catalog-report .koa-catalog-guard th { padding:8px 10px; font-size:12px; }
+.koa-catalog-report .koa-catalog-guard td small { margin-top:2px; }
+.koa-catalog-guard__agent { width:25%; }
+.koa-catalog-guard__agent p { margin:8px 0 0; overflow-wrap:anywhere; }
+.koa-catalog-guard__pages { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; margin-top:14px; font-size:12px; }
+.koa-catalog-guard__pages > div { display:flex; gap:8px; }
+.koa-catalog-guard__pages button { padding:8px 12px; }
+.koa-catalog-guard__pages button:disabled { opacity:.45; cursor:default; }
+@media(max-width:600px) {
+  .koa-catalog-guard__pages > div { width:100%; justify-content:space-between; }
+  .koa-catalog-guard__scroll { max-height:23rem; }
+}
