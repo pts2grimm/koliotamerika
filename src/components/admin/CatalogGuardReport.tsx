@@ -3,6 +3,7 @@ import { sql } from '@payloadcms/db-sqlite'
 import { purgeCatalogGuard } from '@/lib/catalog-guard-server'
 import { guardLimits } from '@/lib/catalog-guard'
 import { RefreshReport } from './OverviewControls'
+import { CatalogGuardTable } from './CatalogGuardTable'
 
 export async function CatalogGuardReport({payload}:{payload:Payload}) {
   // Rendered only inside the staff-authorized catalogue admin view. No public endpoint.
@@ -16,14 +17,14 @@ export async function CatalogGuardReport({payload}:{payload:Payload}) {
   const limits=guardLimits()
   const mode=process.env.TRUST_PROXY!=='true'?'Неактивна — липсва доверено прокси':process.env.CATALOG_GUARD_MODE==='off'?'Изключена':process.env.CATALOG_GUARD_MODE==='observe'?'Наблюдение — без ограничаване по квота':'Активна'
   const date=(s:string)=>new Intl.DateTimeFormat('bg-BG',{dateStyle:'short',timeStyle:'short',timeZone:'Europe/Sofia'}).format(new Date(s))
-  return <section id="catalog-protection" className="koa-catalog-report__history">
-    <h2>Защита на каталога</h2><RefreshReport />
-    <p><strong>{mode}</strong> · {limits.minute} заявки/минута и {limits.hour} заявки/час за IP (IPv6: обща /64 мрежа). Проверените чрез DNS Google/Bing ботове са освободени от тези квоти.</p>
-    <p>HTTP заявки към каталога и списъка с модели, достигнали приложението, включително HEAD и предварително зареждане. Вътрешните търсения не добавят записи. CDN кешът и блокиранията преди приложението не се виждат тук.</p>
-    <p>Последни 7 дни: <strong>{sums[0].total}</strong> заявки · <strong>{sums[0].blocked}</strong> над квотата. В режим „Наблюдение“ надвишенията не се блокират. При претоварена или недостъпна защита отговорите 503 може да не са записани. Показани са до 100 почасови групи; този отчет не използва филтрите за марка/модел/период по-горе.</p>
-    <div className="koa-catalog-report__table"><table><thead><tr><th>Последна заявка</th><th>IP / мрежа</th><th>Заявки за часа</th><th>Над квотата</th><th>Последна проверка</th><th>User-Agent · заявен от посетителя</th></tr></thead><tbody>
-      {rows.map((row,index)=><tr key={index}><td>{date(row.last_seen)}</td><td>{row.ip}<small>{row.ip.includes(':')?'Обща IPv6 /64 квота':'IPv4'}</small></td><td>{row.total}<small>{row.scope==='vehicle'?'Автомобил':row.scope==='models'?'Модели':'Каталог'}</small></td><td>{row.blocked}<small>{row.last_reason==='hour'?'Последно: часов лимит':row.last_reason==='minute'?'Последно: минутен лимит':''}</small></td><td>{row.verified?row.verified+' · потвърден DNS':'Няма потвърдена търсачка'}</td><td style={{maxWidth:'24rem',overflowWrap:'anywhere'}}>{row.agent||'Не е подаден'}</td></tr>)}
-      {!rows.length&&<tr><td colSpan={6}>Още няма HTTP заявки, отчетени от защитата.</td></tr>}
-    </tbody></table></div>
+  return <section id="catalog-protection" className="koa-catalog-report__history koa-catalog-guard">
+    <header className="koa-catalog-guard__header"><div><h2>Защита на каталога</h2><p><strong>{mode}</strong> · {limits.minute}/минута · {limits.hour}/час за IP</p></div><RefreshReport /></header>
+    <p className="koa-catalog-guard__totals">Последни 7 дни: <strong>{sums[0].total}</strong> заявки · <strong>{sums[0].blocked}</strong> над квотата</p>
+    <details className="koa-catalog-guard__help"><summary>Какво показва отчетът</summary>
+      <p>HTTP заявки към каталога и списъка с модели, достигнали приложението, включително HEAD и предварително зареждане. Вътрешните търсения не добавят записи. CDN кешът и блокиранията преди приложението не се виждат тук.</p>
+      <p>IPv6 адресите споделят /64 квота. Проверените чрез DNS Google/Bing ботове са освободени от квотите. User-Agent е заявен от посетителя и сам по себе си не доказва кой е ботът.</p>
+      <p>В режим „Наблюдение“ надвишенията не се блокират. При претоварена или недостъпна защита отговорите 503 може да не са записани. Отчетът съдържа до 100 последни почасови групи, по 10 на страница; не използва филтрите за марка/модел/период по-горе.</p>
+    </details>
+    <CatalogGuardTable rows={rows.map(row=>({...row,date:date(row.last_seen)}))} />
   </section>
 }
