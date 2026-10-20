@@ -1,0 +1,75 @@
+name: Invoice verification
+on:
+  push:
+    branches: ['codex/invoices-*']
+permissions:
+  contents: read
+jobs:
+  documents:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci --include=dev
+      - name: Generate Payload artifacts
+        run: npm run generate:types && npm run generate:importmap
+        env:
+          PREVIEW_MODE: 'true'
+          PAYLOAD_SECRET: isolated-invoice-ci-only
+      - run: npx tsx --test tests/invoice.test.ts tests/bos.test.ts
+      - run: npm run build
+        env:
+          PREVIEW_MODE: 'true'
+          PAYLOAD_SECRET: isolated-invoice-ci-only
+      - run: npm run typecheck
+      - run: npx playwright install --with-deps chromium
+      - name: Invoice and existing BOS browser checks
+        run: |
+          export CHROMIUM_PATH=$(node --input-type=module -e "import {chromium} from '@playwright/test';process.stdout.write(chromium.executablePath())")
+          npx playwright test --config=playwright.invoice.config.ts --reporter=line
+          npx playwright test --config=playwright.bos.config.ts --reporter=line
+      - name: Read and render PDF
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y poppler-utils
+          pdftoppm -jpeg -scale-to 1500 -singlefile test-results/invoice.pdf test-results/invoice-preview
+          pdftotext -layout test-results/invoice.pdf test-results/invoice.txt
+          pdftotext -layout test-results/invoice-multi.pdf test-results/invoice-multi.txt
+          node --input-type=module <<'JS'
+          import {readFileSync} from 'node:fs';
+          const text=readFileSync('test-results/invoice.txt','utf8');
+          for(const value of ['LUXURY CARS TRADING LLC','PONTUS LLC','000000000001','000000001','000000002','BOFAUS3N','1FMCU9G9HUB436312','1,269.00','1,169.00','100.00','Тестов документ'])if(!text.includes(value))throw new Error('Missing PDF value: '+value);
+          const multi=readFileSync('test-results/invoice-multi.txt','utf8');
+          for(let i=0;i<14;i++)if(!multi.includes('LOT-'+i))throw new Error('Missing vehicle '+i);
+          if((multi.match(/Balance due:/g)||[]).length!==1)throw new Error('Totals must appear once');
+          JS
+      - name: Export review artifacts
+        if: always()
+        run: |
+          node --input-type=module <<'JS'
+          import {existsSync,readFileSync,globSync} from 'node:fs';
+          for(const path of ['src/payload-types.ts','src/app/(payload)/admin/importMap.js'])if(existsSync(path))console.log('INVOICE_FILE '+JSON.stringify({path,content:readFileSync(path,'utf8')}));
+          for(const path of ['test-results/invoice-preview.jpg','test-results/invoice-admin.jpg','test-results/invoice-mobile.jpg',...globSync('test-results/**/test-failed-*.png')])if(existsSync(path))console.log('INVOICE_IMAGE '+JSON.stringify({path,base64:readFileSync(path).toString('base64')}));
+          JS
+      - name: Generated artifacts must be committed
+        run: git diff --exit-code -- src/payload-types.ts 'src/app/(payload)/admin/importMap.js'
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: invoice-review
+          path: test-results
+  regressions:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci --include=dev
+      - run: npm test
