@@ -1,0 +1,42 @@
+name: Verify invoice calendar deployment
+on:
+  push:
+    branches: ['codex/live-invoice-layout-2026-10-20']
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Check public admin stylesheet and protected Invoice endpoints
+        run: |
+          node --input-type=module <<'JS'
+          const origin='https://koliotamerika.bg';
+          for(let attempt=0;attempt<14;attempt++){
+            try{
+              const response=await fetch(origin+'/admin/login?invoice-layout='+Date.now(),{headers:{'Cache-Control':'no-cache'},signal:AbortSignal.timeout(20000)});
+              const html=await response.text();
+              const links=[...html.matchAll(/<link\b[^>]*>/g)].map(m=>m[0]).filter(tag=>/rel="stylesheet"/.test(tag)).map(tag=>tag.match(/href="([^"]+)"/)?.[1]).filter(Boolean);
+              let ready=false;
+              for(const href of [...new Set(links)]){
+                const url=new URL(href,origin);
+                if(url.origin!==origin)continue;
+                const css=await fetch(url,{signal:AbortSignal.timeout(15000)}).then(r=>r.text());
+                if(css.includes('koa-invoice-date__help'))ready=true;
+              }
+              console.log(new Date().toISOString(),{attempt,admin:response.status,stylesheets:links.length,calendarStyles:ready});
+              if(ready){
+                for(const path of ['/api/admin/invoices/1/pdf','/api/invoices','/api/globals/invoice-settings']){
+                  const result=await fetch(origin+path,{signal:AbortSignal.timeout(15000)});
+                  console.log(path,result.status);
+                  if(result.status!==403)throw new Error('Unexpected anonymous response');
+                }
+                console.log('DEPLOYED: invoice calendar stylesheet is live and invoice routes require authentication.');
+                process.exit(0);
+              }
+            }catch(error){console.log(String(error));}
+            await new Promise(resolve=>setTimeout(resolve,20000));
+          }
+          throw new Error('Updated admin stylesheet not confirmed during this window.');
+          JS
