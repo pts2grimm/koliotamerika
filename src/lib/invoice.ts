@@ -47,3 +47,11 @@ export function invoiceSnapshot(settings: { account?: string|null; routingElectr
  if(!settings.account || !/^[0-9]{6,20}$/.test(settings.account) || !settings.routingElectronic || !/^[0-9]{9}$/.test(settings.routingElectronic) || !settings.routingWire || !/^[0-9]{9}$/.test(settings.routingWire))throw new Error('Първо попълни сметката и двата routing номера в Документи → Настройки на Invoice.')
  return {...structuredClone(invoiceDefaults),bank:{...invoiceDefaults.bank,account:settings.account,routingElectronic:settings.routingElectronic,routingWire:settings.routingWire}}
 }
+
+/** Seven calendar days, without local-time/DST shifts. Stored dates remain date-only. */
+export function invoiceDueDate(created=bosToday()) {
+ if(!validBosDate(created))throw new Error('Невалидна дата на документа.')
+ const date=new Date(created+'T00:00:00Z')
+ date.setUTCDate(date.getUTCDate()+7)
+ return date.toISOString().slice(0,10)
+}

@@ -1,7 +1,7 @@
 import {test,expect} from '@playwright/test'
 import {mkdirSync,writeFileSync} from 'node:fs'
 import {PDFDocument} from 'pdf-lib'
-import {invoiceDefaults,invoiceSnapshot} from '../src/lib/invoice'
+import {invoiceDefaults,invoiceSnapshot,invoiceDueDate} from '../src/lib/invoice'
 test('private invoices validate lines, preserve fixed parties and export readable paginated PDFs',async({page,playwright,baseURL})=>{
  const admin=await playwright.request.newContext({baseURL}),visitor=await playwright.request.newContext({baseURL})
  const credentials={email:'invoice-admin@example.test',password:'Invoice-admin-test-2026'}
@@ -16,6 +16,12 @@ test('private invoices validate lines, preserve fixed parties and export readabl
  expect((await visitor.get('/api/globals/invoice-settings')).status()).toBe(403)
  const settings=await admin.post('/api/globals/invoice-settings',{headers,data:bank})
  expect(settings.status(),await settings.text()).toBe(200)
+ const auto=await admin.post('/api/invoices',{headers,data:{...sample,invoiceNumber:'DEFAULT-DUE',invoiceDate:'2026-12-28',dueDate:undefined}})
+ expect(auto.status(),await auto.text()).toBe(201)
+ const automatic=(await auto.json()).doc
+ expect(automatic.dueDate).toBe('2027-01-04')
+ const autoEdit=await admin.patch('/api/invoices/'+automatic.id,{headers,data:{paidAmount:10}})
+ expect((await autoEdit.json()).doc.dueDate).toBe('2027-01-04')
  const created=await admin.post('/api/invoices',{headers,data:{...sample,partySnapshot:{seller:'FORGED',bank:'FORGED'},total:1,balance:1,vehicles:[{...row,total:1}]}})
  expect(created.status(),await created.text()).toBe(201)
  const doc=(await created.json()).doc,url='/api/admin/invoices/'+doc.id+'/pdf'
@@ -77,6 +83,19 @@ test('private invoices validate lines, preserve fixed parties and export readabl
  const file=page.waitForEvent('download');await download.click();expect((await file).suggestedFilename()).toBe('Invoice_SH008857-TEST.pdf')
  await page.setViewportSize({width:1440,height:1000})
  await page.goto('/admin/collections/invoices/create')
+ const creationDate=page.locator('input[name=invoiceDate]'),dueDate=page.locator('input[name=dueDate]')
+ await expect(creationDate).toHaveAttribute('type','date')
+ await expect(dueDate).toHaveAttribute('type','date')
+ await expect(dueDate).toHaveValue(invoiceDueDate(await creationDate.inputValue()))
+ await creationDate.fill('2026-12-28');await creationDate.blur()
+ await expect(dueDate).toHaveValue('2027-01-04')
+ await dueDate.fill('2027-01-15');await dueDate.blur()
+ await creationDate.fill('2026-12-29');await creationDate.blur()
+ await expect(dueDate).toHaveValue('2027-01-15')
+ await page.getByText('Транспорт и бележки',{exact:true}).click()
+ await expect(page.locator('input[name=shippingDate]')).toHaveAttribute('type','date')
+ await page.locator('input[name=shippingDate]').fill('2027-01-02')
+ await page.getByText('Автомобили и суми',{exact:true}).click()
  await page.locator('input[name=invoiceNumber]').fill('UI-CREATE-TEST')
  if(await page.locator('input[name="vehicles.0.vin"]').count()===0)await page.locator('.array-field__add-row').first().click()
  for(const [name,value] of Object.entries({vin:'WBA3A5C50DF123456',make:'BMW',model:'M3',lot:'UI-LOT',delivery:'100',shipping:'200'}))await page.locator('input[name="vehicles.0.'+name+'"]').fill(value)
@@ -85,6 +104,8 @@ test('private invoices validate lines, preserve fixed parties and export readabl
  await page.getByRole('button',{name:'Save',exact:true}).click()
  await expect(page).toHaveURL(/\/admin\/collections\/invoices\/[0-9]+$/)
  await expect(page.getByRole('link',{name:'Изтегли Invoice PDF'})).toBeVisible()
+ await expect(dueDate).toHaveValue('2027-01-15')
+ await page.screenshot({path:'test-results/invoice-calendar.jpg',type:'jpeg',quality:75,fullPage:true})
  await page.getByText('Страни и плащане',{exact:true}).click()
  await expect(page.locator('.koa-invoice-parties')).toContainText('000000000009')
  await admin.dispose();await visitor.dispose()
