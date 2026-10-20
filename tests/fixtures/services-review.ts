@@ -1,3 +1,5 @@
+import homologation from '../../content/homologation-review-2026-10.json'
+import { homologationCopy } from '../../src/lib/homologation-copy'
 import { clarifyCopy } from '../../src/lib/clarity-copy'
 import assert from 'node:assert/strict'
 import { getPayload } from 'payload'
@@ -20,12 +22,13 @@ try {
   const page=(await payload.find({collection:'pages',depth:0,limit:1,where:{slug:{equals:revision.slug}}})).docs[0]
   const journal=journals.find(row=>row.key===servicesReviewKey(revision.slug))!.data as Journal
   assert.equal(journal.bodyPreserved,false,revision.slug)
-  const expected=convertHTMLToLexical({editorConfig,html:revision.html,JSDOM})
-  assert.equal(stable(page.body),stable(clarifyCopy(expected)),revision.slug)
-  assert.equal(page.intro,revision.intro,revision.slug)
-  assert.equal(page.seo?.description,revision.seoDescription,revision.slug)
-  assert.equal(page.title,revision.expectedTitle,revision.slug)
-  assert.equal(page.seo?.title,revision.expectedSEOtitle,revision.slug)
+  const current=revision.slug==='homologacia'?{...revision,html:homologation.html,intro:homologation.intro,seoDescription:homologation.seo.description,expectedTitle:homologation.title,expectedSEOtitle:homologation.seo.title}:revision
+  const expected=convertHTMLToLexical({editorConfig,html:current.html,JSDOM})
+  assert.equal(stable(page.body),stable(homologationCopy(clarifyCopy(expected))),revision.slug)
+  assert.equal(page.intro,current.intro,revision.slug)
+  assert.equal(page.seo?.description,current.seoDescription,revision.slug)
+  assert.equal(page.title,current.expectedTitle,revision.slug)
+  assert.equal(page.seo?.title,current.expectedSEOtitle,revision.slug)
   if(revision.slug==='uslugi')assert.equal(page.sections?.length??0,0,'Do not repeat old seed sections below the new directory')
  }
  assert.equal(await upgradeServicesReview(payload),0)

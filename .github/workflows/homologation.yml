@@ -1,0 +1,39 @@
+name: Homologation terminology verification
+on:
+  push:
+    branches: ['codex/homologation-*']
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci --include=dev
+      - run: npm test
+      - name: Transaction rollback and repeat initialization
+        run: node --import tsx tests/fixtures/homologation.ts
+        env:
+          PREVIEW_MODE: 'true'
+          PAYLOAD_SECRET: ci-homologation-isolated-database-only
+      - run: npm run build
+        env:
+          PREVIEW_MODE: 'true'
+          PAYLOAD_SECRET: ci-homologation-build-only
+      - run: npm run typecheck
+      - run: npx playwright install --with-deps chromium
+      - name: Public content, redirects and blog regression
+        run: |
+          export CHROMIUM_PATH=$(node --input-type=module -e "import { chromium } from '@playwright/test'; process.stdout.write(chromium.executablePath())")
+          npx playwright test --config=playwright.homologation.config.ts --reporter=line
+          npx playwright test --config=playwright.migration.config.ts --reporter=line
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: homologation-review
+          path: test-results

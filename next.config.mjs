@@ -7,6 +7,9 @@ export default withPayload({
   experimental: { cpus: 2 },
   async redirects() {
     return [
+      { source: '/tag/tehnotest/:path*', destination: '/tag/individualno-odobryavane/:path*', permanent: true },
+      ...['/wp-content/uploads/2022/09/tehnotest.jpg', '/wp-content/uploads/2022/09/tehnotest-150x83.jpg', '/wp-content/uploads/2022/09/tehnotest-300x167.jpg', '/wp-content/uploads/2022/09/tehnotest-768x426.jpg'].map(source => ({ source, destination: '/images/legacy/wp-2809.jpg', permanent: true })),
+      { source: '/wp-content/uploads/2025/09/tehnotest-za-avtomobili.webp', destination: '/images/legacy/wp-5589.webp', permanent: true },
       {
         source: '/:path*',
         has: [{ type: 'host', value: 'www\\.koliotamerika\\.bg' }],
