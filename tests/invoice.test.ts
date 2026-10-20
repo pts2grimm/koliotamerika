@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import {invoiceAmounts,invoiceFees,invoicePastDue,invoiceParties,invoiceSnapshot} from '../src/lib/invoice'
+import {invoiceAmounts,invoiceFees,invoicePastDue,invoiceParties,invoiceSnapshot,invoiceDueDate} from '../src/lib/invoice'
 const zero=Object.fromEntries(invoiceFees.map(([key])=>[key,0]))
 test('invoice totals use cents across cars and do not infer payment',()=>{
  assert.deepEqual(invoiceAmounts([{...zero,delivery:675,shipping:563,storage:10,addServices:21}],0),{rowTotals:[1269],total:1269,balance:1269})
@@ -19,4 +19,9 @@ test('past due depends on actual due date, outstanding amount and Sofia date',()
  assert.deepEqual(invoiceParties(snapshot),snapshot)
  assert.throws(()=>invoiceSnapshot({}))
  assert.throws(()=>invoiceParties({version:1,seller:{},buyer:{},bank:{}}))
+})
+
+test('invoice due date is seven calendar days across year, leap day and DST boundaries',()=>{
+ for(const [start,due] of [['2026-10-20','2026-10-27'],['2026-12-28','2027-01-04'],['2028-02-25','2028-03-03'],['2026-03-25','2026-04-01'],['2026-10-23','2026-10-30']])assert.equal(invoiceDueDate(start),due)
+ assert.throws(()=>invoiceDueDate('2026-02-30'))
 })

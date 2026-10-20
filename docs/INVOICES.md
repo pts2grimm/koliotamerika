@@ -16,3 +16,10 @@
 Достъп: само администратори, включително през REST и PDF endpoint. Клиентски вход не дава достъп. PDF отговорите са private/no-store и noindex.
 
 Миграцията добавя само invoices, invoices_vehicles и invoice_settings; съществуващите BOS и клиентски данни не се променят. Down запазва издадените документи.
+
+## Calendar dates and compact PDF
+Invoice, due and shipping dates use native calendar controls without changing the stored date-only format.
+New invoices default to a due date seven calendar days after the document date (today in Europe/Sofia by default).
+Changing the document date in a new form moves the suggested due date unless manually overridden.
+Saved invoices and explicit custom due dates remain unchanged; exporting PDF never resets the payment deadline.
+The PDF uses a transparent logo prepared from the owner-supplied reference, compact party/cargo/vehicle rows, and repeated table headers on continuation pages.

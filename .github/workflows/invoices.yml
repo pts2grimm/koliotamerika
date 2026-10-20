@@ -53,7 +53,7 @@ jobs:
           node --input-type=module <<'JS'
           import {existsSync,readFileSync,globSync} from 'node:fs';
           for(const path of ['src/payload-types.ts','src/app/(payload)/admin/importMap.js'])if(existsSync(path))console.log('INVOICE_FILE '+JSON.stringify({path,content:readFileSync(path,'utf8')}));
-          for(const path of ['test-results/invoice-preview.jpg','test-results/invoice-admin.jpg','test-results/invoice-mobile.jpg',...globSync('test-results/**/test-failed-*.png')])if(existsSync(path))console.log('INVOICE_IMAGE '+JSON.stringify({path,base64:readFileSync(path).toString('base64')}));
+          for(const path of ['test-results/invoice-preview.jpg','test-results/invoice-calendar.jpg','test-results/invoice-admin.jpg','test-results/invoice-mobile.jpg',...globSync('test-results/**/test-failed-*.png')])if(existsSync(path))console.log('INVOICE_IMAGE '+JSON.stringify({path,base64:readFileSync(path).toString('base64')}));
           JS
       - name: Generated artifacts must be committed
         run: git diff --exit-code -- src/payload-types.ts 'src/app/(payload)/admin/importMap.js'

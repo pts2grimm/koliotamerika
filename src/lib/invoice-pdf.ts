@@ -11,6 +11,7 @@ const loadFonts=()=>fonts ||= Promise.all(['Regular','Bold'].map(style=>readFile
 export async function createInvoicePDF(doc:Invoice,printed=bosToday()){
  const pdf=await PDFDocument.create();pdf.registerFontkit(fontkit)
  const bytes=await loadFonts(),regular=await pdf.embedFont(bytes[0],{subset:true}),bold=await pdf.embedFont(bytes[1],{subset:true})
+ const logo=await pdf.embedPng(await readFile(path.join(process.cwd(),'assets/invoice/luxury-cars-trading.png')))
  const parties=invoiceParties(doc.partySnapshot),sums=invoiceAmounts(doc.vehicles,doc.paidAmount)
  const supported=new Set(regular.getCharacterSet())
  const black=rgb(0,0,0),gray=rgb(.88,.88,.88)
@@ -45,10 +46,10 @@ export async function createInvoicePDF(doc:Invoice,printed=bosToday()){
  }
  const line=(x:number,y:number,x2:number,y2:number)=>page.drawLine({start:{x,y:792-y},end:{x:x2,y:792-y2},thickness:.5,color:black})
  const box=(x:number,y:number,w:number,h:number,fill=false)=>page.drawRectangle({x,y:792-y-h,width:w,height:h,borderColor:black,borderWidth:.5,...(fill?{color:gray}:{})})
- const pair=(label:string,value:unknown,x:number,y:number,w=250)=>{text(label,x,y,85,7);text(value,x+88,y,w-88,7,false,2)}
- text('LUXURY',36,35,140,24,true)
- text('CARS TRADING',36,66,140,11,true)
- text('INVOICE',36,92,140,10,true)
+ const pair=(label:string,value:unknown,x:number,y:number,w=250)=>{text(label,x,y,85,7);text(value,x+88,y,w-88,6.5,false,2)}
+ const logoSize=logo.scaleToFit(140,60)
+ page.drawImage(logo,{x:36,y:792-34-logoSize.height,width:logoSize.width,height:logoSize.height})
+ text('INVOICE',36,98,140,10,true)
  text('Company: '+parties.bank.company,205,34,371,7,true)
  text('Address: '+parties.bank.address,205,46,371,7,false,2)
  const bankLines=[
@@ -57,35 +58,35 @@ export async function createInvoicePDF(doc:Invoice,printed=bosToday()){
   'Routing number: '+parties.bank.routingElectronic+' (paper & electronic)',
   'Routing number: '+parties.bank.routingWire+' (wires)',
  ]
- bankLines.forEach((value,i)=>text(value,312,66+i*11,264,6.5))
- line(36,143,576,143)
- text('Seller:',36,154,250,9,true)
- text(parties.seller.name,36,169,250,9,true)
- text(parties.seller.address,36,184,250,9)
- text(parties.seller.city,36,199,250,9)
- text(parties.seller.statePostal,36,214,250,9)
- text('Bill to:',36,240,250,9,true)
- text('Buyer: '+parties.buyer.name,36,255,250,9,true)
- text(parties.buyer.address,36,270,250,9)
- text(parties.buyer.cityPostal,36,285,250,9)
- text(parties.buyer.country,36,300,250,9)
- text('Invoice:',306,154,270,9,true)
+ bankLines.forEach((value,i)=>text(value,312,62+i*9.5,264,6.5))
+ line(36,128,576,128)
+ text('Seller:',36,139,250,9,true)
+ text(parties.seller.name,36,152,250,9,true)
+ text(parties.seller.address,36,164,250,9)
+ text(parties.seller.city,36,176,250,9)
+ text(parties.seller.statePostal,36,188,250,9)
+ text('Bill to:',36,208,250,9,true)
+ text('Buyer: '+parties.buyer.name,36,221,250,9,true)
+ text(parties.buyer.address,36,233,250,9)
+ text(parties.buyer.cityPostal,36,245,250,9)
+ text(parties.buyer.country,36,257,250,9)
+ text('Invoice:',306,139,270,9,true)
  const dates=[['Number',doc.invoiceNumber],['Creation date',doc.invoiceDate],['Due date',doc.dueDate||'—'],['Past due days',String(invoicePastDue(doc.dueDate,sums.balance,printed))],['Invoice printed',printed]]
- dates.forEach(([label,value],i)=>{const y=170+i*17;box(306,y,270,17);line(426,y,426,y+17);text(label+':',310,y+3,112,7);text(value,430,y+3,142,8,i===0)})
- box(416,272,160,18,true);box(416,290,160,22)
- text('BALANCE DUE (USD)',420,276,152,8,true,1,'center')
- text('$'+bosMoney(sums.balance),420,295,152,10,true,1,'center')
- line(36,322,576,322)
+ dates.forEach(([label,value],i)=>{const y=155+i*15;box(306,y,270,15);line(426,y,426,y+15);text(label+':',310,y+3,112,7);text(value,430,y+3,142,8,i===0)})
+ box(416,240,160,16,true);box(416,256,160,18)
+ text('BALANCE DUE (USD)',420,243,152,8,true,1,'center')
+ text('$'+bosMoney(sums.balance),420,259,152,10,true,1,'center')
+ line(36,281,576,281)
  const cargo=[doc.shipper,doc.origin,doc.carrierName,doc.shippingDate,doc.consignee,doc.destination,doc.bookingNumber,doc.containerNumber].some(Boolean)
- let top=338
+ let top=293
  if(cargo){
   box(36,top,540,16,true);text('Cargo information',40,top+3,532,8,true,1,'center')
-  box(36,top+16,540,81);line(306,top+16,306,top+97)
-  pair('Shipper:',doc.shipper,40,top+22);pair('Origin:',doc.origin,40,top+40)
-  pair('Carrier name:',doc.carrierName,40,top+58);pair('Shipping date:',doc.shippingDate,40,top+76)
-  pair('Consignee:',doc.consignee,310,top+22);pair('Destination:',doc.destination,310,top+40)
-  pair('Booking number:',doc.bookingNumber,310,top+58);pair('Container:',doc.containerNumber,310,top+76)
-  top+=111
+  box(36,top+16,540,73);line(306,top+16,306,top+89)
+  pair('Shipper:',doc.shipper,40,top+22);pair('Origin:',doc.origin,40,top+38)
+  pair('Carrier name:',doc.carrierName,40,top+54);pair('Shipping date:',doc.shippingDate,40,top+70)
+  pair('Consignee:',doc.consignee,310,top+22);pair('Destination:',doc.destination,310,top+38)
+  pair('Booking number:',doc.bookingNumber,310,top+54);pair('Container:',doc.containerNumber,310,top+70)
+  top+=101
  }
  const labels=['Description',...invoiceFees.map(([,label])=>label),'Total']
  const widths=[140,...Array(8).fill(50)] as number[]
@@ -100,21 +101,21 @@ export async function createInvoicePDF(doc:Invoice,printed=bosToday()){
  }
  tableHeader()
  doc.vehicles.forEach((vehicle,index)=>{
-  if(top+66>730)continuation()
+  if(top+56>730)continuation()
   let x=36
-  widths.forEach(w=>{box(x,top,w,66);x+=w})
+  widths.forEach(w=>{box(x,top,w,56);x+=w})
   text([vehicle.year,vehicle.make,vehicle.model].filter(Boolean).join(' '),40,top+5,132,8,true,2)
-  text('VIN: '+vehicle.vin,40,top+29,132,6.5,true)
-  text('Lot: '+vehicle.lot,40,top+43,132,7,false,2)
+  text('VIN: '+vehicle.vin,40,top+26,132,6.5,true)
+  text('Lot: '+vehicle.lot,40,top+38,132,6.5,false,2)
   const amounts=[...invoiceFees.map(([key])=>vehicle[key]),sums.rowTotals[index]]
-  amounts.forEach((value,i)=>text(bosMoney(value),179+i*50,top+26,44,7,i===7,1,'right'))
-  top+=66
+  amounts.forEach((value,i)=>text(bosMoney(value),179+i*50,top+22,44,7,i===7,1,'right'))
+  top+=56
  })
  // Reserve the complete totals and payment block; never overlap a table row.
  if(top+185>740){page=pdf.addPage([612,792]);text(parties.seller.name,36,30,350,11,true);text('Invoice '+doc.invoiceNumber,36,50,540,10,true);top=80}
  const settlement=[['Total',sums.total],['Payment',doc.paidAmount],['Balance due',sums.balance]] as const
- settlement.forEach(([label,value],i)=>{text(label+':',376,top+8+i*18,124,8,i!==1,1,'right');text('$'+bosMoney(value),504,top+8+i*18,72,8,i!==1,1,'right')})
- top+=72
+ settlement.forEach(([label,value],i)=>{text(label+':',376,top+8+i*15,124,8,i!==1,1,'right');text('$'+bosMoney(value),504,top+8+i*18,72,8,i!==1,1,'right')})
+ top+=61
  if(doc.notes)top+=text(doc.notes,36,top,540,8,false,5)+10
  text('Payment instruction:',36,top,540,9,true);top+=17
  text('When making the payment, please select the fee type: OUR (all bank fees are paid by the sender)',36,top,540,8,true,2);top+=24
