@@ -22,7 +22,7 @@ test('service revision applies only to known baseline and preserves editorial ov
  const old=previous.find(x=>x.slug==='homologacia')!
  const body={root:{children:[{type:'text',text:'Baseline'}]}} as unknown as Page['body']
  const next={root:{children:[{type:'text',text:'New'}]}} as unknown as Page['body']
- const page={id:1,slug:'homologacia',title:old.expectedTitle,intro:old.intro,body,sections:[],status:'draft',publishedAt:'2099-01-01',image:6,seo:{title:old.expectedSEOtitle,description:old.seoDescription,image:7,noIndex:true}} as Page
+ const page={createdAt:'2026-10-20T00:00:00Z',updatedAt:'2026-10-20T00:00:00Z',id:1,slug:'homologacia',title:old.expectedTitle,intro:old.intro,body,sections:[],status:'draft',publishedAt:'2099-01-01',image:6,seo:{title:old.expectedSEOtitle,description:old.seoDescription,image:7,noIndex:true}} as Page
  const data=homologationPageUpdate(page,body,next)
  assert.deepEqual(data.body,next)
  assert.equal(data.title,revision.title)
@@ -32,7 +32,7 @@ test('service revision applies only to known baseline and preserves editorial ov
  assert.deepEqual(homologationPageUpdate(custom,body,body),{})
 })
 test('retired article becomes a private archived record without changing date or identity',()=>{
- const page={id:2,slug:retiredArticle,title:'Технотест за автомобили',intro:'Технотест',status:'published',publishedAt:'2025-09-08',seo:{noIndex:false}} as Page
+ const page={createdAt:'2026-10-20T00:00:00Z',updatedAt:'2026-10-20T00:00:00Z',id:2,slug:retiredArticle,title:'Технотест за автомобили',intro:'Технотест',status:'published',publishedAt:'2025-09-08',seo:{noIndex:false}} as Page
  const result=homologationPageUpdate(page,undefined,undefined)
  assert.equal(result.status,'draft')
  assert.equal(result.publishedAt,undefined);assert.equal(result.slug,undefined)
