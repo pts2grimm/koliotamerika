@@ -43,16 +43,15 @@ export const InvoiceDateField:TextFieldClientComponent=({field,path:providedPath
  const {dispatchFields,setModified}=useForm()
  const due=useFormFields(([fields])=>fields.dueDate?.value)
  const creationDate=useFormFields(([fields])=>fields.invoiceDate?.value)
- const initialized=useRef(false)
- const {value,setValue,path,showError,disabled}=useField<string>({
+ const touched=useRef(false)
+ const {value,setValue,path,showError,disabled,formInitializing}=useField<string>({
   potentiallyStalePath:providedPath,
   validate:(value)=>(!field.required&&!value)||validBosDate(value)?true:'Избери валидна дата.',
  })
  useEffect(()=>{
-  if(field.name!=='dueDate'||id||initialized.current||typeof creationDate!=='string'||!validBosDate(creationDate))return
-  initialized.current=true
-  if(!value)setValue(invoiceDueDate(creationDate))
- },[field.name,id,creationDate,value,setValue])
+  if(field.name!=='dueDate'||id||formInitializing||touched.current||value||typeof creationDate!=='string'||!validBosDate(creationDate))return
+  setValue(invoiceDueDate(creationDate),true)
+ },[field.name,id,creationDate,value,setValue,formInitializing])
  const locked=Boolean(readOnly||disabled)
  return <div className="field-type text koa-invoice-date">
   <FieldLabel label={field.label} path={path} required={field.required}/>
@@ -62,6 +61,7 @@ export const InvoiceDateField:TextFieldClientComponent=({field,path:providedPath
    onChange={event=>{
     const next=event.target.value
     if(locked)return
+    touched.current=true
     if(field.name==='invoiceDate'&&!id&&validBosDate(next)&&(!due||(validBosDate(value)&&due===invoiceDueDate(value)))){
      dispatchFields({type:'UPDATE',path:'dueDate',value:invoiceDueDate(next)})
      setModified(true)
