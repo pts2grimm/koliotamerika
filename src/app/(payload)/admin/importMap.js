@@ -1,3 +1,6 @@
+import { InvoiceSummary as InvoiceSummary_5ea0a05fdef4531ecd510e2f19df428d } from '../../../../src/components/admin/InvoiceControls'
+import { InvoiceParties as InvoiceParties_5ea0a05fdef4531ecd510e2f19df428d } from '../../../../src/components/admin/InvoiceControls'
+import { InvoiceDownload as InvoiceDownload_5ea0a05fdef4531ecd510e2f19df428d } from '../../../../src/components/admin/InvoiceControls'
 import { BosBuyerPicker as BosBuyerPicker_a6cafe35c590dd007a9a50ae38e1e2e7 } from '../../../../src/components/admin/BosBuyerFields'
 import { BosCityField as BosCityField_a6cafe35c590dd007a9a50ae38e1e2e7 } from '../../../../src/components/admin/BosBuyerFields'
 import { BosSettlement as BosSettlement_657538249d19066ff12226af6abea4d6 } from '../../../../src/components/admin/BosControls'
@@ -29,6 +32,7 @@ import { HorizontalRuleFeatureClient as HorizontalRuleFeatureClient_e70f5e05f09f
 import { InlineToolbarFeatureClient as InlineToolbarFeatureClient_e70f5e05f09f93e00b997edb1ef0c864 } from '@payloadcms/richtext-lexical/client'
 import { ContentBackLink as ContentBackLink_08515d20fb304dbf398652f152115458 } from '../../../../src/components/admin/ContentBackLink'
 import { ContentIndex as ContentIndex_2a5f66d5a0bb27212dd0f278d2516e6d } from '../../../../src/components/admin/ContentList'
+import { InvoiceBankNotice as InvoiceBankNotice_5ea0a05fdef4531ecd510e2f19df428d } from '../../../../src/components/admin/InvoiceControls'
 import { IntegrationToken as IntegrationToken_e70da7af772c2a2d13cd32f9fa00b44d } from '../../../../src/components/admin/IntegrationToken'
 import { ContentNav as ContentNav_88d7b320c4e00dd9c5491893d296e86d } from '../../../../src/components/admin/ContentNav'
 import { CatalogActivityView as CatalogActivityView_e43ee2803503b1ad1adaf5f4db80739f } from '../../../../src/components/admin/CatalogActivityView'
@@ -39,6 +43,9 @@ import { CollectionCards as CollectionCards_f9c02e79a4aed9a3924487c0cd4cafb1 } f
 
 /** @type import('payload').ImportMap */
 export const importMap = {
+  "/src/components/admin/InvoiceControls#InvoiceSummary": InvoiceSummary_5ea0a05fdef4531ecd510e2f19df428d,
+  "/src/components/admin/InvoiceControls#InvoiceParties": InvoiceParties_5ea0a05fdef4531ecd510e2f19df428d,
+  "/src/components/admin/InvoiceControls#InvoiceDownload": InvoiceDownload_5ea0a05fdef4531ecd510e2f19df428d,
   "/src/components/admin/BosBuyerFields#BosBuyerPicker": BosBuyerPicker_a6cafe35c590dd007a9a50ae38e1e2e7,
   "/src/components/admin/BosBuyerFields#BosCityField": BosCityField_a6cafe35c590dd007a9a50ae38e1e2e7,
   "/src/components/admin/BosControls#BosSettlement": BosSettlement_657538249d19066ff12226af6abea4d6,
@@ -70,6 +77,7 @@ export const importMap = {
   "@payloadcms/richtext-lexical/client#InlineToolbarFeatureClient": InlineToolbarFeatureClient_e70f5e05f09f93e00b997edb1ef0c864,
   "/src/components/admin/ContentBackLink#ContentBackLink": ContentBackLink_08515d20fb304dbf398652f152115458,
   "/src/components/admin/ContentList#ContentIndex": ContentIndex_2a5f66d5a0bb27212dd0f278d2516e6d,
+  "/src/components/admin/InvoiceControls#InvoiceBankNotice": InvoiceBankNotice_5ea0a05fdef4531ecd510e2f19df428d,
   "/src/components/admin/IntegrationToken#IntegrationToken": IntegrationToken_e70da7af772c2a2d13cd32f9fa00b44d,
   "/src/components/admin/ContentNav#ContentNav": ContentNav_88d7b320c4e00dd9c5491893d296e86d,
   "/src/components/admin/CatalogActivityView#CatalogActivityView": CatalogActivityView_e43ee2803503b1ad1adaf5f4db80739f,

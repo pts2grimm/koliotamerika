@@ -43,9 +43,9 @@ function sandbox() {
 }
 function journal(db: DatabaseSync) {
   assert.deepEqual(db.prepare('SELECT name FROM payload_migrations ORDER BY name').all().map(row => row.name), [
-    '20261010_120440_initial', '20261010_135337_customer_accounts', '20261012_010000_contact_details', '20261012_020000_integrations', '20261012_030000_calculator_eur', '20261017_120000_consent_events', '20261017_180000_bills_of_sale', '20261018_120000_catalog_events', '20261018_160000_catalog_totals', '20261018_190000_catalog_requests', '20261018_200000_catalog_request_details', '20261018_230000_catalog_guard',
+    '20261010_120440_initial', '20261010_135337_customer_accounts', '20261012_010000_contact_details', '20261012_020000_integrations', '20261012_030000_calculator_eur', '20261017_120000_consent_events', '20261017_180000_bills_of_sale', '20261018_120000_catalog_events', '20261018_160000_catalog_totals', '20261018_190000_catalog_requests', '20261018_200000_catalog_request_details', '20261018_230000_catalog_guard', '20261020_190000_invoices',
   ])
-  for (const name of ['pages', 'site_settings', 'customers', 'saved_vehicles', 'inquiries', 'integrations', 'consent_events', 'bills_of_sale', 'catalog_events', 'catalog_totals', 'catalog_requests', 'catalog_guard']) {
+  for (const name of ['pages', 'site_settings', 'customers', 'saved_vehicles', 'inquiries', 'integrations', 'consent_events', 'bills_of_sale', 'catalog_events', 'catalog_totals', 'catalog_requests', 'catalog_guard', 'invoices', 'invoices_vehicles', 'invoice_settings']) {
     assert.ok(db.prepare("SELECT name FROM sqlite_master WHERE type = 'table' AND name = ?").get(name))
   }
 }
@@ -274,4 +274,22 @@ test('daily catalogue counters have no identity columns and increment atomically
 test('private server request journal preserves VIN/IP, retries migrations and retains atomic bounds', {timeout:120000},()=>{
  const {dir,run}=sandbox()
  try {run();run('tests/fixtures/catalog-requests.ts')} finally {rmSync(dir,{recursive:true,force:true})}
+})
+
+test('invoice migration retries safely and retains saved business records', {timeout:300000},()=>{
+ const {dir,filename,run}=sandbox()
+ try{
+  run()
+  let db=new DatabaseSync(filename)
+  db.exec("INSERT INTO invoices (id,invoice_number,invoice_date,party_snapshot,paid_amount,total,balance) VALUES (71,'MIGRATION-KEEP','2026-10-20','{}',10,30,20)")
+  db.exec("INSERT INTO invoices_vehicles (_order,_parent_id,id,vin,make,model,lot,delivery,shipping,total) VALUES (1,71,'line-keep','1FMCU9G9HUB436312','FORD','ESCAPE','LOT-KEEP',10,20,30)")
+  const before=db.prepare('SELECT * FROM invoices WHERE id=71').get(),line=db.prepare("SELECT * FROM invoices_vehicles WHERE id='line-keep'").get()
+  db.exec("DELETE FROM payload_migrations WHERE name='20261020_190000_invoices'")
+  db.close();run();run();db=new DatabaseSync(filename)
+  journal(db)
+  assert.deepEqual(db.prepare('SELECT * FROM invoices WHERE id=71').get(),before)
+  assert.deepEqual(db.prepare("SELECT * FROM invoices_vehicles WHERE id='line-keep'").get(),line)
+  assert.throws(()=>db.exec("INSERT INTO invoices (invoice_number,invoice_date,party_snapshot) VALUES ('MIGRATION-KEEP','2026-10-20','{}')"))
+  db.close()
+ }finally{rmSync(dir,{recursive:true,force:true})}
 })

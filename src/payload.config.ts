@@ -1,3 +1,5 @@
+import { InvoiceSettings } from './globals/InvoiceSettings'
+import { Invoices } from './collections/Invoices'
 import { CatalogEvents } from './collections/CatalogEvents'
 import { BillsOfSale } from './collections/BillsOfSale'
 import { ConsentEvents } from './collections/ConsentEvents'
@@ -43,8 +45,8 @@ export default buildConfig({
     },
   },
   i18n: { fallbackLanguage: 'bg', supportedLanguages: { bg, en } },
-  collections: [CatalogEvents, BillsOfSale, ConsentEvents, Users, Customers, SavedVehicles, Media, Cars, Pages, Inquiries, AuctionQuotes, Redirects, RateLimits],
-  globals: [SiteSettings, CalculatorSettings, Integrations],
+  collections: [CatalogEvents, Invoices, BillsOfSale, ConsentEvents, Users, Customers, SavedVehicles, Media, Cars, Pages, Inquiries, AuctionQuotes, Redirects, RateLimits],
+  globals: [InvoiceSettings, SiteSettings, CalculatorSettings, Integrations],
   ...(smtp ? { email: nodemailerAdapter(smtp) } : {}),
   db: sqliteAdapter({
     client: { url: preview ? `file:${path.join(tmpdir(), `koa-preview-${process.pid}.db`)}` : process.env.DATABASE_URI || 'file:./.data/payload.db', ...(!preview && process.env.DATABASE_AUTH_TOKEN ? { authToken: process.env.DATABASE_AUTH_TOKEN } : {}) },
