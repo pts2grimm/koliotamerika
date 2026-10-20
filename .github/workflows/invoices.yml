@@ -31,7 +31,7 @@ jobs:
         run: |
           export CHROMIUM_PATH=$(node --input-type=module -e "import {chromium} from '@playwright/test';process.stdout.write(chromium.executablePath())")
           npx playwright test --config=playwright.invoice.config.ts --reporter=line
-          npx playwright test --config=playwright.bos.config.ts --reporter=line
+          npx playwright test --config=playwright.bos.config.ts --output=test-results/bos-regression --reporter=line
       - name: Read and render PDF
         run: |
           sudo apt-get update -qq
