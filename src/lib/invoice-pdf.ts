@@ -18,7 +18,7 @@ export async function createInvoicePDF(doc:Invoice,printed=bosToday()){
  let page:PDFPage=pdf.addPage([612,792])
  pdf.setTitle('Invoice '+doc.invoiceNumber);pdf.setAuthor(parties.seller.name);pdf.setSubject('Vehicle transport and services invoice — USD')
  const width=(value:string,size:number,strong=false)=>(strong?bold:regular).widthOfTextAtSize(value,size)
- const text=(value:unknown,x:number,y:number,w:number,size=8,strong=false,maxLines=1,align:'left'|'right'|'center'='left')=>{
+ const text=(value:unknown,x:number,y:number,w:number,size=8,strong=false,maxLines=1,align:'left'|'right'|'center'='left',measureOnly=false)=>{
   const clean=String(value??'').replace(/\s+/g,' ').trim()
   if(!clean)return 0
   for(const char of clean)if(!supported.has(char.codePointAt(0)!))throw new InvoiceLayoutError('PDF шрифтът не поддържа символ: '+char)
@@ -38,7 +38,7 @@ export async function createInvoicePDF(doc:Invoice,printed=bosToday()){
     }
    }
    if(rows.length<=maxLines){
-    rows.forEach((row,i)=>page.drawText(row,{x:x+(align==='right'?w-width(row,current,strong):align==='center'?(w-width(row,current,strong))/2:0),y:792-y-current-i*(current+2),font:strong?bold:regular,size:current,color:black}))
+    if(!measureOnly)rows.forEach((row,i)=>page.drawText(row,{x:x+(align==='right'?w-width(row,current,strong):align==='center'?(w-width(row,current,strong))/2:0),y:792-y-current-i*(current+2),font:strong?bold:regular,size:current,color:black}))
     return rows.length*(current+2)
    }
   }
@@ -101,20 +101,24 @@ export async function createInvoicePDF(doc:Invoice,printed=bosToday()){
  }
  tableHeader()
  doc.vehicles.forEach((vehicle,index)=>{
-  if(top+56>730)continuation()
+  const title=[vehicle.year,vehicle.make,vehicle.model].filter(Boolean).join(' ')
+  const titleHeight=text(title,40,0,132,8,true,2,'left',true)
+  const lotHeight=text('Lot: '+vehicle.lot,40,0,132,6.5,false,2,'left',true)
+  const rowHeight=Math.max(40,titleHeight+lotHeight+21)
+  if(top+rowHeight>730)continuation()
   let x=36
-  widths.forEach(w=>{box(x,top,w,56);x+=w})
-  text([vehicle.year,vehicle.make,vehicle.model].filter(Boolean).join(' '),40,top+5,132,8,true,2)
-  text('VIN: '+vehicle.vin,40,top+26,132,6.5,true)
-  text('Lot: '+vehicle.lot,40,top+38,132,6.5,false,2)
+  widths.forEach(w=>{box(x,top,w,rowHeight);x+=w})
+  text(title,40,top+4,132,8,true,2)
+  text('VIN: '+vehicle.vin,40,top+titleHeight+7,132,6.5,true)
+  text('Lot: '+vehicle.lot,40,top+titleHeight+18,132,6.5,false,2)
   const amounts=[...invoiceFees.map(([key])=>vehicle[key]),sums.rowTotals[index]]
-  amounts.forEach((value,i)=>text(bosMoney(value),179+i*50,top+22,44,7,i===7,1,'right'))
-  top+=56
+  amounts.forEach((value,i)=>text(bosMoney(value),179+i*50,top+(rowHeight-7)/2,44,7,i===7,1,'right'))
+  top+=rowHeight
  })
  // Reserve the complete totals and payment block; never overlap a table row.
  if(top+185>740){page=pdf.addPage([612,792]);text(parties.seller.name,36,30,350,11,true);text('Invoice '+doc.invoiceNumber,36,50,540,10,true);top=80}
  const settlement=[['Total',sums.total],['Payment',doc.paidAmount],['Balance due',sums.balance]] as const
- settlement.forEach(([label,value],i)=>{text(label+':',376,top+8+i*15,124,8,i!==1,1,'right');text('$'+bosMoney(value),504,top+8+i*18,72,8,i!==1,1,'right')})
+ settlement.forEach(([label,value],i)=>{text(label+':',376,top+8+i*15,124,8,i!==1,1,'right');text('$'+bosMoney(value),504,top+8+i*15,72,8,i!==1,1,'right')})
  top+=61
  if(doc.notes)top+=text(doc.notes,36,top,540,8,false,5)+10
  text('Payment instruction:',36,top,540,9,true);top+=17
