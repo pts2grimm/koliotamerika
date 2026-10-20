@@ -1,0 +1,36 @@
+name: Live Invoice access check
+on:
+  push:
+    branches: ['codex/live-invoice-*']
+permissions:
+  contents: read
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Wait for deployed private routes
+        run: |
+          python3 - <<'PY'
+          import urllib.request,urllib.error,json,time
+          paths=['/api/admin/invoices/1/pdf','/api/invoices','/api/globals/invoice-settings']
+          for attempt in range(10):
+              results=[]
+              for path in paths:
+                  request=urllib.request.Request('https://koliotamerika.bg'+path,headers={'User-Agent':'KoliotamerikaDeploymentCheck/1.0','Cache-Control':'no-cache'})
+                  try:
+                      response=urllib.request.urlopen(request,timeout=15)
+                  except urllib.error.HTTPError as error:
+                      response=error
+                  except Exception as error:
+                      results.append({'path':path,'error':str(error)})
+                      continue
+                  results.append({'path':path,'status':response.status,'cacheControl':response.headers.get('Cache-Control'),'robots':response.headers.get('X-Robots-Tag')})
+                  response.close()
+              print(json.dumps({'attempt':attempt+1,'results':results}),flush=True)
+              if all(row.get('status')==403 for row in results):
+                  print('DEPLOYED: all invoice routes reject anonymous access.',flush=True)
+                  break
+              if attempt<9:time.sleep(20)
+          else:raise SystemExit('Invoice deployment not yet verified.')
+          PY
