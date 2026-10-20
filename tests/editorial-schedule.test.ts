@@ -19,14 +19,18 @@ test('schedule is Eridan-only, future-only and updates status/date without repla
   process.env.AUCTION_PROVIDER='apicar'
   assert.equal(await scheduleEditorialArticles(payload,0),0);assert.equal(calls.length,0)
   process.env.AUCTION_PROVIDER='eridan'
-  assert.equal(await scheduleEditorialArticles(payload,Date.parse('2026-10-14T00:00:00Z')),2)
+  assert.equal(await scheduleEditorialArticles(payload,Date.parse('2026-10-14T00:00:00Z')),4)
   for(const call of calls){
    assert.deepEqual(Object.keys(call.data).sort(),['publishedAt','status'])
    assert.ok(call.where.and.some((part:any)=>part.status?.equals==='draft'))
    assert.ok(call.where.and.some((part:any)=>part.publishedAt?.exists===false))
   }
   calls.length=0
-  assert.equal(await scheduleEditorialArticles(payload,Date.parse('2026-10-24T00:00:00Z')),0)
+  assert.equal(await scheduleEditorialArticles(payload,Date.parse('2026-10-24T00:00:00Z')),2)
+  assert.equal(calls.length,2)
+  assert.deepEqual(calls.map(call=>call.data.publishedAt),['2026-10-27T07:00:00.000Z','2026-10-30T07:00:00.000Z'])
+  calls.length=0
+  assert.equal(await scheduleEditorialArticles(payload,Date.parse('2030-01-01T00:00:00Z')),0)
   assert.equal(calls.length,0)
  }finally{if(previous===undefined)delete process.env.AUCTION_PROVIDER;else process.env.AUCTION_PROVIDER=previous}
 })
