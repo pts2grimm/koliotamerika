@@ -29,7 +29,9 @@ jobs:
       - run: npx playwright install --with-deps chromium
       - name: Public content, redirects and blog regression
         run: |
-          CHROMIUM_PATH=$(node --input-type=module -e "import { chromium } from '@playwright/test'; process.stdout.write(chromium.executablePath())") npx playwright test --config=playwright.homologation.config.ts --reporter=line
+          export CHROMIUM_PATH=$(node --input-type=module -e "import { chromium } from '@playwright/test'; process.stdout.write(chromium.executablePath())")
+          npx playwright test --config=playwright.homologation.config.ts --reporter=line
+          npx playwright test --config=playwright.migration.config.ts --reporter=line
       - uses: actions/upload-artifact@v4
         if: always()
         with:
