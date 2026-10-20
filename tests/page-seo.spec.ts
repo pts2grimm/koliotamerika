@@ -1,13 +1,14 @@
+import homologation from '../content/homologation-review-2026-10.json' with {type:'json'}
 import { test, expect } from '@playwright/test'
 import revisions from '../content/page-seo-2026-10.json' with { type: 'json' }
 
 test('service pages expose editable SEO, relevant links, structured data and a mobile layout', async ({ page }) => {
  for (const revision of revisions) {
   expect((await page.goto('/' + revision.slug))?.status()).toBe(200)
-  await expect(page).toHaveTitle(revision.after.seo.title)
+  await expect(page).toHaveTitle((revision.slug==='homologacia'?homologation.seo.title:revision.after.seo.title))
   await expect(page.locator('h1')).toHaveCount(1)
-  await expect(page.locator('h1')).toHaveText(revision.after.title)
-  await expect(page.locator('meta[name=description]')).toHaveAttribute('content', revision.after.seo.description)
+  await expect(page.locator('h1')).toHaveText((revision.slug==='homologacia'?homologation.title:revision.after.title))
+  await expect(page.locator('meta[name=description]')).toHaveAttribute('content', (revision.slug==='homologacia'?homologation.seo.description:revision.after.seo.description))
   await expect(page.locator('link[rel=canonical]')).toHaveAttribute('href', 'http://localhost:3100/' + revision.slug)
   const scripts = await page.locator('script[type="application/ld+json"]').allTextContents()
   const graph = scripts.map(s => JSON.parse(s)).find(s => s['@graph'])['@graph']

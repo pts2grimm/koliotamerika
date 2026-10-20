@@ -1,3 +1,5 @@
+import homologation from '../content/homologation-review-2026-10.json' with {type:'json'}
+import { homologationCopy, retiredArticle } from '../src/lib/homologation-copy'
 import gallery from '../content/legacy-gallery.json' with {type:'json'}
 import recovered from '../content/legacy-media-extra.json' with {type:'json'}
 import examples from '../content/legacy-examples.json' with {type:'json'}
@@ -12,7 +14,7 @@ import revisions from '../content/content-review-2026-10.json' with { type:'json
 
 test('all public content has working contextual links, metadata and one H1',async({request,page},testInfo)=>{
  const base='http://localhost:3100'
- const routes=new Set(['/', '/blog','/uslugi','/kak-rabotim','/kontakti','/kalkulator','/targove','/avtomobili',...snapshot.items.map(p=>'/'+p.slug)])
+ const routes=new Set(['/', '/blog','/uslugi','/kak-rabotim','/kontakti','/kalkulator','/targove','/avtomobili',...snapshot.items.filter(p=>p.slug!==retiredArticle).map(p=>'/'+p.slug)])
  const documents=new Map<string,string>()
  const internal=new Map<string,Set<string>>()
  const external=new Set<string>()
@@ -26,7 +28,7 @@ test('all public content has working contextual links, metadata and one H1',asyn
    expect(doc.querySelector('link[rel=canonical]')?.getAttribute('href'),route).toBe(base+(route === '/' ? '' : route))
    expect(doc.querySelector('meta[name=description]')?.getAttribute('content')?.length,route).toBeGreaterThan(30)
    const revision=revisions.find(r=>'/'+r.slug===route)
-   if(revision && 'title' in revision && revision.title) expect(doc.querySelector('h1')?.textContent).toBe(revision.title)
+   if(revision && 'title' in revision && revision.title) expect(doc.querySelector('h1')?.textContent).toBe(route==='/homologacia'?homologation.title:homologationCopy(revision.title))
    for(const link of doc.querySelectorAll('a[href]')){
     const href=link.getAttribute('href')!
     if(/^(mailto:|tel:|viber:)/.test(href))continue
@@ -41,7 +43,7 @@ test('all public content has working contextual links, metadata and one H1',asyn
  }
  for(const detail of details) {
   const doc=new JSDOM(documents.get('/'+detail.slug)!)
-  const source=new JSDOM(services.find(item=>item.slug===detail.slug)?.html ?? customer.find(item=>item.slug===detail.slug)?.html ?? plain.find(item=>item.slug===detail.slug)?.html ?? detail.html)
+  const source=new JSDOM(detail.slug==='homologacia'?homologation.html:services.find(item=>item.slug===detail.slug)?.html ?? customer.find(item=>item.slug===detail.slug)?.html ?? plain.find(item=>item.slug===detail.slug)?.html ?? detail.html)
   expect(doc.window.document.querySelectorAll('table').length,detail.slug).toBeGreaterThanOrEqual(source.window.document.querySelectorAll('table').length)
   expect(doc.window.document.body.textContent,detail.slug).toContain(source.window.document.querySelector('h2,h3')!.textContent)
   if(customer.some(item=>item.slug===detail.slug)) {
@@ -53,7 +55,8 @@ test('all public content has working contextual links, metadata and one H1',asyn
   doc.window.close();source.window.close()
  }
  const serviceAudit:{slug:string;title:string;description:string;words:number}[]=[]
- for(const service of services){
+ for(const originalService of services){
+  const service=originalService.slug==='homologacia'?{...originalService,html:homologation.html,expectedTitle:homologation.title,expectedSEOtitle:homologation.seo.title,seoDescription:homologation.seo.description}:originalService
   const dom=new JSDOM(documents.get('/'+service.slug)!),doc=dom.window.document
   const source=new JSDOM(service.html)
   expect(doc.querySelector('title')?.textContent,service.slug).toBe(service.expectedSEOtitle)

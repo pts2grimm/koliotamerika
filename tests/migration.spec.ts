@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test'
+import { homologationImages, retiredArticle } from '../src/lib/homologation-copy'
 import { createHash } from 'node:crypto'
 import inventory from '../content/legacy-archives.json' with { type: 'json' }
 import media from '../content/legacy-media.json' with { type: 'json' }
@@ -12,7 +13,8 @@ test('legacy archives, original media, sitemap and public access survive migrati
   let checked = 0
   for (const archive of inventory.archives) {
    const found: string[] = []
-   for (let number = 1; number <= Math.ceil(archive.slugs.length / 6); number++) {
+   const expectedSlugs=archive.slugs.filter(slug=>slug!==retiredArticle)
+   for (let number = 1; number <= Math.ceil(expectedSlugs.length / 6); number++) {
     const path = archive.path + (number > 1 ? '/page/' + number : '')
     const response = await visitor.get(path)
     expect(response.status(), path).toBe(200)
@@ -25,9 +27,9 @@ test('legacy archives, original media, sitemap and public access survive migrati
     found.push(...collection.mainEntity.itemListElement.map((item: { url: string }) => new URL(item.url).pathname.slice(1)))
     checked++
    }
-   expect(found.sort(), archive.path).toEqual([...archive.slugs].sort())
+   expect(found.sort(), archive.path).toEqual([...expectedSlugs].sort())
   }
-  expect(checked).toBe(50)
+  expect(checked).toBe(inventory.archives.reduce((count,archive)=>count+Math.ceil(archive.slugs.filter(slug=>slug!==retiredArticle).length/6),0))
   for (const path of ['/tag/b58', '/category/uncategorized', '/tag/unknown', '/tag/bmw/page/0', '/tag/bmw/page/01', '/tag/bmw/page/999', '/tag/bmw/invalid']) {
    expect((await visitor.get(path)).status(), path).toBe(404)
    expect(sitemap).not.toContain('<loc>' + baseURL + path + '</loc>')
@@ -45,7 +47,8 @@ test('legacy archives, original media, sitemap and public access survive migrati
    const response = await visitor.get(new URL(item.sourceURL).pathname)
    expect(response.status(), item.path).toBe(200)
    expect(response.headers()['content-type']).toMatch(/^image\//)
-   expect(createHash('sha256').update(await response.body()).digest('hex'), item.path).toBe(item.sha256)
+   if(homologationImages[item.path])expect(new URL(response.url()).pathname).toBe(homologationImages[item.path])
+   else expect(createHash('sha256').update(await response.body()).digest('hex'), item.path).toBe(item.sha256)
   }
   const archive = inventory.archives.find(item => item.slugs.length > 6)!
   for (const width of [320, 390, 1440]) {

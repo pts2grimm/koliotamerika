@@ -109,6 +109,15 @@ export async function initializeContent(payload: Payload, options: { preview: bo
       payload.logger.warn({err:error},'[bootstrap] Clarity update deferred; existing content preserved.')
     }
   }
+  if(options.importLegacy) {
+    try {
+      const { upgradeHomologation } = await import('./homologation-upgrade')
+      const updated = await upgradeHomologation(payload)
+      if(updated)payload.logger.info(`[bootstrap] Updated homologation terminology on ${updated} pages.`)
+    } catch(error) {
+      payload.logger.warn({err:error},'[bootstrap] Homologation update deferred; transaction rolled back.')
+    }
+  }
   try {
     const { upgradeCalculatorDelivery } = await import('./calculator-upgrade')
     await upgradeCalculatorDelivery(payload)
