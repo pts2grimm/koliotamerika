@@ -6,14 +6,14 @@ import type { Page } from '../payload-types'
 import revision from '../../content/homologation-review-2026-10.json'
 import previous from '../../content/services-review-2026-10.json'
 import { stable } from './content-review-upgrade'
-import { homologationCopy, homologationText, retiredArticle } from './homologation-copy'
+import { homologationCopy, homologationHref, homologationText, retiredArticle } from './homologation-copy'
 export const homologationKey=(scope:string)=>'content:homologation:2026-10-20:v1:'+scope
 const pageFields=['title','intro','eyebrow','body','sections','seo','legacyImage'] as const
 export function homologationPageUpdate(page:Page, baseline:Page['body'], replacement:Page['body']):Partial<Page>{
  const data:Partial<Page>={}
  for(const field of pageFields){
   if(page[field]===undefined)continue
-  const next=homologationCopy(page[field])
+  const next=field==='legacyImage'&&typeof page[field]==='string'?homologationHref(page[field]):homologationCopy(page[field])
   if(stable(next)!==stable(page[field]))Object.assign(data,{[field]:next})
  }
  if(page.slug==='homologacia'){

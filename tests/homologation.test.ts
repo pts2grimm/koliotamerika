@@ -23,6 +23,8 @@ test('service revision applies only to known baseline and preserves editorial ov
  const body={root:{children:[{type:'text',text:'Baseline'}]}} as unknown as Page['body']
  const next={root:{children:[{type:'text',text:'New'}]}} as unknown as Page['body']
  const page={createdAt:'2026-10-20T00:00:00Z',updatedAt:'2026-10-20T00:00:00Z',id:1,slug:'homologacia',title:old.expectedTitle,intro:old.intro,body,sections:[],status:'draft',publishedAt:'2099-01-01',image:6,seo:{title:old.expectedSEOtitle,description:old.seoDescription,image:7,noIndex:true}} as Page
+ const legacyImage=homologationPageUpdate({...page,legacyImage:'/wp-content/uploads/2022/09/tehnotest.jpg'},body,next)
+ assert.equal(legacyImage.legacyImage,'/images/legacy/wp-2809.jpg')
  const data=homologationPageUpdate(page,body,next)
  assert.deepEqual(data.body,next)
  assert.equal(data.title,revision.title)
