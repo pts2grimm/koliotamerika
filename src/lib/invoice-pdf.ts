@@ -111,7 +111,7 @@ export async function createInvoicePDF(doc:Invoice,printed=bosToday()){
   top+=66
  })
  // Reserve the complete totals and payment block; never overlap a table row.
- if(top+200>740){page=pdf.addPage([612,792]);text(parties.seller.name,36,30,350,11,true);text('Invoice '+doc.invoiceNumber,36,50,540,10,true);top=80}
+ if(top+185>740){page=pdf.addPage([612,792]);text(parties.seller.name,36,30,350,11,true);text('Invoice '+doc.invoiceNumber,36,50,540,10,true);top=80}
  const settlement=[['Total',sums.total],['Payment',doc.paidAmount],['Balance due',sums.balance]] as const
  settlement.forEach(([label,value],i)=>{text(label+':',376,top+8+i*18,124,8,i!==1,1,'right');text('$'+bosMoney(value),504,top+8+i*18,72,8,i!==1,1,'right')})
  top+=72

@@ -69,6 +69,7 @@ export interface Config {
   blocks: {};
   collections: {
     'catalog-events': CatalogEvent;
+    invoices: Invoice;
     'bills-of-sale': BillOfSale;
     'consent-events': ConsentEvent;
     users: User;
@@ -89,6 +90,7 @@ export interface Config {
   collectionsJoins: {};
   collectionsSelect: {
     'catalog-events': CatalogEventsSelect<false> | CatalogEventsSelect<true>;
+    invoices: InvoicesSelect<false> | InvoicesSelect<true>;
     'bills-of-sale': BillsOfSaleSelect<false> | BillsOfSaleSelect<true>;
     'consent-events': ConsentEventsSelect<false> | ConsentEventsSelect<true>;
     users: UsersSelect<false> | UsersSelect<true>;
@@ -111,11 +113,13 @@ export interface Config {
   };
   fallbackLocale: null;
   globals: {
+    'invoice-settings': InvoiceSetting;
     'site-settings': SiteSetting;
     'calculator-settings': CalculatorSetting;
     integrations: Integration;
   };
   globalsSelect: {
+    'invoice-settings': InvoiceSettingsSelect<false> | InvoiceSettingsSelect<true>;
     'site-settings': SiteSettingsSelect<false> | SiteSettingsSelect<true>;
     'calculator-settings': CalculatorSettingsSelect<false> | CalculatorSettingsSelect<true>;
     integrations: IntegrationsSelect<false> | IntegrationsSelect<true>;
@@ -228,6 +232,60 @@ export interface Customer {
     | null;
   password?: string | null;
   collection: 'customers';
+}
+/**
+ * Транспортни разходи и услуги в USD. Един ред за всеки автомобил. Запази документа преди PDF експорт.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "invoices".
+ */
+export interface Invoice {
+  id: number;
+  /**
+   * Въвежда се ръчно. Номерът трябва да е уникален.
+   */
+  invoiceNumber: string;
+  invoiceDate: string;
+  dueDate?: string | null;
+  partySnapshot:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  vehicles: {
+    vin: string;
+    make: string;
+    model: string;
+    lot: string;
+    year?: number | null;
+    delivery: number;
+    shipping: number;
+    dealerFee: number;
+    storage: number;
+    lateFee: number;
+    evFee: number;
+    addServices: number;
+    total?: number | null;
+    id?: string | null;
+  }[];
+  paidAmount: number;
+  total?: number | null;
+  balance?: number | null;
+  shipper?: string | null;
+  origin?: string | null;
+  consignee?: string | null;
+  destination?: string | null;
+  carrierName?: string | null;
+  bookingNumber?: string | null;
+  shippingDate?: string | null;
+  containerNumber?: string | null;
+  notes?: string | null;
+  updatedAt: string;
+  createdAt: string;
 }
 /**
  * Bill of Sale за закупен автомобил. Всички суми са в USD. Запази документа преди изтегляне на PDF. Подписът на продавача се добавя автоматично. Купувачът подписва отделно.
@@ -661,6 +719,48 @@ export interface CatalogEventsSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "invoices_select".
+ */
+export interface InvoicesSelect<T extends boolean = true> {
+  invoiceNumber?: T;
+  invoiceDate?: T;
+  dueDate?: T;
+  partySnapshot?: T;
+  vehicles?:
+    | T
+    | {
+        vin?: T;
+        make?: T;
+        model?: T;
+        lot?: T;
+        year?: T;
+        delivery?: T;
+        shipping?: T;
+        dealerFee?: T;
+        storage?: T;
+        lateFee?: T;
+        evFee?: T;
+        addServices?: T;
+        total?: T;
+        id?: T;
+      };
+  paidAmount?: T;
+  total?: T;
+  balance?: T;
+  shipper?: T;
+  origin?: T;
+  consignee?: T;
+  destination?: T;
+  carrierName?: T;
+  bookingNumber?: T;
+  shippingDate?: T;
+  containerNumber?: T;
+  notes?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "bills-of-sale_select".
  */
 export interface BillsOfSaleSelect<T extends boolean = true> {
@@ -980,6 +1080,20 @@ export interface PayloadMigrationsSelect<T extends boolean = true> {
   createdAt?: T;
 }
 /**
+ * Платежните номера се съхраняват само в защитената база. Попълни ги еднократно преди създаване на първия Invoice. Промяната им важи само за нови документи; старите запазват своето копие.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "invoice-settings".
+ */
+export interface InvoiceSetting {
+  id: number;
+  account: string;
+  routingElectronic: string;
+  routingWire: string;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "site-settings".
  */
@@ -1112,6 +1226,18 @@ export interface Integration {
   metaVerification?: string | null;
   updatedAt?: string | null;
   createdAt?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "invoice-settings_select".
+ */
+export interface InvoiceSettingsSelect<T extends boolean = true> {
+  account?: T;
+  routingElectronic?: T;
+  routingWire?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
