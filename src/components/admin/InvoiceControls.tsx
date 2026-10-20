@@ -1,4 +1,5 @@
 'use client'
+import { useEffect, useRef } from 'react'
 import type { TextFieldClientComponent } from 'payload'
 import { Download, FileText } from 'lucide-react'
 import { FieldLabel, FieldError, useField, useForm, useDocumentInfo, useFormFields, useFormModified } from '@payloadcms/ui'
@@ -41,10 +42,17 @@ export const InvoiceDateField:TextFieldClientComponent=({field,path:providedPath
  const {id}=useDocumentInfo()
  const {dispatchFields,setModified}=useForm()
  const due=useFormFields(([fields])=>fields.dueDate?.value)
+ const creationDate=useFormFields(([fields])=>fields.invoiceDate?.value)
+ const initialized=useRef(false)
  const {value,setValue,path,showError,disabled}=useField<string>({
   potentiallyStalePath:providedPath,
   validate:(value)=>(!field.required&&!value)||validBosDate(value)?true:'Избери валидна дата.',
  })
+ useEffect(()=>{
+  if(field.name!=='dueDate'||id||initialized.current||typeof creationDate!=='string'||!validBosDate(creationDate))return
+  initialized.current=true
+  if(!value)setValue(invoiceDueDate(creationDate))
+ },[field.name,id,creationDate,value,setValue])
  const locked=Boolean(readOnly||disabled)
  return <div className="field-type text koa-invoice-date">
   <FieldLabel label={field.label} path={path} required={field.required}/>

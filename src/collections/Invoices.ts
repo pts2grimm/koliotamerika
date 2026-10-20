@@ -51,7 +51,7 @@ export const Invoices:CollectionConfig={
  }]},
  fields:[
   {name:'invoiceNumber',label:'Invoice number / Номер',type:'text',required:true,unique:true,maxLength:40,admin:{description:'Въвежда се ръчно. Номерът трябва да е уникален.'},validate:(v:unknown)=>typeof v==='string'&&/^[A-Z0-9][A-Z0-9/_-]{0,39}$/.test(v)?true:'Използвай латински букви, цифри, /, _ или - (до 40 знака).'},
-  {type:'row',fields:[{...date('invoiceDate','Creation date / Дата',true),defaultValue:()=>bosToday()} as Field,{...date('dueDate','Due date / Падеж'),defaultValue:({siblingData}:{siblingData?:Record<string,unknown>})=>invoiceDueDate(typeof siblingData?.invoiceDate==='string'&&validBosDate(siblingData.invoiceDate)?siblingData.invoiceDate:bosToday())} as Field]},
+  {type:'row',fields:[{...date('invoiceDate','Creation date / Дата',true),defaultValue:()=>bosToday()} as Field,date('dueDate','Due date / Падеж')]},
   {name:'partySnapshot',type:'json',required:true,admin:{hidden:true}},
   {type:'tabs',tabs:[
    {label:'Автомобили и суми',fields:[
