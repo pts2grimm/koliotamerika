@@ -17,6 +17,12 @@ jobs:
           mkdir -p "$RUNNER_TEMP/supabase-check"
           cd "$RUNNER_TEMP/supabase-check"
           npm install --ignore-scripts --no-audit --no-fund pg@8.16.3
+      # Public root CA URL used by Supabase Studio's Download certificate button.
+      - name: Download official Supabase root certificate over verified HTTPS
+        run: |
+          curl --fail --silent --show-error --proto '=https' --tlsv1.2 --max-time 30 \
+            'https://supabase-downloads.s3-ap-southeast-1.amazonaws.com/prod/ssl/prod-ca-2021.crt' \
+            --output "$RUNNER_TEMP/supabase-check/supabase-ca.crt"
       - name: Verify TLS connection and inspect empty target (read only)
         env:
           SUPABASE_DATABASE_URL: ${{ secrets.SUPABASE_DATABASE_URL }}
@@ -27,6 +33,7 @@ jobs:
           cd "$RUNNER_TEMP/supabase-check"
           node --input-type=module <<'JS'
           import pg from 'pg';
+          import { readFileSync } from 'node:fs';
           const raw=process.env.SUPABASE_DATABASE_URL;
           console.log('Target secret configured:',Boolean(raw));
           console.log('Source DATABASE_URI and DATABASE_AUTH_TOKEN configured:',Boolean(process.env.SOURCE_DATABASE_URI&&process.env.SOURCE_DATABASE_AUTH_TOKEN));
@@ -40,7 +47,7 @@ jobs:
             console.log('BLOCKED: use this project’s PostgreSQL Session pooler URL, port 5432, database postgres, and the actual database password.');process.exit(1);
           }
           for(const key of ['sslmode','sslcert','sslkey','sslrootcert'])url.searchParams.delete(key);
-          const client=new pg.Client({connectionString:url.toString(),ssl:{rejectUnauthorized:true,...(process.env.SUPABASE_CA_CERT?{ca:process.env.SUPABASE_CA_CERT}:{})},connectionTimeoutMillis:15000,statement_timeout:15000,application_name:'koa-readonly-preflight'});
+          const client=new pg.Client({connectionString:url.toString(),ssl:{rejectUnauthorized:true,ca:process.env.SUPABASE_CA_CERT||readFileSync('supabase-ca.crt','utf8')},connectionTimeoutMillis:15000,statement_timeout:15000,application_name:'koa-readonly-preflight'});
           try{
             await client.connect();
             await client.query('BEGIN READ ONLY');
