@@ -1,0 +1,24 @@
+name: Read-only Supabase target inspection
+on:
+  push:
+    branches: ['codex/supabase-target-inspect-2026-10-22']
+permissions:
+  contents: read
+jobs:
+  inspect:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: npm ci --include=dev --no-audit --no-fund
+      - name: Read-only row counts and structural comparison
+        env:
+          DATABASE_URI: ${{ secrets.SUPABASE_DATABASE_URL }}
+          SOURCE_DATABASE_URI: ${{ secrets.DATABASE_URI }}
+          SOURCE_DATABASE_AUTH_TOKEN: ${{ secrets.DATABASE_AUTH_TOKEN }}
+        run: node --import tsx scripts/inspect-supabase-target.mjs
