@@ -34,7 +34,7 @@ function runScript(file) {
     console.error('Child process status:',result.status,'signal:',result.signal||'none')
   }
   requireOK(result.status===0)
-  if(file.endsWith('copy-turso-postgres.mjs')){
+  if(file.includes('copy-turso-postgres')){
     const summary=result.stdout.split('\n').find(line=>/^Transfer verified: \d+ tables; \d+ rows\. Source unchanged\.$/.test(line))
     requireOK(summary);console.log(summary)
   }
@@ -56,6 +56,15 @@ try {
   requireOK(checks.ok)
   const runs=(await checks.json()).workflow_runs
   requireOK(runs.some(run=>run.head_sha===revision&&run.path==='.github/workflows/supabase-migration.yml'&&run.status==='completed'&&run.conclusion==='success'))
+  const snapshotRevision='5330de274d626a42218ba35ed8cca720e18040fb'
+  const snapshotDiff=spawnSync('git',['diff','--exit-code',snapshotRevision,'--','scripts/copy-turso-postgres-snapshot.mjs'],{encoding:'utf8'})
+  requireOK(snapshotDiff.status===0)
+  const snapshotChecks=await fetch('https://api.github.com/repos/pts2grimm/koliotamerika/actions/runs?head_sha='+snapshotRevision+'&per_page=100',{
+    headers:{Authorization:'Bearer '+process.env.GITHUB_TOKEN,Accept:'application/vnd.github+json'},
+    signal:AbortSignal.timeout(20000)
+  })
+  requireOK(snapshotChecks.ok)
+  requireOK((await snapshotChecks.json()).workflow_runs.some(run=>run.head_sha===snapshotRevision&&run.path==='.github/workflows/supabase-snapshot.yml'&&run.status==='completed'&&run.conclusion==='success'))
   stage='live maintenance gate'
   await maintenance()
   stage='empty target and verified TLS'
@@ -74,7 +83,7 @@ try {
   stage='maintenance recheck'
   await maintenance()
   stage='source snapshot copy and full-row verification'
-  runScript('scripts/copy-turso-postgres.mjs')
+  runScript('scripts/copy-turso-postgres-snapshot.mjs')
   stage='private schema permissions'
   client=new pg.Client(postgresPool())
   await client.connect()
