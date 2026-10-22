@@ -36,7 +36,8 @@ jobs:
           import { readFileSync } from 'node:fs';
           const raw=process.env.SUPABASE_DATABASE_URL;
           console.log('Target secret configured:',Boolean(raw));
-          console.log('Source DATABASE_URI and DATABASE_AUTH_TOKEN configured:',Boolean(process.env.SOURCE_DATABASE_URI&&process.env.SOURCE_DATABASE_AUTH_TOKEN));
+          console.log('Source DATABASE_URI configured:',Boolean(process.env.SOURCE_DATABASE_URI));
+          console.log('Source DATABASE_AUTH_TOKEN configured:',Boolean(process.env.SOURCE_DATABASE_AUTH_TOKEN));
           if(!raw){console.log('BLOCKED: SUPABASE_DATABASE_URL is missing.');process.exit(1);}
           let url;
           try{url=new URL(raw);}catch{console.log('BLOCKED: invalid connection URL.');process.exit(1);}
@@ -51,8 +52,9 @@ jobs:
           try{
             await client.connect();
             await client.query('BEGIN READ ONLY');
-            const tls=await client.query('SELECT ssl FROM pg_stat_ssl WHERE pid=pg_backend_pid()');
-            if(tls.rows[0]?.ssl!==true)throw Object.assign(new Error(),{code:'TLS_REQUIRED'});
+            // pg_stat_ssl describes the pooler's backend connection, not our TLS socket.
+            const socket=client.connection.stream;
+            if(socket.encrypted!==true||socket.authorized!==true)throw Object.assign(new Error(),{code:'TLS_REQUIRED'});
             const tables=await client.query("SELECT COUNT(*)::int AS count FROM information_schema.tables WHERE table_schema IN ('public','payload') AND table_type='BASE TABLE'");
             console.log('Connected to expected Supabase project with verified TLS.');
             console.log('Application tables in public/payload:',tables.rows[0].count);
