@@ -27,6 +27,12 @@ function runScript(file) {
     encoding:'utf8',maxBuffer:16*1024*1024,timeout:600000
   })
   // Never expose a child exception's SQL parameters or document contents.
+  if(result.status!==0) {
+    for(const line of (result.stderr||'').split('\n')) {
+      if(/^Transfer stopped at: [a-z_ ]+ code: [A-Z0-9_]+$/.test(line)) console.error(line)
+    }
+    console.error('Child process status:',result.status,'signal:',result.signal||'none')
+  }
   requireOK(result.status===0)
   if(file.endsWith('copy-turso-postgres.mjs')){
     const summary=result.stdout.split('\n').find(line=>/^Transfer verified: \d+ tables; \d+ rows\. Source unchanged\.$/.test(line))
@@ -61,6 +67,7 @@ try {
     if(table.table_schema==='payload'&&table.table_name==='payload_migrations')continue
     requireOK(!(await client.query('SELECT EXISTS(SELECT 1 FROM '+quote(table.table_schema)+'.'+quote(table.table_name)+' LIMIT 1) AS occupied')).rows[0].occupied)
   }
+  console.log('Target checked: no application rows; source writes remain blocked.')
   await client.end();client=undefined
   stage='private schema preparation'
   runScript('scripts/prepare-postgres.ts')
