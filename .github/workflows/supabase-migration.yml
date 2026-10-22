@@ -11,7 +11,7 @@ jobs:
   prepare:
     outputs:
       revision: ${{ steps.revision.outputs.sha }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 25
     env:
       CI: 'true'
@@ -89,7 +89,7 @@ jobs:
     needs: prepare
     permissions:
       contents: read
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 20
     env:
       CI: 'true'
@@ -129,12 +129,12 @@ jobs:
     needs: prepare
     permissions:
       contents: read
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 20
     strategy:
       fail-fast: false
       matrix:
-        suite: [invoice, bos]
+        suite: [invoice, bos, consent-admin, catalog-activity]
     env:
       CI: 'true'
       PG_BROWSER_SUITE: ${{ matrix.suite }}

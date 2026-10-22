@@ -2,6 +2,7 @@ import { MigrateUpArgs, MigrateDownArgs, sql } from '@payloadcms/db-postgres'
 
 export async function up({ db, payload, req }: MigrateUpArgs): Promise<void> {
   await db.execute(sql`
+   CREATE SCHEMA IF NOT EXISTS payload;
    CREATE TYPE "payload"."enum_catalog_events_kind" AS ENUM('search', 'view');
   CREATE TYPE "payload"."enum_catalog_events_section" AS ENUM('cars', 'powersports');
   CREATE TYPE "payload"."enum_catalog_events_outcome" AS ENUM('results', 'empty', 'error');
