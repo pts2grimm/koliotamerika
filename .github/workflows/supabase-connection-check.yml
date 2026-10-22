@@ -1,0 +1,59 @@
+name: Supabase connection preflight
+on:
+  push:
+    branches: ['codex/supabase-check-2026-10-22']
+permissions:
+  contents: read
+jobs:
+  connection:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Install PostgreSQL client in temporary workspace
+        run: |
+          mkdir -p "$RUNNER_TEMP/supabase-check"
+          cd "$RUNNER_TEMP/supabase-check"
+          npm install --ignore-scripts --no-audit --no-fund pg@8.16.3
+      - name: Verify TLS connection and inspect empty target (read only)
+        env:
+          SUPABASE_DATABASE_URL: ${{ secrets.SUPABASE_DATABASE_URL }}
+          SUPABASE_CA_CERT: ${{ secrets.SUPABASE_CA_CERT }}
+          SOURCE_DATABASE_URI: ${{ secrets.DATABASE_URI }}
+          SOURCE_DATABASE_AUTH_TOKEN: ${{ secrets.DATABASE_AUTH_TOKEN }}
+        run: |
+          cd "$RUNNER_TEMP/supabase-check"
+          node --input-type=module <<'JS'
+          import pg from 'pg';
+          const raw=process.env.SUPABASE_DATABASE_URL;
+          console.log('Target secret configured:',Boolean(raw));
+          console.log('Source DATABASE_URI and DATABASE_AUTH_TOKEN configured:',Boolean(process.env.SOURCE_DATABASE_URI&&process.env.SOURCE_DATABASE_AUTH_TOKEN));
+          if(!raw){console.log('BLOCKED: SUPABASE_DATABASE_URL is missing.');process.exit(1);}
+          let url;
+          try{url=new URL(raw);}catch{console.log('BLOCKED: invalid connection URL.');process.exit(1);}
+          const project='jiyjkhdcngzpvdxbiprs';
+          const direct=url.hostname==='db.'+project+'.supabase.co';
+          const pooler=url.hostname.endsWith('.pooler.supabase.com')&&decodeURIComponent(url.username)==='postgres.'+project;
+          if(!['postgres:','postgresql:'].includes(url.protocol)||(!direct&&!pooler)||url.port&&url.port!=='5432'||url.pathname!=='/postgres'||!url.password||decodeURIComponent(url.password).includes('[YOUR-PASSWORD]')){
+            console.log('BLOCKED: use this project’s PostgreSQL Session pooler URL, port 5432, database postgres, and the actual database password.');process.exit(1);
+          }
+          for(const key of ['sslmode','sslcert','sslkey','sslrootcert'])url.searchParams.delete(key);
+          const client=new pg.Client({connectionString:url.toString(),ssl:{rejectUnauthorized:true,...(process.env.SUPABASE_CA_CERT?{ca:process.env.SUPABASE_CA_CERT}:{})},connectionTimeoutMillis:15000,statement_timeout:15000,application_name:'koa-readonly-preflight'});
+          try{
+            await client.connect();
+            await client.query('BEGIN READ ONLY');
+            const tls=await client.query('SELECT ssl FROM pg_stat_ssl WHERE pid=pg_backend_pid()');
+            if(tls.rows[0]?.ssl!==true)throw Object.assign(new Error(),{code:'TLS_REQUIRED'});
+            const tables=await client.query("SELECT COUNT(*)::int AS count FROM information_schema.tables WHERE table_schema IN ('public','payload') AND table_type='BASE TABLE'");
+            console.log('Connected to expected Supabase project with verified TLS.');
+            console.log('Application tables in public/payload:',tables.rows[0].count);
+            console.log('No schema or data changes performed.');
+            await client.query('ROLLBACK');
+          }catch(error){
+            const codes=new Set(['28P01','28000','3D000','42501','ENOTFOUND','ECONNREFUSED','ETIMEDOUT','ENETUNREACH','SELF_SIGNED_CERT_IN_CHAIN','DEPTH_ZERO_SELF_SIGNED_CERT','UNABLE_TO_VERIFY_LEAF_SIGNATURE','CERT_HAS_EXPIRED','TLS_REQUIRED']);
+            console.log('Connection failed:',codes.has(error.code)?error.code:'CONNECTION_ERROR');
+            process.exitCode=1;
+          }finally{await client.end().catch(()=>{});}
+          JS
