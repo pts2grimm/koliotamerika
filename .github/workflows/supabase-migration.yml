@@ -9,6 +9,8 @@ concurrency:
   cancel-in-progress: false
 jobs:
   prepare:
+    outputs:
+      revision: ${{ steps.revision.outputs.sha }}
     runs-on: ubuntu-latest
     timeout-minutes: 25
     env:
@@ -29,7 +31,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: codex/supabase-migration-2026-10-22
+          ref: ${{ github.sha }}
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
@@ -62,9 +64,18 @@ jobs:
             git commit -m 'Generate PostgreSQL baseline, dependency lock and trusted Supabase CA'
             git push origin HEAD:codex/supabase-migration-2026-10-22
           fi
+      - name: Record tested revision
+        id: revision
+        run: git rev-parse HEAD | sed 's/^/sha=/' >> "$GITHUB_OUTPUT"
       - name: Inventory remaining direct SQLite SQL callers
         run: |
           grep -RnE 'db\.drizzle|@payloadcms/db-sqlite' src scripts tests/fixtures || true
+      - run: npm run typecheck
+      - name: Verify PostgreSQL schema initialization
+        run: |
+          export MEDIA_DIR="$RUNNER_TEMP/pg-media"
+          npm run hosting:prepare
+          node --import tsx tests/fixtures/postgres-runtime.ts
       - name: Existing regression tests
         run: npm test
         env:
@@ -74,12 +85,6 @@ jobs:
         env:
           DATABASE_PROVIDER: sqlite
           PREVIEW_MODE: 'true'
-      - run: npm run typecheck
-      - name: Verify PostgreSQL schema initialization
-        run: |
-          export MEDIA_DIR="$RUNNER_TEMP/pg-media"
-          npm run hosting:prepare
-          node --import tsx tests/fixtures/postgres-runtime.ts
   rehearsal:
     needs: prepare
     permissions:
@@ -105,7 +110,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: codex/supabase-migration-2026-10-22
+          ref: ${{ needs.prepare.outputs.revision }}
           persist-credentials: false
       - uses: actions/setup-node@v4
         with:
