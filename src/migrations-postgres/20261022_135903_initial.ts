@@ -607,53 +607,6 @@ export async function up({ db, payload, req }: MigrateUpArgs): Promise<void> {
   CREATE INDEX "calculator_settings_tiers_parent_id_idx" ON "payload"."calculator_settings_tiers" USING btree ("_parent_id");`)
 }
 
-export async function down({ db, payload, req }: MigrateDownArgs): Promise<void> {
-  await db.execute(sql`
-   DROP TABLE "payload"."catalog_events" CASCADE;
-  DROP TABLE "payload"."invoices_vehicles" CASCADE;
-  DROP TABLE "payload"."invoices" CASCADE;
-  DROP TABLE "payload"."bills_of_sale" CASCADE;
-  DROP TABLE "payload"."consent_events" CASCADE;
-  DROP TABLE "payload"."users_sessions" CASCADE;
-  DROP TABLE "payload"."users" CASCADE;
-  DROP TABLE "payload"."customers_sessions" CASCADE;
-  DROP TABLE "payload"."customers" CASCADE;
-  DROP TABLE "payload"."saved_vehicles" CASCADE;
-  DROP TABLE "payload"."media" CASCADE;
-  DROP TABLE "payload"."cars_gallery" CASCADE;
-  DROP TABLE "payload"."cars_features" CASCADE;
-  DROP TABLE "payload"."cars" CASCADE;
-  DROP TABLE "payload"."pages_sections" CASCADE;
-  DROP TABLE "payload"."pages" CASCADE;
-  DROP TABLE "payload"."inquiries" CASCADE;
-  DROP TABLE "payload"."auction_quotes" CASCADE;
-  DROP TABLE "payload"."redirects" CASCADE;
-  DROP TABLE "payload"."submission_limits" CASCADE;
-  DROP TABLE "payload"."payload_kv" CASCADE;
-  DROP TABLE "payload"."payload_locked_documents" CASCADE;
-  DROP TABLE "payload"."payload_locked_documents_rels" CASCADE;
-  DROP TABLE "payload"."payload_preferences" CASCADE;
-  DROP TABLE "payload"."payload_preferences_rels" CASCADE;
-  DROP TABLE "payload"."payload_migrations" CASCADE;
-  DROP TABLE "payload"."invoice_settings" CASCADE;
-  DROP TABLE "payload"."site_settings_faq" CASCADE;
-  DROP TABLE "payload"."site_settings" CASCADE;
-  DROP TABLE "payload"."calculator_settings_tiers" CASCADE;
-  DROP TABLE "payload"."calculator_settings" CASCADE;
-  DROP TABLE "payload"."integrations" CASCADE;
-  DROP TYPE "payload"."enum_catalog_events_kind";
-  DROP TYPE "payload"."enum_catalog_events_section";
-  DROP TYPE "payload"."enum_catalog_events_outcome";
-  DROP TYPE "payload"."enum_consent_events_action";
-  DROP TYPE "payload"."enum_saved_vehicles_kind";
-  DROP TYPE "payload"."enum_cars_status";
-  DROP TYPE "payload"."enum_cars_fuel";
-  DROP TYPE "payload"."enum_cars_transmission";
-  DROP TYPE "payload"."enum_cars_availability";
-  DROP TYPE "payload"."enum_pages_status";
-  DROP TYPE "payload"."enum_pages_kind";
-  DROP TYPE "payload"."enum_inquiries_status";
-  DROP TYPE "payload"."enum_auction_quotes_provider";
-  DROP TYPE "payload"."enum_auction_quotes_site";
-  DROP TYPE "payload"."enum_integrations_installation";`)
+export async function down(_args: MigrateDownArgs): Promise<void> {
+  throw new Error('Database rollback must preserve all business records; use the retained source database.')
 }

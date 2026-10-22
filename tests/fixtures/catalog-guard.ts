@@ -1,10 +1,11 @@
+import { sqliteDatabase } from './sqlite-db'
 import assert from 'node:assert/strict'
 import { getPayload } from 'payload'
 import config from '../../src/payload.config'
 import { sql } from '@payloadcms/db-sqlite'
 import { reserveCatalogRequest, purgeCatalogGuard } from '../../src/lib/catalog-guard-server'
 
-const payload=await getPayload({config}),db=payload.db.drizzle
+const payload=await getPayload({config}),db=sqliteDatabase(payload)
 const now=Date.parse('2026-10-18T20:00:00Z')
 const input={ip:'198.51.100.1',agent:'Mozilla test',scope:'vehicle',verified:'' as const}
 const limits={minute:5,hour:8}

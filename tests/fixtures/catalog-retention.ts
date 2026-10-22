@@ -1,3 +1,4 @@
+import { sqliteDatabase } from './sqlite-db'
 import assert from 'node:assert/strict'
 import { getPayload } from 'payload'
 import config from '../../src/payload.config'
@@ -5,7 +6,7 @@ import { sql } from '@payloadcms/db-sqlite'
 import { purgeCatalogActivity } from '../../src/lib/catalog-activity-server'
 import { up } from '../../src/migrations/20261018_120000_catalog_events'
 const payload = await getPayload({config})
-const db=payload.db.drizzle
+const db=sqliteDatabase(payload)
 // A retry after partial DDL must neither fail nor discard events.
 await up({db,payload} as Parameters<typeof up>[0])
 const customer=await payload.create({collection:'customers',data:{email:'catalog-retention@example.test',password:'Isolated-password-2026',name:'Catalog fixture',consentedAt:new Date().toISOString()}})

@@ -79,3 +79,44 @@ jobs:
         run: |
           export MEDIA_DIR="$RUNNER_TEMP/pg-media"
           npm run hosting:prepare
+          node --import tsx tests/fixtures/postgres-runtime.ts
+  rehearsal:
+    needs: prepare
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      CI: 'true'
+      NODE_ENV: production
+      DATABASE_PROVIDER: postgres
+      DATABASE_URI: postgresql://postgres:isolated-test-only@127.0.0.1:5432/postgres
+      PAYLOAD_SECRET: isolated-rehearsal-secret-not-production
+      PREVIEW_MODE: 'false'
+      NEXT_PUBLIC_SERVER_URL: http://localhost:3000
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: isolated-test-only
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd pg_isready --health-interval 5s --health-timeout 5s --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: codex/supabase-migration-2026-10-22
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: npm ci --include=dev --no-audit --no-fund
+      - name: Create empty isolated PostgreSQL schema
+        run: node --import tsx scripts/prepare-postgres.ts
+      - name: Rehearse read-only Turso snapshot copy into isolated PostgreSQL
+        env:
+          SOURCE_DATABASE_URI: ${{ secrets.DATABASE_URI }}
+          SOURCE_DATABASE_AUTH_TOKEN: ${{ secrets.DATABASE_AUTH_TOKEN }}
+        run: node scripts/copy-turso-postgres.mjs
+      - name: Verify copied documents without exporting personal data
+        run: node --import tsx scripts/verify-postgres-copy.ts

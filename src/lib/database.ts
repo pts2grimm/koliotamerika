@@ -41,6 +41,7 @@ export function database(payload: Payload) {
   }
   return {
     postgres,
+    boolean: (value: boolean) => postgres ? value : Number(value),
     all: <T = Record<string, unknown>>(query: SQL) => execute<T>(query),
     atomicAll: <T = Record<string, unknown>>(query: SQL, lock: string) => execute<T>(query, lock),
     run: (query: SQL) => postgres ? execute(query) : adapter.drizzle.run(query),

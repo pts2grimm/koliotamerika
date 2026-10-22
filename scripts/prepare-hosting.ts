@@ -23,16 +23,21 @@ const { default: config } = await import('../src/payload.config')
 const { migrations: sqliteMigrations } = await import('../src/migrations')
 const { migrations: postgresMigrations } = await import('../src/migrations-postgres')
 const { operationalMigration } = await import('../src/lib/postgres-operational-schema')
-const migrations = postgres ? [...postgresMigrations, operationalMigration] : sqliteMigrations
 const { initializeContent } = await import('../src/lib/initialize-content')
 const payload = await getPayload({ config, disableOnInit: true })
 try {
-  // Payload's generic migrate API accepts unknown args; this config uses SQLite.
-  await payload.db.migrate({ migrations: migrations.map(migration => ({
-    name: migration.name,
-    up: (args: unknown) => migration.up(args as Parameters<typeof migration.up>[0]),
-    down: (args: unknown) => migration.down(args as Parameters<typeof migration.down>[0]),
-  })) })
+  const wrapped = postgres
+    ? [...postgresMigrations, operationalMigration].map(migration => ({
+      name: migration.name,
+      up: (args: unknown) => migration.up(args as Parameters<typeof migration.up>[0]),
+      down: (args: unknown) => migration.down(args as Parameters<typeof migration.down>[0]),
+    }))
+    : sqliteMigrations.map(migration => ({
+      name: migration.name,
+      up: (args: unknown) => migration.up(args as Parameters<typeof migration.up>[0]),
+      down: (args: unknown) => migration.down(args as Parameters<typeof migration.down>[0]),
+    }))
+  await payload.db.migrate({ migrations: wrapped })
   await initializeContent(payload, { preview: false, importLegacy: true })
   console.log('Hosting database ready.')
 } finally {
