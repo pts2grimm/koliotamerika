@@ -5,6 +5,11 @@ import { isPreview } from './lib/preview'
 import { requestIsIndexable } from './lib/indexing-policy'
 
 export async function proxy(request: NextRequest, event: NextFetchEvent) {
+  if (process.env.DATABASE_MAINTENANCE === 'true') {
+    return new NextResponse('Кратка техническа профилактика. Моля, опитайте след малко.', {
+      status: 503, headers: { 'Cache-Control': 'no-store', 'Retry-After': '300', 'Content-Type': 'text/plain; charset=utf-8' },
+    })
+  }
   if (blockedProbePath(request.nextUrl.pathname)) {
     return new NextResponse(null, { status: 404, headers: { 'Cache-Control': 'no-store', 'X-Robots-Tag': 'noindex' } })
   }

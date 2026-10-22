@@ -1,4 +1,4 @@
-import { sql } from '@payloadcms/db-sqlite'
+import { sql, database } from '@/lib/database'
 import { cms } from '@/lib/data'
 import { adminPeriod } from '@/lib/admin-period'
 import { purgeExpiredConsents } from '@/lib/consent-audit-server'
@@ -14,13 +14,13 @@ export async function GET(request: Request) {
   const period = adminPeriod(params)
   const category = params.category || ''
   const subject = /^[a-f0-9]{64}$/.test(params.subject || '') ? params.subject : ''
-  const categoryClause = category === 'all' ? sql`AND analytics=1 AND marketing=1`
-    : category === 'necessary' ? sql`AND analytics=0 AND marketing=0`
-    : category === 'analytics' ? sql`AND analytics=1 AND marketing=0`
-    : category === 'marketing' ? sql`AND analytics=0 AND marketing=1` : sql``
+  const categoryClause = category === 'all' ? sql`AND analytics=true AND marketing=true`
+    : category === 'necessary' ? sql`AND analytics=false AND marketing=false`
+    : category === 'analytics' ? sql`AND analytics=true AND marketing=false`
+    : category === 'marketing' ? sql`AND analytics=false AND marketing=true` : sql``
   const subjectClause = subject ? sql`AND subject=${subject}` : sql``
   await purgeExpiredConsents(payload)
-  const rows = await payload.db.drizzle.all<{ subject: string; customer_id: number | null; name: string | null; email: string | null; analytics: number; marketing: number; action: string; policy_version: string; created_at: string }>(sql`
+  const rows = await database(payload).all<{ subject: string; customer_id: number | null; name: string | null; email: string | null; analytics: number; marketing: number; action: string; policy_version: string; created_at: string }>(sql`
     SELECT subject, customer_id, (SELECT name FROM customers WHERE customers.id=consent_events.customer_id) AS name,
       (SELECT email FROM customers WHERE customers.id=consent_events.customer_id) AS email,
       analytics, marketing, action, policy_version, created_at FROM consent_events

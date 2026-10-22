@@ -1,3 +1,7 @@
+import { postgresAdapter } from '@payloadcms/db-postgres'
+import { postgresPool } from './lib/postgres-pool'
+import { migrations as postgresMigrations } from './migrations-postgres'
+import { operationalMigration } from './lib/postgres-operational-schema'
 import { InvoiceSettings } from './globals/InvoiceSettings'
 import { Invoices } from './collections/Invoices'
 import { CatalogEvents } from './collections/CatalogEvents'
@@ -23,6 +27,8 @@ import { isPreview } from './lib/preview'
 import { migrations } from './migrations'
 const preview = isPreview()
 const smtp = smtpConfiguration(process.env)
+const postgres = !preview && process.env.DATABASE_PROVIDER === 'postgres'
+if (!preview && process.env.DATABASE_PROVIDER && !['sqlite','postgres'].includes(process.env.DATABASE_PROVIDER)) throw new Error('Unknown DATABASE_PROVIDER')
 const remote = !preview && /^(libsql|https?):\/\//i.test(process.env.DATABASE_URI || '')
 const migrating = process.env.PAYLOAD_MIGRATING === 'true'
 if (remote && !process.env.DATABASE_AUTH_TOKEN) throw new Error('DATABASE_AUTH_TOKEN is required for the remote database.')
@@ -48,7 +54,11 @@ export default buildConfig({
   collections: [CatalogEvents, Invoices, BillsOfSale, ConsentEvents, Users, Customers, SavedVehicles, Media, Cars, Pages, Inquiries, AuctionQuotes, Redirects, RateLimits],
   globals: [InvoiceSettings, SiteSettings, CalculatorSettings, Integrations],
   ...(smtp ? { email: nodemailerAdapter(smtp) } : {}),
-  db: sqliteAdapter({
+  db: postgres ? postgresAdapter({
+    pool: postgresPool(), schemaName: 'payload', push: false, disableCreateDatabase: true,
+    migrationDir: path.resolve(process.cwd(), 'src/migrations-postgres'),
+    ...(!migrating ? { prodMigrations: [...postgresMigrations, operationalMigration] } : {}),
+  }) : sqliteAdapter({
     client: { url: preview ? `file:${path.join(tmpdir(), `koa-preview-${process.pid}.db`)}` : process.env.DATABASE_URI || 'file:./.data/payload.db', ...(!preview && process.env.DATABASE_AUTH_TOKEN ? { authToken: process.env.DATABASE_AUTH_TOKEN } : {}) },
     // Never run development schema push against the persistent remote database.
     ...(remote ? { push: false } : {}),
@@ -59,6 +69,6 @@ export default buildConfig({
   editor: lexicalEditor(),
   typescript: { outputFile: path.resolve(process.cwd(), 'src/payload-types.ts') },
   onInit: async payload => {
-    await initializeContent(payload, { preview, importLegacy: preview || remote })
+    await initializeContent(payload, { preview, importLegacy: preview || remote || postgres })
   }
 })

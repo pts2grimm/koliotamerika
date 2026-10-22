@@ -1,4 +1,4 @@
-import { sql } from '@payloadcms/db-sqlite'
+import { sql, database } from './database'
 import type { PayloadRequest, Where } from 'payload'
 import { purgeExpiredConsents } from './consent-audit-server'
 import { sofiaDay, type AdminPeriod } from './admin-period'
@@ -20,7 +20,7 @@ export async function overviewData(req: PayloadRequest, period: AdminPeriod, pag
     payload.find({ collection: 'inquiries', req, overrideAccess: false, depth: 0, limit: 5, sort: '-createdAt',
       select: { name: true, status: true, car: true, createdAt: true }, where: interval(period.start, period.end) }),
   ])
-  const db = payload.db.drizzle
+  const db = database(payload)
   // Select the latest recorded choice per receipt WITHIN the selected period.
   // This is not a site-wide consent rate: visitors who never choose are absent.
   const summary = async (start: string, end: string) => {
@@ -29,23 +29,23 @@ export async function overviewData(req: PayloadRequest, period: AdminPeriod, pag
         SELECT *, ROW_NUMBER() OVER (PARTITION BY subject ORDER BY created_at DESC, id DESC) AS rn
         FROM consent_events WHERE created_at >= ${start} AND created_at < ${end}
       )
-      SELECT COUNT(*) AS browsers, COALESCE(SUM(analytics),0) AS analytics, COALESCE(SUM(marketing),0) AS marketing,
-        COALESCE(SUM(CASE WHEN analytics=1 AND marketing=1 THEN 1 ELSE 0 END),0) AS all_count,
-        COALESCE(SUM(CASE WHEN analytics=0 AND marketing=0 THEN 1 ELSE 0 END),0) AS necessary
+      SELECT COUNT(*) AS browsers, COALESCE(SUM(CASE WHEN analytics THEN 1 ELSE 0 END),0) AS analytics, COALESCE(SUM(CASE WHEN marketing THEN 1 ELSE 0 END),0) AS marketing,
+        COALESCE(SUM(CASE WHEN analytics=true AND marketing=true THEN 1 ELSE 0 END),0) AS all_count,
+        COALESCE(SUM(CASE WHEN analytics=false AND marketing=false THEN 1 ELSE 0 END),0) AS necessary
       FROM ranked WHERE rn=1
     `)
     return rows[0]
   }
-  const categoryClause = category === 'all' ? sql`AND analytics=1 AND marketing=1`
-    : category === 'necessary' ? sql`AND analytics=0 AND marketing=0`
-    : category === 'analytics' ? sql`AND analytics=1 AND marketing=0`
-    : category === 'marketing' ? sql`AND analytics=0 AND marketing=1` : sql``
+  const categoryClause = category === 'all' ? sql`AND analytics=true AND marketing=true`
+    : category === 'necessary' ? sql`AND analytics=false AND marketing=false`
+    : category === 'analytics' ? sql`AND analytics=true AND marketing=false`
+    : category === 'marketing' ? sql`AND analytics=false AND marketing=true` : sql``
   const subjectClause = subject ? sql`AND subject = ${subject}` : sql``
   const [current, previous, hours, totalRows, historyRows, startedRows] = await Promise.all([
     summary(period.start, period.end), summary(period.previousStart, period.previousEnd),
     db.all<{ hour: string; total: number; accepted: number }>(sql`
-      SELECT strftime('%Y-%m-%dT%H:00:00Z',created_at) AS hour, COUNT(*) AS total,
-        SUM(CASE WHEN analytics=1 AND marketing=1 THEN 1 ELSE 0 END) AS accepted
+      SELECT ${db.hour(sql`created_at`)} AS hour, COUNT(*) AS total,
+        SUM(CASE WHEN analytics=true AND marketing=true THEN 1 ELSE 0 END) AS accepted
       FROM consent_events WHERE created_at >= ${period.start} AND created_at < ${period.end}
       GROUP BY hour ORDER BY hour
     `),

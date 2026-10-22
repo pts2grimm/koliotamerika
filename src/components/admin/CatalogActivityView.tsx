@@ -3,7 +3,7 @@ import { DefaultTemplate } from '@payloadcms/next/templates'
 import { Gutter, Link, SetStepNav } from '@payloadcms/ui'
 import { notFound, redirect } from 'next/navigation'
 import type { AdminViewServerProps, Where } from 'payload'
-import { sql } from '@payloadcms/db-sqlite'
+import { sql, database } from '@/lib/database'
 import { adminPeriod } from '@/lib/admin-period'
 import { purgeCatalogActivity } from '@/lib/catalog-activity-server'
 import { purgeCatalogRequests } from '@/lib/catalog-requests-server'
@@ -32,15 +32,15 @@ export async function CatalogActivityView(props: AdminViewServerProps) {
   const page = typeof params.page === 'string' && /^[1-9]\d{0,4}$/.test(params.page) ? Number(params.page) : 1
   const apiPage = typeof params.apiPage === 'string' && /^[1-9]\d{0,4}$/.test(params.apiPage) ? Number(params.apiPage) : 1
   await Promise.all([purgeCatalogActivity(req.payload),purgeCatalogTotals(req.payload),purgeCatalogRequests(req.payload)])
-  const db = req.payload.db.drizzle
+  const db = database(req.payload)
   const where = sql`created_at >= ${period.start} AND created_at < ${period.end}
     ${kind ? sql`AND kind = ${kind}` : sql``}
     ${make ? sql`AND lower(make) = lower(${make})` : sql``}
-    ${model ? sql`AND instr(lower(model), lower(${model})) > 0` : sql``}`
+    ${model ? sql`AND ${db.contains(sql`model`, model)}` : sql``}`
   const bucketWhere = sql`day >= ${period.from} AND day <= ${period.to}
     ${kind ? sql`AND kind = ${kind}` : sql``}
     ${make ? sql`AND lower(make) = lower(${make})` : sql``}
-    ${model ? sql`AND instr(lower(model), lower(${model})) > 0` : sql``}`
+    ${model ? sql`AND ${db.contains(sql`model`, model)}` : sql``}`
   const [totals, popular, viewed, rows, detailTotals, requestRows, requestTotals] = await Promise.all([
     db.all<{ total: number; searches: number; views: number; empty: number }>(sql`
       SELECT COALESCE(SUM(count),0) AS total, COALESCE(SUM(CASE WHEN kind='search' THEN count ELSE 0 END),0) AS searches, COALESCE(SUM(CASE WHEN kind='view' THEN count ELSE 0 END),0) AS views,

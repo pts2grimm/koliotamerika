@@ -1,0 +1,81 @@
+name: PostgreSQL migration verification
+on:
+  push:
+    branches: ['codex/supabase-migration-2026-10-22']
+permissions:
+  contents: write
+concurrency:
+  group: supabase-migration-prepare
+  cancel-in-progress: false
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      CI: 'true'
+      DATABASE_PROVIDER: postgres
+      DATABASE_URI: postgresql://postgres:isolated-test-only@127.0.0.1:5432/postgres
+      PAYLOAD_SECRET: isolated-postgres-test-secret-not-production
+      PREVIEW_MODE: 'false'
+      NEXT_PUBLIC_SERVER_URL: http://localhost:3000
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: isolated-test-only
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd pg_isready --health-interval 5s --health-timeout 5s --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: codex/supabase-migration-2026-10-22
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Resolve locked dependencies
+        run: npm install --no-audit --no-fund
+      - name: Generate public CA module
+        run: |
+          curl --fail --silent --show-error --proto '=https' --tlsv1.2 --max-time 30 \
+            'https://supabase-downloads.s3-ap-southeast-1.amazonaws.com/prod/ssl/prod-ca-2021.crt' \
+            --output "$RUNNER_TEMP/supabase-ca.crt"
+          node --input-type=module <<'JS'
+          import {readFileSync,writeFileSync} from 'node:fs';
+          import {X509Certificate} from 'node:crypto';
+          const pem=readFileSync(process.env.RUNNER_TEMP+'/supabase-ca.crt','utf8');
+          const cert=new X509Certificate(pem);
+          if(!cert.ca||Date.parse(cert.validTo)<=Date.now())throw new Error('Invalid Supabase CA');
+          writeFileSync('src/lib/supabase-ca.ts','// Public root certificate from the official Supabase Studio download URL.\nexport const supabaseCA = '+JSON.stringify(pem)+'\n');
+          JS
+      - name: Generate PostgreSQL baseline from Payload schema
+        run: |
+          if ! ls src/migrations-postgres/*_initial.ts >/dev/null 2>&1; then
+            npm run payload -- migrate:create initial --force-accept-warning
+          fi
+      - name: Save generated schema and lockfile only
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add package-lock.json src/migrations-postgres src/lib/supabase-ca.ts
+          if ! git diff --cached --quiet; then
+            git commit -m 'Generate PostgreSQL baseline, dependency lock and trusted Supabase CA'
+            git push origin HEAD:codex/supabase-migration-2026-10-22
+          fi
+      - name: Inventory remaining direct SQLite SQL callers
+        run: |
+          rg -n 'db\.drizzle|@payloadcms/db-sqlite' src scripts tests/fixtures
+      - name: Existing regression tests
+        run: npm test
+        env:
+          DATABASE_PROVIDER: sqlite
+      - name: Build isolated SQLite preview
+        run: npm run build
+        env:
+          DATABASE_PROVIDER: sqlite
+          PREVIEW_MODE: 'true'
+      - run: npm run typecheck
+      - name: Verify PostgreSQL schema initialization
+        run: |
+          export MEDIA_DIR="$RUNNER_TEMP/pg-media"
+          npm run hosting:prepare
