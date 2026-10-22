@@ -64,7 +64,7 @@ jobs:
           fi
       - name: Inventory remaining direct SQLite SQL callers
         run: |
-          rg -n 'db\.drizzle|@payloadcms/db-sqlite' src scripts tests/fixtures
+          grep -RnE 'db\.drizzle|@payloadcms/db-sqlite' src scripts tests/fixtures || true
       - name: Existing regression tests
         run: npm test
         env:
