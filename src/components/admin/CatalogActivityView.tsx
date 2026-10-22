@@ -3,7 +3,7 @@ import { DefaultTemplate } from '@payloadcms/next/templates'
 import { Gutter, Link, SetStepNav } from '@payloadcms/ui'
 import { notFound, redirect } from 'next/navigation'
 import type { AdminViewServerProps, Where } from 'payload'
-import { sql } from '@payloadcms/db-sqlite'
+import { sql, database } from '@/lib/database'
 import { adminPeriod } from '@/lib/admin-period'
 import { purgeCatalogActivity } from '@/lib/catalog-activity-server'
 import { purgeCatalogRequests } from '@/lib/catalog-requests-server'
@@ -32,15 +32,18 @@ export async function CatalogActivityView(props: AdminViewServerProps) {
   const page = typeof params.page === 'string' && /^[1-9]\d{0,4}$/.test(params.page) ? Number(params.page) : 1
   const apiPage = typeof params.apiPage === 'string' && /^[1-9]\d{0,4}$/.test(params.apiPage) ? Number(params.apiPage) : 1
   await Promise.all([purgeCatalogActivity(req.payload),purgeCatalogTotals(req.payload),purgeCatalogRequests(req.payload)])
-  const db = req.payload.db.drizzle
+  const db = database(req.payload)
   const where = sql`created_at >= ${period.start} AND created_at < ${period.end}
     ${kind ? sql`AND kind = ${kind}` : sql``}
     ${make ? sql`AND lower(make) = lower(${make})` : sql``}
-    ${model ? sql`AND instr(lower(model), lower(${model})) > 0` : sql``}`
+    ${model ? sql`AND ${db.contains(sql`model`, model)}` : sql``}`
+  // VIN/lot lookups exist only in server request history, not browser events.
+  // Do not bind 'lookup' to PostgreSQL's search/view event enum.
+  const eventWhere = kind === 'lookup' ? sql`false` : where
   const bucketWhere = sql`day >= ${period.from} AND day <= ${period.to}
     ${kind ? sql`AND kind = ${kind}` : sql``}
     ${make ? sql`AND lower(make) = lower(${make})` : sql``}
-    ${model ? sql`AND instr(lower(model), lower(${model})) > 0` : sql``}`
+    ${model ? sql`AND ${db.contains(sql`model`, model)}` : sql``}`
   const [totals, popular, viewed, rows, detailTotals, requestRows, requestTotals] = await Promise.all([
     db.all<{ total: number; searches: number; views: number; empty: number }>(sql`
       SELECT COALESCE(SUM(count),0) AS total, COALESCE(SUM(CASE WHEN kind='search' THEN count ELSE 0 END),0) AS searches, COALESCE(SUM(CASE WHEN kind='view' THEN count ELSE 0 END),0) AS views,
@@ -52,8 +55,8 @@ export async function CatalogActivityView(props: AdminViewServerProps) {
       SELECT lot, site, MAX(make) AS make, MAX(model) AS model, SUM(count) AS total FROM catalog_totals
       WHERE ${bucketWhere} AND kind='view' GROUP BY lot, site ORDER BY total DESC, lot LIMIT 10`),
     db.all<Row>(sql`SELECT *, (SELECT name FROM customers WHERE customers.id=catalog_events.customer_id) AS customer_name
-      FROM catalog_events WHERE ${where} ORDER BY created_at DESC, id DESC LIMIT 30 OFFSET ${(page - 1)*30}`),
-    db.all<{ total:number }>(sql`SELECT COUNT(*) AS total FROM catalog_events WHERE ${where}`),
+      FROM catalog_events WHERE ${eventWhere} ORDER BY created_at DESC, id DESC LIMIT 30 OFFSET ${(page - 1)*30}`),
+    db.all<{ total:number }>(sql`SELECT COUNT(*) AS total FROM catalog_events WHERE ${eventWhere}`),
     db.all<RequestRow>(sql`SELECT * FROM catalog_requests WHERE ${where} ORDER BY created_at DESC, id DESC LIMIT 30 OFFSET ${(apiPage-1)*30}`),
     db.all<{total:number}>(sql`SELECT COUNT(*) AS total FROM catalog_requests WHERE ${where}`),
   ])

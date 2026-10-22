@@ -1,10 +1,11 @@
+import { sqliteDatabase } from './sqlite-db'
 import assert from 'node:assert/strict'
 import { getPayload } from 'payload'
 import config from '../../src/payload.config'
 import { sql } from '@payloadcms/db-sqlite'
 import { reserveSubmission } from '../../src/lib/submission-limit'
 import { createHmac } from 'node:crypto'
-const payload=await getPayload({config}),db=payload.db.drizzle,now=Date.now()
+const payload=await getPayload({config}),db=sqliteDatabase(payload),now=Date.now()
 const bootstrap=(payload.collections.users.config.endpoints || []).find(e=>e.path==='/first-register'&&e.method==='post')
 assert.ok(bootstrap)
 assert.equal((await bootstrap.handler({} as Parameters<typeof bootstrap.handler>[0])).status,403)

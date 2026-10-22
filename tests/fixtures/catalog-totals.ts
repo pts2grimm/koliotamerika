@@ -1,3 +1,4 @@
+import { sqliteDatabase } from './sqlite-db'
 import assert from 'node:assert/strict'
 import { getPayload } from 'payload'
 import config from '../../src/payload.config'
@@ -6,7 +7,7 @@ import { incrementCatalogTotal, purgeCatalogTotals } from '../../src/lib/catalog
 import { up } from '../../src/migrations/20261018_160000_catalog_totals'
 import { sofiaDay, shiftDay } from '../../src/lib/admin-period'
 const payload=await getPayload({config})
-const db=payload.db.drizzle
+const db=sqliteDatabase(payload)
 const now=new Date('2026-10-17T21:30:00Z'),day=sofiaDay(now)
 assert.equal(day,'2026-10-18')
 const data={kind:'search' as const,section:'cars' as const,archive:false,make:'BMW',model:'X5',lot:'',site:'',outcome:'results'}

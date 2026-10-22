@@ -35,7 +35,11 @@
     "react": "19.1.9",
     "react-dom": "19.1.9",
     "sharp": "0.35.5",
-    "undici": "^7.30.0"
+    "undici": "^7.30.0",
+    "@payloadcms/db-postgres": "3.90.2",
+    "drizzle-orm": "0.45.2",
+    "pg": "8.16.3",
+    "@libsql/client": "0.14.0"
   },
   "devDependencies": {
     "@playwright/test": "^1.56.0",
@@ -44,7 +48,8 @@
     "@types/react": "^19.1.0",
     "@types/react-dom": "^19.1.0",
     "tsx": "^4.20.0",
-    "typescript": "^5.9.0"
+    "typescript": "^5.9.0",
+    "@types/pg": "8.20.0"
   },
   "engines": {
     "node": ">=22.13.0"

@@ -1,3 +1,4 @@
+import { sqliteDatabase } from './sqlite-db'
 import assert from 'node:assert/strict'
 import { getPayload } from 'payload'
 import config from '../../src/payload.config'
@@ -5,7 +6,7 @@ import { sql } from '@payloadcms/db-sqlite'
 import { catalogRequestRecord } from '../../src/lib/catalog-requests'
 import { insertCatalogRequest, purgeCatalogRequests } from '../../src/lib/catalog-requests-server'
 import { up } from '../../src/migrations/20261018_200000_catalog_request_details'
-const payload=await getPayload({config}),db=payload.db.drizzle
+const payload=await getPayload({config}),db=sqliteDatabase(payload)
 const now=Date.now()
 const row=catalogRequestRecord({kind:'view',provider:'eridan',params:new URLSearchParams({lot:'70000000',site:'1'}),requestIP:{address:'198.51.100.10',source:'x-real-ip'}},{make:'BMW',model:'X5',vin:'WBS8M9C59J5J79848',count:1},now,false,now+100)
 assert.equal(await insertCatalogRequest(payload,row),true)

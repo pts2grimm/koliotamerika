@@ -1,5 +1,5 @@
 import type { Payload } from 'payload'
-import { sql } from '@payloadcms/db-sqlite'
+import { sql, database } from '@/lib/database'
 import { purgeCatalogGuard } from '@/lib/catalog-guard-server'
 import { guardLimits } from '@/lib/catalog-guard'
 import { RefreshReport } from './OverviewControls'
@@ -8,10 +8,10 @@ import { CatalogGuardTable } from './CatalogGuardTable'
 export async function CatalogGuardReport({payload}:{payload:Payload}) {
   // Rendered only inside the staff-authorized catalogue admin view. No public endpoint.
   await purgeCatalogGuard(payload)
-  const rows=await payload.db.drizzle.all<{ip:string;agent:string;scope:string;verified:string;last_seen:string;total:number;blocked:number;last_reason:string}>(sql`
+  const rows=await database(payload).all<{ip:string;agent:string;scope:string;verified:string;last_seen:string;total:number;blocked:number;last_reason:string}>(sql`
     SELECT ip,agent,scope,verified,last_seen,total,blocked,last_reason FROM catalog_guard ORDER BY hour DESC,blocked DESC,total DESC LIMIT 100
   `)
-  const sums=await payload.db.drizzle.all<{total:number;blocked:number}>(sql`
+  const sums=await database(payload).all<{total:number;blocked:number}>(sql`
     SELECT COALESCE(SUM(total),0) AS total,COALESCE(SUM(blocked),0) AS blocked FROM catalog_guard
   `)
   const limits=guardLimits()

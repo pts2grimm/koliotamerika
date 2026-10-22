@@ -1,0 +1,174 @@
+name: PostgreSQL migration verification
+on:
+  push:
+    branches: ['codex/supabase-migration-2026-10-22']
+permissions:
+  contents: write
+concurrency:
+  group: supabase-migration-prepare
+  cancel-in-progress: true
+jobs:
+  prepare:
+    outputs:
+      revision: ${{ steps.revision.outputs.sha }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    env:
+      CI: 'true'
+      DATABASE_PROVIDER: postgres
+      DATABASE_URI: postgresql://postgres:isolated-test-only@127.0.0.1:5432/postgres
+      PAYLOAD_SECRET: isolated-postgres-test-secret-not-production
+      PREVIEW_MODE: 'false'
+      NEXT_PUBLIC_SERVER_URL: http://localhost:3000
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: isolated-test-only
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd pg_isready --health-interval 5s --health-timeout 5s --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Resolve locked dependencies
+        run: npm install --no-audit --no-fund
+      - name: Generate public CA module
+        run: |
+          curl --fail --silent --show-error --proto '=https' --tlsv1.2 --max-time 30 \
+            'https://supabase-downloads.s3-ap-southeast-1.amazonaws.com/prod/ssl/prod-ca-2021.crt' \
+            --output "$RUNNER_TEMP/supabase-ca.crt"
+          node --input-type=module <<'JS'
+          import {readFileSync,writeFileSync} from 'node:fs';
+          import {X509Certificate} from 'node:crypto';
+          const pem=readFileSync(process.env.RUNNER_TEMP+'/supabase-ca.crt','utf8');
+          const cert=new X509Certificate(pem);
+          if(!cert.ca||Date.parse(cert.validTo)<=Date.now())throw new Error('Invalid Supabase CA');
+          writeFileSync('src/lib/supabase-ca.ts','// Public root certificate from the official Supabase Studio download URL.\nexport const supabaseCA = '+JSON.stringify(pem)+'\n');
+          JS
+      - name: Generate PostgreSQL baseline from Payload schema
+        run: |
+          if ! ls src/migrations-postgres/*_initial.ts >/dev/null 2>&1; then
+            npm run payload -- migrate:create initial --force-accept-warning
+          fi
+      - name: Save generated schema and lockfile only
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add package-lock.json src/migrations-postgres src/lib/supabase-ca.ts
+          if ! git diff --cached --quiet; then
+            git commit -m 'Generate PostgreSQL baseline, dependency lock and trusted Supabase CA'
+            git push origin HEAD:codex/supabase-migration-2026-10-22
+          fi
+      - name: Record tested revision
+        id: revision
+        run: git rev-parse HEAD | sed 's/^/sha=/' >> "$GITHUB_OUTPUT"
+      - name: Inventory remaining direct SQLite SQL callers
+        run: |
+          grep -RnE 'db\.drizzle|@payloadcms/db-sqlite' src scripts tests/fixtures || true
+      - run: npm run typecheck
+      - name: Verify PostgreSQL schema initialization
+        run: |
+          export MEDIA_DIR="$RUNNER_TEMP/pg-media"
+          npm run hosting:prepare
+          node --import tsx tests/fixtures/postgres-runtime.ts
+      - name: Existing regression tests
+        run: npm test
+        env:
+          DATABASE_PROVIDER: sqlite
+      - name: Build isolated SQLite preview
+        run: npm run build
+        env:
+          DATABASE_PROVIDER: sqlite
+          PREVIEW_MODE: 'true'
+  rehearsal:
+    needs: prepare
+    permissions:
+      contents: read
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      CI: 'true'
+      NODE_ENV: production
+      DATABASE_PROVIDER: postgres
+      DATABASE_URI: postgresql://postgres:isolated-test-only@127.0.0.1:5432/postgres
+      PAYLOAD_SECRET: isolated-rehearsal-secret-not-production
+      PREVIEW_MODE: 'false'
+      NEXT_PUBLIC_SERVER_URL: http://localhost:3000
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: isolated-test-only
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd pg_isready --health-interval 5s --health-timeout 5s --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.prepare.outputs.revision }}
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: npm ci --include=dev --no-audit --no-fund
+      - name: Create empty isolated PostgreSQL schema
+        run: node --import tsx scripts/prepare-postgres.ts
+      - name: Rehearse read-only Turso snapshot copy into isolated PostgreSQL
+        env:
+          SOURCE_DATABASE_URI: ${{ secrets.DATABASE_URI }}
+          SOURCE_DATABASE_AUTH_TOKEN: ${{ secrets.DATABASE_AUTH_TOKEN }}
+        run: node scripts/copy-turso-postgres.mjs
+      - name: Verify copied documents without exporting personal data
+        run: node --import tsx scripts/verify-postgres-copy.ts
+  browser:
+    needs: prepare
+    permissions:
+      contents: read
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        suite: [invoice, bos, consent-admin, catalog-activity]
+    env:
+      CI: 'true'
+      PG_BROWSER_SUITE: ${{ matrix.suite }}
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: isolated-test-only
+          POSTGRES_DB: browser_tests
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd pg_isready --health-interval 5s --health-timeout 5s --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.prepare.outputs.revision }}
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: npm ci --include=dev --no-audit --no-fund
+      - name: Build with isolated preview data
+        run: npm run build
+        env:
+          DATABASE_PROVIDER: sqlite
+          PREVIEW_MODE: 'true'
+          PAYLOAD_SECRET: isolated-browser-build-secret
+          NEXT_PUBLIC_SERVER_URL: http://localhost:3100
+      - run: npx playwright install --with-deps chromium
+      - name: Browser and PDF checks on PostgreSQL
+        run: |
+          node --input-type=module <<'JS'
+          import {chromium} from '@playwright/test';
+          import {spawnSync} from 'node:child_process';
+          const result=spawnSync('npx',['playwright','test','--config=playwright.postgres.config.ts','--reporter=line'],{stdio:'inherit',env:{...process.env,CHROMIUM_PATH:chromium.executablePath()}});
+          process.exit(result.status??1);
+          JS

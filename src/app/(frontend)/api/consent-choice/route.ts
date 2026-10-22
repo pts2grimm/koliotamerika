@@ -1,6 +1,6 @@
 import { customerFromRequest } from '@/lib/account-server'
 import { createHmac } from 'node:crypto'
-import { sql } from '@payloadcms/db-sqlite'
+import { sql, database } from '@/lib/database'
 import { cms, siteURL } from '@/lib/data'
 import { isPreview } from '@/lib/preview'
 import { validateConsentSubmission } from '@/lib/consent-audit'
@@ -30,6 +30,7 @@ export async function POST(request: Request) {
     const input = validateConsentSubmission(JSON.parse(Buffer.concat(chunks).toString('utf8')))
     if (!input) return reply(400)
     const payload = await cms()
+    const db = database(payload)
     const customer = await customerFromRequest(request)
     const hash = (value: string) => createHmac('sha256', payload.secret).update(value).digest('hex')
     const subject = hash('consent-receipt:' + input.receipt)
@@ -37,19 +38,19 @@ export async function POST(request: Request) {
     const now = new Date().toISOString()
     const cutoff = new Date(Date.now() - 3600000).toISOString()
     await purgeExpiredConsents(payload)
-    const existing = await payload.db.drizzle.all(sql`SELECT id FROM consent_events WHERE event = ${event} LIMIT 1`)
+    const existing = await db.all(sql`SELECT id FROM consent_events WHERE event = ${event} LIMIT 1`)
     if (existing.length) return reply(204)
     // One atomic INSERT bounds both receipt activity and total public writes.
     // No client IP or user agent is retained. These are abuse bounds, not visitor counts.
-    const saved = await payload.db.drizzle.all(sql`
+    const saved = await db.atomicAll(sql`
       INSERT INTO consent_events (event, subject, analytics, marketing, action, policy_version, customer_id, created_at, updated_at)
-      SELECT ${event}, ${subject}, ${Number(input.analytics)}, ${Number(input.marketing)}, ${input.action}, ${input.policyVersion}, ${customer?.id ?? null}, ${now}, ${now}
+      SELECT ${event}, ${subject}, ${db.boolean(input.analytics)}, ${db.boolean(input.marketing)}, ${input.action}, ${input.policyVersion}, ${customer?.id ?? null}, ${now}, ${now}
       WHERE (SELECT COUNT(*) FROM consent_events WHERE subject = ${subject} AND created_at >= ${cutoff}) < 20
         AND (SELECT COUNT(*) FROM consent_events WHERE created_at >= ${cutoff}) < 5000
       ON CONFLICT(event) DO NOTHING RETURNING id
-    `)
+    `, 'consent-events')
     if (saved.length) return reply(204)
-    const duplicate = await payload.db.drizzle.all(sql`SELECT id FROM consent_events WHERE event = ${event} LIMIT 1`)
+    const duplicate = await db.all(sql`SELECT id FROM consent_events WHERE event = ${event} LIMIT 1`)
     return reply(duplicate.length ? 204 : 429)
   } catch (error) {
     if (error instanceof SyntaxError) return reply(400)

@@ -1,10 +1,11 @@
+import { sqliteDatabase } from './sqlite-db'
 import assert from 'node:assert/strict'
 import { getPayload } from 'payload'
 import config from '../../src/payload.config'
 import { sql } from '@payloadcms/db-sqlite'
 import { purgeExpiredConsents } from '../../src/lib/consent-audit-server'
 const payload = await getPayload({ config })
-const db = payload.db.drizzle
+const db = sqliteDatabase(payload)
 const customer = await payload.create({ collection: 'customers', data: { email: 'audit-delete@example.test', password: 'Only-test-password', name: 'Retention fixture', consentedAt: new Date().toISOString() } })
 const now = new Date().toISOString()
 const old = new Date(Date.now() - 181 * 86400000).toISOString()
