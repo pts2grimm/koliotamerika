@@ -37,6 +37,9 @@ export async function CatalogActivityView(props: AdminViewServerProps) {
     ${kind ? sql`AND kind = ${kind}` : sql``}
     ${make ? sql`AND lower(make) = lower(${make})` : sql``}
     ${model ? sql`AND ${db.contains(sql`model`, model)}` : sql``}`
+  // VIN/lot lookups exist only in server request history, not browser events.
+  // Do not bind 'lookup' to PostgreSQL's search/view event enum.
+  const eventWhere = kind === 'lookup' ? sql`false` : where
   const bucketWhere = sql`day >= ${period.from} AND day <= ${period.to}
     ${kind ? sql`AND kind = ${kind}` : sql``}
     ${make ? sql`AND lower(make) = lower(${make})` : sql``}
@@ -52,8 +55,8 @@ export async function CatalogActivityView(props: AdminViewServerProps) {
       SELECT lot, site, MAX(make) AS make, MAX(model) AS model, SUM(count) AS total FROM catalog_totals
       WHERE ${bucketWhere} AND kind='view' GROUP BY lot, site ORDER BY total DESC, lot LIMIT 10`),
     db.all<Row>(sql`SELECT *, (SELECT name FROM customers WHERE customers.id=catalog_events.customer_id) AS customer_name
-      FROM catalog_events WHERE ${where} ORDER BY created_at DESC, id DESC LIMIT 30 OFFSET ${(page - 1)*30}`),
-    db.all<{ total:number }>(sql`SELECT COUNT(*) AS total FROM catalog_events WHERE ${where}`),
+      FROM catalog_events WHERE ${eventWhere} ORDER BY created_at DESC, id DESC LIMIT 30 OFFSET ${(page - 1)*30}`),
+    db.all<{ total:number }>(sql`SELECT COUNT(*) AS total FROM catalog_events WHERE ${eventWhere}`),
     db.all<RequestRow>(sql`SELECT * FROM catalog_requests WHERE ${where} ORDER BY created_at DESC, id DESC LIMIT 30 OFFSET ${(apiPage-1)*30}`),
     db.all<{total:number}>(sql`SELECT COUNT(*) AS total FROM catalog_requests WHERE ${where}`),
   ])
