@@ -1,0 +1,74 @@
+name: Encrypted Supabase backup
+on:
+  schedule:
+    - cron: '23 2 * * *'
+  workflow_dispatch:
+  push:
+    branches: ['eridan-staging', 'codex/supabase-backups-2026-10-22']
+    paths:
+      - 'scripts/backup-supabase.py'
+      - '.github/workflows/supabase-backup.yml'
+      - 'src/lib/supabase-ca.ts'
+  pull_request:
+    branches: ['eridan-staging']
+    paths:
+      - 'scripts/backup-supabase.py'
+      - '.github/workflows/supabase-backup.yml'
+permissions:
+  contents: read
+concurrency:
+  group: supabase-backup-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: local-backup-test-only
+        ports: ['5433:5432']
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s --health-timeout 5s --health-retries 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - run: python3 scripts/backup-supabase.py --self-test
+  backup:
+    needs: verify
+    if: github.ref == 'refs/heads/eridan-staging' && github.event_name != 'pull_request'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: local-backup-test-only
+        ports: ['5433:5432']
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s --health-timeout 5s --health-retries 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Dump, encrypt and verify isolated restoration
+        env:
+          SUPABASE_DATABASE_URL: ${{ secrets.SUPABASE_DATABASE_URL }}
+          BACKUP_ENCRYPTION_KEY: ${{ secrets.BACKUP_ENCRYPTION_KEY }}
+        run: python3 scripts/backup-supabase.py
+      - name: Store encrypted backup for 14 days
+        uses: actions/upload-artifact@v4
+        with:
+          name: encrypted-payload-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            backup-output/*.dump.gpg
+            backup-output/manifest.json
+          if-no-files-found: error
+          retention-days: 14
+      - name: Remove local encrypted output
+        if: always()
+        run: rm -rf backup-output
