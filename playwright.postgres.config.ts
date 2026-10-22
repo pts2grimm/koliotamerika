@@ -11,6 +11,8 @@ export default defineConfig({
     ...servers[1],
     env: {...servers[1].env, DATABASE_PROVIDER:'postgres',
       DATABASE_URI:'postgresql://postgres:isolated-test-only@127.0.0.1:5432/browser_tests',
-      CI:'true', NEXT_DIST_DIR:'.next'},
+      CI:'true', NEXT_DIST_DIR:'.next',
+      // Match the catalogue suite's existing simulated trusted-proxy setup.
+      ...(process.env.PG_BROWSER_SUITE === 'catalog-activity' ? {TRUST_PROXY:'true'} : {})},
   }],
 })
