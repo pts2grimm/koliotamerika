@@ -1,0 +1,45 @@
+name: Guarded Supabase cutover
+on:
+  push:
+    branches: ['codex/supabase-cutover-tools-2026-10-22', 'codex/supabase-cutover-2026-10-22']
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: supabase-production-transfer
+  cancel-in-progress: false
+jobs:
+  validate:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: node --check scripts/run-supabase-cutover.mjs
+  transfer:
+    if: github.ref == 'refs/heads/codex/supabase-cutover-2026-10-22'
+    needs: validate
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: npm ci --include=dev --no-audit --no-fund
+      - name: Verify freeze, initialize private schema and transfer with row verification
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          DATABASE_PROVIDER: postgres
+          DATABASE_URI: ${{ secrets.SUPABASE_DATABASE_URL }}
+          SOURCE_DATABASE_URI: ${{ secrets.DATABASE_URI }}
+          SOURCE_DATABASE_AUTH_TOKEN: ${{ secrets.DATABASE_AUTH_TOKEN }}
+          NODE_ENV: production
+          PREVIEW_MODE: 'false'
+          PAYLOAD_SECRET: schema-preparation-only-not-the-production-secret
+          NEXT_PUBLIC_SERVER_URL: https://koliotamerika.bg
+        run: node --import tsx scripts/run-supabase-cutover.mjs
