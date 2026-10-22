@@ -6,7 +6,7 @@ permissions:
   contents: write
 concurrency:
   group: supabase-migration-prepare
-  cancel-in-progress: false
+  cancel-in-progress: true
 jobs:
   prepare:
     outputs:
@@ -125,3 +125,50 @@ jobs:
         run: node scripts/copy-turso-postgres.mjs
       - name: Verify copied documents without exporting personal data
         run: node --import tsx scripts/verify-postgres-copy.ts
+  browser:
+    needs: prepare
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        suite: [invoice, bos]
+    env:
+      CI: 'true'
+      PG_BROWSER_SUITE: ${{ matrix.suite }}
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: isolated-test-only
+          POSTGRES_DB: browser_tests
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd pg_isready --health-interval 5s --health-timeout 5s --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.prepare.outputs.revision }}
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: npm ci --include=dev --no-audit --no-fund
+      - name: Build with isolated preview data
+        run: npm run build
+        env:
+          DATABASE_PROVIDER: sqlite
+          PREVIEW_MODE: 'true'
+          PAYLOAD_SECRET: isolated-browser-build-secret
+          NEXT_PUBLIC_SERVER_URL: http://localhost:3100
+      - run: npx playwright install --with-deps chromium
+      - name: Browser and PDF checks on PostgreSQL
+        run: |
+          node --input-type=module <<'JS'
+          import {chromium} from '@playwright/test';
+          import {spawnSync} from 'node:child_process';
+          const result=spawnSync('npx',['playwright','test','--config=playwright.postgres.config.ts','--reporter=line'],{stdio:'inherit',env:{...process.env,CHROMIUM_PATH:chromium.executablePath()}});
+          process.exit(result.status??1);
+          JS
