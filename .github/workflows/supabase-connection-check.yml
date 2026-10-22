@@ -16,7 +16,7 @@ jobs:
         run: |
           mkdir -p "$RUNNER_TEMP/supabase-check"
           cd "$RUNNER_TEMP/supabase-check"
-          npm install --ignore-scripts --no-audit --no-fund pg@8.16.3
+          npm install --ignore-scripts --no-audit --no-fund pg@8.16.3 @libsql/client@0.14.0
       # Public root CA URL used by Supabase Studio's Download certificate button.
       - name: Download official Supabase root certificate over verified HTTPS
         run: |
@@ -65,4 +65,45 @@ jobs:
             console.log('Connection failed:',codes.has(error.code)?error.code:'CONNECTION_ERROR');
             process.exitCode=1;
           }finally{await client.end().catch(()=>{});}
+          JS
+      - name: Inspect current Turso database (read only, counts only)
+        env:
+          SOURCE_DATABASE_URI: ${{ secrets.DATABASE_URI }}
+          SOURCE_DATABASE_AUTH_TOKEN: ${{ secrets.DATABASE_AUTH_TOKEN }}
+        run: |
+          cd "$RUNNER_TEMP/supabase-check"
+          node --input-type=module <<'JS'
+          import { createClient } from '@libsql/client';
+          const raw=process.env.SOURCE_DATABASE_URI;
+          const token=process.env.SOURCE_DATABASE_AUTH_TOKEN;
+          if(!raw||!token){console.log('BLOCKED: source DATABASE_URI or DATABASE_AUTH_TOKEN is missing.');process.exit(1);}
+          let url;
+          try{url=new URL(raw);}catch{console.log('BLOCKED: invalid source database URL.');process.exit(1);}
+          if(!['libsql:','https:'].includes(url.protocol)||!url.hostname.endsWith('.turso.io')){
+            console.log('BLOCKED: expected secure Turso database URL.');process.exit(1);
+          }
+          let client,tx;
+          try{
+            client=createClient({url:raw,authToken:token});
+            tx=await client.transaction('read');
+            const tables=await tx.execute("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' ORDER BY name");
+            const names=new Set(tables.rows.map(row=>String(row.name)));
+            console.log('Source Turso connection succeeded in read-only transaction.');
+            console.log('Source application table count:',names.size);
+            const expected=['users','customers','pages','media','inquiries','bills_of_sale','invoices','site_settings','integrations','payload_migrations'];
+            for(const name of expected){
+              if(!names.has(name)){console.log('Expected table absent:',name);continue;}
+              const result=await tx.execute('SELECT COUNT(*) AS count FROM "'+name+'"');
+              console.log('Source row count:',name,String(result.rows[0].count));
+            }
+            await tx.rollback();
+            console.log('Source check complete; no schema or data changes performed.');
+          }catch(error){
+            const allowed=new Set(['AUTH_FAILED','SERVER_ERROR','SQLITE_AUTH','SQLITE_NOTADB','SQLITE_CORRUPT','SQLITE_BUSY','SQLITE_ERROR','URL_INVALID','URL_SCHEME_NOT_SUPPORTED','HRANA_WEBSOCKET_ERROR','FETCH_ERROR']);
+            console.log('Source check failed:',allowed.has(error.code)?error.code:'SOURCE_CONNECTION_ERROR');
+            process.exitCode=1;
+          }finally{
+            if(tx&&!tx.closed)await tx.rollback().catch(()=>{});
+            client?.close();
+          }
           JS
