@@ -1,0 +1,39 @@
+name: Verify live mobile admin styles
+on:
+  push:
+    branches: ['codex/admin-mobile-live-2026-10-23']
+permissions:
+  contents: read
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 7
+    steps:
+      - name: Check public login styles for the deployed mobile drawer and report layout
+        run: |
+          node --input-type=module <<'JS'
+          import assert from 'node:assert/strict';
+          const origin='https://koliotamerika.bg';
+          let verified=false;
+          for(let attempt=1;attempt<=18;attempt++){
+            try{
+              const r=await fetch(origin+'/admin/login?layout-check='+Date.now(),{signal:AbortSignal.timeout(15000),headers:{'Cache-Control':'no-cache'}});
+              const html=await r.text();
+              const links=[...html.matchAll(/href=["']([^"']+\.css[^"']*)["']/g)].map(m=>new URL(m[1].replaceAll('&amp;','&'),origin).href);
+              let found=false;
+              for(const url of new Set(links)){
+                if(new URL(url).origin!==origin)continue;
+                const css=await (await fetch(url,{signal:AbortSignal.timeout(15000)})).text();
+                if(css.includes('koa-database-traffic__toolbar')&&css.includes('height:100dvh')&&/\.template-default\s*>\s*\.nav\s*\{[^}]*position:\s*fixed/.test(css))found=true;
+              }
+              console.log(JSON.stringify({at:new Date().toISOString(),attempt,status:r.status,stylesheets:links.length,newAdminStyles:found}));
+              if(r.status===200&&found){verified=true;break;}
+            }catch(e){console.log('Probe temporarily unavailable',e.name)}
+            await new Promise(resolve=>setTimeout(resolve,20000));
+          }
+          assert(verified,'New admin stylesheet not observed within the verification window');
+          const protectedReport=await fetch(origin+'/api/admin/database-traffic',{signal:AbortSignal.timeout(15000)});
+          assert.equal(protectedReport.status,403);
+          assert.match(protectedReport.headers.get('cache-control'),/no-store/);
+          console.log('PASS: new mobile drawer and database report CSS deployed; report API still requires administrator session.');
+          JS
