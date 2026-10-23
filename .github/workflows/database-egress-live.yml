@@ -1,0 +1,44 @@
+name: Database traffic deployment check
+on:
+  push:
+    branches: ['codex/database-egress-live-2026-10-23']
+permissions:
+  contents: read
+jobs:
+  check:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Verify deployed admin gate and public pages without credentials
+        run: |
+          node --input-type=module <<'JS'
+          import assert from 'node:assert/strict'
+          const base='https://koliotamerika.bg'
+          let ready=false
+          for(let attempt=1;attempt<=24;attempt++){
+            try {
+              const response=await fetch(base+'/api/admin/database-traffic',{headers:{Accept:'application/json'},redirect:'manual',signal:AbortSignal.timeout(15000)})
+              const type=response.headers.get('content-type')||''
+              const body=type.includes('application/json')?await response.json():null
+              console.log(JSON.stringify({checkedAt:new Date().toISOString(),attempt,status:response.status,contentType:type,cacheControl:response.headers.get('cache-control')}))
+              if(response.status===403&&body?.error==='Необходим е администраторски вход.'){
+                assert.match(response.headers.get('cache-control')||'',/no-store/)
+                ready=true;break
+              }
+            }catch{console.log('Deployment response not ready')}
+            await new Promise(resolve=>setTimeout(resolve,20000))
+          }
+          assert(ready,'New admin endpoint not confirmed; check Hostinger deployment status.')
+          for(const path of ['/blog','/avtomobili','/sitemap.xml']){
+            const response=await fetch(base+path,{signal:AbortSignal.timeout(20000)})
+            assert.equal(response.status,200,path)
+            const body=await response.text()
+            assert(!body.includes("This page couldn’t load"),path)
+            if(path==='/sitemap.xml')assert(body.includes('<urlset')&&body.includes('https://koliotamerika.bg/'))
+            console.log(JSON.stringify({path,status:response.status,contentType:response.headers.get('content-type')}))
+          }
+          console.log('PASS: new administrator-only endpoint is deployed and public list/sitemap routes respond.')
+          JS
