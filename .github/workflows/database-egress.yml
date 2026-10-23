@@ -18,6 +18,8 @@ jobs:
       PAYLOAD_SECRET: isolated-egress-test-secret-not-production
       PAYLOAD_MIGRATING: 'true'
       PREVIEW_MODE: 'false'
+      CUSTOMER_ACCOUNTS_ENABLED: 'true'
+      SITE_INDEXABLE: 'true'
       NEXT_PUBLIC_SERVER_URL: http://localhost:3100
       AUCTION_PROVIDER: eridan
       MEDIA_DIR: /tmp/koa-egress-media
@@ -36,6 +38,8 @@ jobs:
           node-version: '24'
           cache: npm
       - run: npm ci --include=dev --no-audit --no-fund
+      - name: Inspect periodic work and integration readers
+        run: rg -n 'setInterval|router\.refresh|integrationSettings|cron:' src .github/workflows || true
       - run: npm run typecheck
       - name: Focused privacy and cache tests
         run: node --import tsx --test tests/database-traffic.test.ts tests/expiring-cache.test.ts
