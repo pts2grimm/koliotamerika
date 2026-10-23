@@ -11,7 +11,7 @@ for(let i=0;i<90;i++){
 assert(ready,'Server did not become ready')
 for(const [name,engine] of Object.entries({chromium,webkit})){
  const browser=await engine.launch()
- const context=await browser.newContext({viewport:{width:390,height:844},isMobile:true,hasTouch:true})
+ const context=await browser.newContext({viewport:{width:390,height:844},isMobile:true,hasTouch:true,colorScheme:'dark'})
  const login=await context.request.post(base+'/api/users/login',{data:{email:'mobile-admin@example.test',password:'Isolated-mobile-test-2026'},headers:{Origin:base}})
  assert.equal(login.status(),200)
  const page=await context.newPage()
@@ -26,7 +26,7 @@ for(const [name,engine] of Object.entries({chromium,webkit})){
  }
  const open=async()=>{
   if(!await page.locator('.nav--nav-open').count())await page.locator('button.nav-toggler:visible').first().click()
-  await waitFor(async()=>await page.locator('.nav--nav-open').count()===1)
+  await waitFor(async()=>await page.locator('.nav--nav-open').count()===1 && await page.locator('.nav').evaluate(el=>getComputedStyle(el).opacity==='1'))
  }
  const close=async()=>{
   if(await page.locator('.nav--nav-open').count())await page.locator('.nav__mobile-close').click()
@@ -65,11 +65,11 @@ for(const [name,engine] of Object.entries({chromium,webkit})){
  await open()
  await page.locator('#koa-nav-blog-posts').click()
  await page.waitForURL('**/admin/blog-posts')
- await close()
+ await waitFor(async()=>await page.locator('.nav--nav-open').count()===0)
  assert((await metrics()).document<=767+1)
  await page.goto(base+'/admin/collections/users')
  await page.locator('.template-default__wrap').waitFor()
- await close()
+ await waitFor(async()=>await page.locator('.nav--nav-open').count()===0)
  assert(Math.abs((await metrics()).wrap.width-767)<2)
  // Resizing into desktop must restore the original sidebar column.
  await page.setViewportSize({width:1536,height:1000})
