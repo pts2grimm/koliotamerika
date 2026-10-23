@@ -78,3 +78,38 @@
 .nav #nav-global-integrations { --koa-nav-icon:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.7%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M8%203v4M16%203v4M6%207h12v4a6%206%200%200%201-12%200zM12%2017v5%22%2F%3E%3C%2Fsvg%3E"); }
 
 .nav #nav-bills-of-sale, .nav #nav-invoices, .nav #nav-global-invoice-settings { --koa-nav-icon:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.7%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M14%203H6a2%202%200%200%200-2%202v14a2%202%200%200%200%202%202h12a2%202%200%200%200%202-2V9zM14%203v6h6M8%2013h8M8%2017h5%22%2F%3E%3C%2Fsvg%3E"); }
+
+/* Payload 3.90 keeps the open navigation in a grid column even on phones.
+   Use its existing open/close state, but take the mobile drawer out of flow. */
+@media (max-width: 767px) {
+  .template-default,
+  .template-default.template-default--nav-hydrated.template-default--nav-open {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .template-default > .template-default__wrap {
+    grid-column: 1;
+    min-width: 0;
+    width: 100%;
+  }
+  .template-default > .nav {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100vh;
+    height: 100dvh;
+    z-index: calc(var(--z-modal) + 1);
+    visibility: hidden;
+    pointer-events: none;
+  }
+  .template-default > .nav.nav--nav-open {
+    visibility: visible;
+    pointer-events: auto;
+  }
+  .nav .nav__header { width: 100%; }
+  .nav .nav__scroll {
+    overscroll-behavior: contain;
+    padding-bottom: max(24px, env(safe-area-inset-bottom));
+  }
+  html:has(.template-default--nav-open),
+  body:has(.template-default--nav-open) { overflow: hidden; }
+}

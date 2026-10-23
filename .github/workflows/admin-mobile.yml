@@ -1,0 +1,71 @@
+name: Mobile admin layout verification
+on:
+  push:
+    branches: ['codex/admin-mobile-2026-10-23']
+permissions:
+  contents: read
+concurrency:
+  group: mobile-admin-verification
+  cancel-in-progress: true
+jobs:
+  browser:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      CI: 'true'
+      DATABASE_PROVIDER: postgres
+      DATABASE_URI: postgresql://postgres:isolated-test-only@127.0.0.1:5432/postgres
+      PAYLOAD_SECRET: isolated-mobile-test-secret-not-production
+      PAYLOAD_MIGRATING: 'true'
+      PREVIEW_MODE: 'false'
+      NEXT_PUBLIC_SERVER_URL: http://localhost:3100
+      MEDIA_DIR: /tmp/koa-mobile-media
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: isolated-test-only
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U postgres" --health-interval 5s --health-timeout 5s --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci --include=dev --no-audit --no-fund
+      - run: node --import tsx scripts/prepare-postgres.ts
+      - name: Create isolated browser administrator
+        run: |
+          node --import tsx --input-type=module <<'JS'
+          import {getPayload} from 'payload';
+          import config from './src/payload.config.ts';
+          const payload=await getPayload({config,disableOnInit:true});
+          await payload.create({collection:'users',data:{email:'mobile-admin@example.test',password:'Isolated-mobile-test-2026',name:'Mobile test'}});
+          await payload.destroy();
+          process.exit(0);
+          JS
+      - run: npm run build
+      - run: npm run typecheck
+      - run: npx playwright install --with-deps chromium webkit
+        timeout-minutes: 4
+      - name: Mobile Chromium and Safari engine checks
+        run: |
+          npm run start -- --port 3100 > "$RUNNER_TEMP/mobile-server.log" 2>&1 &
+          SERVER_PID=$!
+          trap 'kill "$SERVER_PID" 2>/dev/null || true' EXIT
+          node tests/fixtures/admin-mobile.mjs || { tail -n 60 "$RUNNER_TEMP/mobile-server.log"; exit 1; }
+      - name: Visual review
+        if: always()
+        run: |
+          node --input-type=module <<'JS'
+          import {globSync,readFileSync} from 'node:fs';
+          for(const path of globSync('test-results/*.jpg')) console.log('REVIEW_IMAGE '+JSON.stringify({path,base64:readFileSync(path).toString('base64')}));
+          JS
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: mobile-admin-review
+          path: test-results
+          retention-days: 7
