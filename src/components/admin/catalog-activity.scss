@@ -50,3 +50,49 @@
 .koa-database-traffic code { overflow-wrap: anywhere; }
 .koa-database-traffic button:disabled { opacity: .6; cursor: wait; }
 .nav #koa-nav-database-traffic { margin-bottom: 20px; --koa-nav-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.7'%3E%3Cellipse cx='12' cy='5' rx='8' ry='3'/%3E%3Cpath d='M4 5v14c0 4 16 4 16 0V5M4 12c0 4 16 4 16 0'/%3E%3C/svg%3E"); }
+
+/* Keep complete tab labels and scroll only the wide report table. */
+.koa-analytics-tabs a { flex: 0 0 auto; max-width: 100%; }
+.koa-database-traffic { min-width: 0; max-width: 100%; }
+
+.koa-database-page { width: 100%; min-width: 0; }
+.koa-database-page .koa-overview__header { margin-bottom: 24px; }
+.koa-database-page .koa-analytics-tabs { margin-bottom: 28px; }
+.koa-database-traffic__toolbar {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 16px; flex-wrap: wrap; margin-bottom: 24px;
+}
+.koa-database-traffic__toolbar > p { font-size: .9rem; }
+.koa-database-traffic__toolbar strong { color: var(--theme-text); }
+.koa-database-traffic .koa-overview__metric h3 {
+  margin: 0; color: var(--koa-muted); font-size: .9rem; font-weight: 500; line-height: 1.5;
+}
+.koa-database-traffic .koa-overview__metric > strong { margin: 12px 0 0; font-size: clamp(1.8rem, 2.3vw, 2.3rem); overflow-wrap: anywhere; }
+.koa-database-traffic .koa-overview__metric > strong span { font-size: .8em; }
+.koa-database-traffic > .koa-database-traffic__notice { margin: 0 0 24px; font-size: .88rem; }
+.koa-database-traffic__table-panel { border: 1px solid var(--koa-border); border-radius: 12px; overflow: hidden; background: var(--koa-card); }
+.koa-database-traffic table { min-width: 820px; font-size: .86rem; }
+.koa-database-traffic th, .koa-database-traffic td { padding: 16px 20px; border-bottom: 1px solid var(--koa-border); border-top: 0; vertical-align: middle; }
+.koa-database-traffic th { font-size: .8rem; }
+.koa-database-traffic td:first-child { min-width: 220px; }
+.koa-database-traffic td:nth-child(n+3), .koa-database-traffic th:nth-child(n+3) { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.koa-database-traffic td > strong { font-weight: 600; }
+.koa-database-traffic tr:last-child td { border-bottom: 0; }
+.koa-database-traffic__details { margin-top: 22px; color: var(--koa-muted); font-size: .84rem; line-height: 1.6; }
+.koa-database-traffic__details summary { cursor: pointer; padding: 8px 0; color: var(--theme-text); }
+.koa-database-traffic__details p { margin: 12px 0; }
+@media (max-width: 767px) {
+  .koa-database-traffic__toolbar { align-items: flex-start; }
+  .koa-database-traffic__toolbar > p { width: 100%; }
+  .koa-database-traffic__toolbar > p > strong { display: block; }
+  .koa-database-traffic__toolbar > p > span { display: block; }
+  .koa-database-traffic .koa-overview__actions { width: 100%; }
+  .koa-database-traffic .koa-overview__actions button { flex: 1 1 auto; white-space: normal; }
+  .koa-database-traffic .koa-overview__metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+  .koa-database-traffic .koa-overview__metric { padding: 16px; }
+  .koa-database-traffic .koa-overview__metric h3 { font-size: .8rem; }
+  .koa-database-traffic .koa-overview__metric > strong { font-size: 1.65rem; }
+}
+@media (max-width: 359px) {
+  .koa-database-traffic .koa-overview__metrics { grid-template-columns: 1fr; }
+}
