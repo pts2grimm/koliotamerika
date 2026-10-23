@@ -22,6 +22,7 @@ for(const [name,engine] of Object.entries({chromium,webkit})){
  })
  async function waitFor(check){
   for(let i=0;i<40;i++){if(await check())return;await page.waitForTimeout(100)}
+  await page.screenshot({path:'test-results/'+name+'-failed.jpg',type:'jpeg',quality:65})
   assert.fail('Layout did not reach expected state: '+JSON.stringify(await metrics()))
  }
  const open=async()=>{
@@ -36,7 +37,8 @@ for(const [name,engine] of Object.entries({chromium,webkit})){
   await page.setViewportSize({width,height:844})
   await page.goto(base+'/admin/database-traffic')
   await page.locator('.koa-database-traffic').waitFor()
-  await close()
+  await page.locator('.template-default--nav-hydrated').waitFor()
+  await waitFor(async()=>await page.locator('.nav--nav-open').count()===0)
   await waitFor(async()=>{const m=await metrics();return Math.abs(m.wrap.width-width)<2&&Math.abs(m.wrap.x)<2&&m.document<=width+1})
   const report=await page.locator('.koa-database-traffic').boundingBox()
   assert(report.width>width-110,'Report has been squeezed')
