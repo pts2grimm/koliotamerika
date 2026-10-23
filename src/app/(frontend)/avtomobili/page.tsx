@@ -1,3 +1,4 @@
+import { carCardSelect } from '@/lib/list-projections'
 import { cache } from 'react'
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
@@ -14,7 +15,7 @@ const findCars = cache(async (q: string, budget: number, page: number, sort: str
  const clauses: Where[] = []
  if (q) clauses.push({ title: { like: q } })
  if (budget > 0) clauses.push({ price: { less_than_equal: budget } })
- const cars = await (await cms()).find({ collection: 'cars', overrideAccess: false, where: { and: clauses }, limit: 12, page, sort })
+ const cars = await (await cms()).find({ collection: 'cars', overrideAccess: false, select: carCardSelect, depth: 1, where: { and: clauses }, limit: 12, page, sort })
  if (page > 1 && page > cars.totalPages) notFound()
  return cars
 })

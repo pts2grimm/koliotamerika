@@ -1,7 +1,8 @@
+import { publicArticles } from '@/lib/public-content'
 import { editorialImage } from '@/lib/editorial-images'
 import snapshot from '../../content/homepage.json'
 import gallery from '../../content/legacy-gallery.json'
-import { cms, mediaUrl, imageAlt } from '@/lib/data'
+import { mediaUrl, imageAlt } from '@/lib/data'
 import Image from 'next/image'
 import { ArrowUpRight } from 'lucide-react'
 import { SiteLink as Link } from './SiteLink'
@@ -27,7 +28,7 @@ export function HomeGuide() {
  return <div className="home-guide-compact">{snapshot.reasons.map(item=><details key={item.heading}><summary>{item.heading}</summary><Copy html={item.html}/></details>)}</div>
 }
 export async function HomeSEO({viberURL}:{viberURL?:string|null}) {
- const articles=(await(await cms()).find({collection:'pages',overrideAccess:false,where:{kind:{equals:'article'}},sort:'-publishedAt',limit:3,depth:1})).docs
+ const articles=(await publicArticles(1, undefined, 3)).docs
  return <>
  <section className="container home-news"><div className="section-heading"><div><span className="eyebrow orange">ПОЛЕЗНО ПРЕДИ ПОКУПКАТА</span><h2>{snapshot.news.heading}</h2></div><Link className="text-link" href="/blog">Всички статии <ArrowUpRight size={18}/></Link></div><div className="home-news-grid">{articles.map(item=>{const cover=editorialImage(item.slug,mediaUrl(item.image),item.legacyImage);return <article key={item.id}>{cover.src&&<Link className="home-news-cover" href={'/'+item.slug} aria-label={item.title}><Image className="home-news-image" src={cover.src} width={640} height={360} sizes="(max-width:700px) 100vw,(max-width:1100px) 50vw,33vw" alt={imageAlt(item.image,cover.artwork?.alt||item.title)}/></Link>}<div className="home-news-copy"><h3><Link href={'/'+item.slug}>{item.title}</Link></h3><p>{item.intro}</p><Link className="text-link" href={'/'+item.slug}>Прочети повече <ArrowUpRight size={18}/></Link></div></article>})}</div></section>
  <section className="container home-community-compact"><div><span className="eyebrow orange">ОБЯВИ И РАЗГОВОРИ ЗА АВТОМОБИЛИ</span><h2>Следи предложенията във Viber.</h2><p>Обяви от аукциони, ориентировъчни цени и отговори на въпросите ти.</p><a className="button button-outline" href={viberURL||snapshot.viber.url} target="_blank" rel="noopener noreferrer">Към Viber групата <ArrowUpRight size={18}/></a></div><a className="viber-qr" href={viberURL||snapshot.viber.url} target="_blank" rel="noopener noreferrer"><Image src="/images/legacy/home-viber-qr.webp" width={140} height={140} alt="QR код за Viber групата на Коли от Америка"/></a></section>

@@ -8,7 +8,7 @@ const quotePrice = cache(async (lot: string, site: string) => {
   const result = await payload.find({
    collection: 'auction-quotes',
    where: { and: [{ lot: { equals: lot } }, { site: { equals: site } }, { published: { equals: true } }] },
-   limit: 1, depth: 0,
+   limit: 1, depth: 0, pagination: false, select: { priceEUR: true },
   })
   return result.docs[0]?.priceEUR
  } catch {

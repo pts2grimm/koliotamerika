@@ -24,6 +24,10 @@ export function ContentNav() {
       tabIndex={navOpen ? undefined : -1} aria-current={pathname === root + '/catalog-activity' ? 'page' : undefined}>
       <span className="nav__link-label">API лог — каталог</span>
     </Link>
+    <Link href={root + '/database-traffic'} id="koa-nav-database-traffic" className="nav__link"
+      tabIndex={navOpen ? undefined : -1} aria-current={pathname === root + '/database-traffic' ? 'page' : undefined}>
+      <span className="nav__link-label">Трафик на базата</span>
+    </Link>
     <NavGroup label="Съдържание" isOpen>
       {[['site-pages', 'Страници'], ['blog-posts', 'Блог']].map(([path, label]) =>
         <Link key={path} id={`koa-nav-${path}`} href={`${root}/${path}`} className="nav__link"

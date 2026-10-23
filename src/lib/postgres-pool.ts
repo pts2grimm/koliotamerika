@@ -1,6 +1,7 @@
+import { MeteredPostgresClient } from './metered-postgres-client'
 import type { PoolConfig } from 'pg'
 import { supabaseCA } from './supabase-ca'
-export function postgresPool(env: NodeJS.ProcessEnv = process.env): PoolConfig {
+export function postgresPool(env: NodeJS.ProcessEnv = process.env): PoolConfig & { Client: typeof MeteredPostgresClient } {
   if (!env.DATABASE_URI) throw new Error('DATABASE_URI is required for PostgreSQL')
   const url = new URL(env.DATABASE_URI)
   if (!['postgres:', 'postgresql:'].includes(url.protocol)) throw new Error('PostgreSQL requires a PostgreSQL connection URL')
@@ -9,6 +10,7 @@ export function postgresPool(env: NodeJS.ProcessEnv = process.env): PoolConfig {
   const ca = env.DATABASE_CA_CERT || supabaseCA
   if (!localCI && !ca) throw new Error('A trusted PostgreSQL CA certificate is required')
   return {
+  Client: MeteredPostgresClient,
     connectionString: url.toString(), max: 5, connectionTimeoutMillis: 15000,
     idleTimeoutMillis: 30000, statement_timeout: 15000,
     ssl: localCI ? false : { rejectUnauthorized: true, ca },

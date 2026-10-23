@@ -1,0 +1,95 @@
+name: Database traffic and read optimization
+on:
+  workflow_dispatch:
+    inputs:
+      production_audit:
+        description: Read-only production sample (no row contents exported)
+        type: boolean
+        default: false
+  push:
+    branches: ['codex/database-egress-2026-10-23']
+permissions:
+  contents: read
+concurrency:
+  group: database-egress-verification
+  cancel-in-progress: true
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    env:
+      CI: 'true'
+      DATABASE_PROVIDER: postgres
+      DATABASE_URI: postgresql://postgres:isolated-test-only@127.0.0.1:5432/postgres
+      PAYLOAD_SECRET: isolated-egress-test-secret-not-production
+      PAYLOAD_MIGRATING: 'true'
+      PREVIEW_MODE: 'false'
+      CUSTOMER_ACCOUNTS_ENABLED: 'true'
+      SITE_INDEXABLE: 'true'
+      NEXT_PUBLIC_SERVER_URL: http://localhost:3100
+      AUCTION_PROVIDER: eridan
+      MEDIA_DIR: /tmp/koa-egress-media
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: isolated-test-only
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd pg_isready --health-interval 5s --health-timeout 5s --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci --include=dev --no-audit --no-fund
+      - name: Inspect periodic work and integration readers
+        run: grep -RnE 'setInterval|router\.refresh|integrationSettings|cron:' src .github/workflows || true
+      - run: npm run typecheck
+      - name: Focused privacy and cache tests
+        run: node --import tsx --test tests/database-traffic.test.ts tests/expiring-cache.test.ts
+      - name: Initialize isolated PostgreSQL schema only
+        run: node --import tsx scripts/prepare-postgres.ts
+      - name: Driver integration and identical fixture before-after
+        run: node --import tsx tests/fixtures/database-egress.ts
+      - name: Production build on isolated PostgreSQL
+        run: npm run build
+      - name: Authentication and public route integration
+        run: |
+          npm run start -- --port 3100 > "$RUNNER_TEMP/egress-server.log" 2>&1 &
+          SERVER_PID=$!
+          trap 'kill "$SERVER_PID" 2>/dev/null || true' EXIT
+          node tests/fixtures/database-egress-http.mjs || { tail -n 80 "$RUNNER_TEMP/egress-server.log"; exit 1; }
+      - name: Existing regression tests
+        run: npm test
+        env:
+          DATABASE_PROVIDER: sqlite
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: egress-synthetic-before-after
+          path: egress-fixture-report.json
+          retention-days: 14
+  production-sample:
+    if: inputs.production_audit == true || contains(github.event.head_commit.message, '[audit-production]')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci --include=dev --no-audit --no-fund
+      - name: Read-only production sample without Payload initialization
+        env:
+          SUPABASE_DATABASE_URL: ${{ secrets.SUPABASE_DATABASE_URL }}
+        run: node --import tsx scripts/audit-database-egress.ts
+      - uses: actions/upload-artifact@v4
+        with:
+          name: egress-production-read-only-sample
+          path: egress-production-sample.json
+          retention-days: 14

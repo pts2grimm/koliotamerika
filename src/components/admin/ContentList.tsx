@@ -1,3 +1,4 @@
+import { adminContentSelect } from '@/lib/list-projections'
 import { DefaultTemplate } from '@payloadcms/next/templates'
 import { Gutter, Link, SetStepNav } from '@payloadcms/ui'
 import { notFound, redirect } from 'next/navigation'
@@ -32,7 +33,7 @@ async function ContentList(props: AdminViewServerProps, kind: Kind) {
     { publishedAt: { exists: false } }, { publishedAt: { less_than_equal: now } },
   ] })
   const data = await req.payload.find({
-    collection: 'pages', req, overrideAccess: false, depth: 0,
+    collection: 'pages', select: adminContentSelect, req, overrideAccess: false, depth: 0,
     where: { and: conditions }, sort: '-updatedAt', limit: 20, page,
   })
   const pageURL = (number: number) => {

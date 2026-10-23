@@ -1,3 +1,4 @@
+import { carCardSelect } from '@/lib/list-projections'
 import { HomeSEO, HomeTrust, HomeFAQ, HomeGuide } from '@/components/HomeSEO'
 import Image from 'next/image'
 import { SiteLink as Link } from '@/components/SiteLink'
@@ -16,7 +17,7 @@ export default async function Home() {
  const [site,makes]=await Promise.all([settings(),auctionMakes().catch(()=>({}))])
  const defaultTitles=['Следващата ти кола.\nОт другата страна на океана.','Следващата ти кола.\nПо твоите правила.']
  const heroTitle=!site.heroTitle||defaultTitles.includes(site.heroTitle)?'Коли от Америка и Канада.\nОт избора до България.':site.heroTitle
- const cars=await(await cms()).find({collection:'cars',overrideAccess:false,limit:3,sort:'-createdAt'})
+ const cars=await(await cms()).find({collection:'cars',overrideAccess:false,select:carCardSelect,depth:1,limit:3,sort:'-createdAt'})
  return <div className="home-clarity">
  <section className="hero hero-showcase">
  <Image className="hero-photo" src={mediaUrl(site.heroImage)||'/images/hero.png'} alt={mediaUrl(site.heroImage)?imageAlt(site.heroImage,'Автомобил от Коли от Америка'):'Илюстративен автомобил на пристанище при изгрев'} fill priority sizes="100vw"/>

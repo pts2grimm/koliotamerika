@@ -43,3 +43,10 @@
   .koa-catalog-guard__pages > div { width:100%; justify-content:space-between; }
   .koa-catalog-guard__scroll { max-height:23rem; }
 }
+
+.koa-database-traffic > p { margin: 16px 0; }
+.koa-database-traffic__scroll { max-height: 30rem; overflow: auto; scrollbar-gutter: stable; }
+.koa-database-traffic__scroll th { position: sticky; top: 0; background: var(--theme-elevation-100); z-index: 1; }
+.koa-database-traffic code { overflow-wrap: anywhere; }
+.koa-database-traffic button:disabled { opacity: .6; cursor: wait; }
+.nav #koa-nav-database-traffic { margin-bottom: 20px; --koa-nav-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.7'%3E%3Cellipse cx='12' cy='5' rx='8' ry='3'/%3E%3Cpath d='M4 5v14c0 4 16 4 16 0V5M4 12c0 4 16 4 16 0'/%3E%3C/svg%3E"); }
