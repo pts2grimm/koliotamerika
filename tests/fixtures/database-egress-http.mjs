@@ -1,0 +1,41 @@
+import assert from 'node:assert/strict'
+const base='http://localhost:3100'
+const request=(path,init={})=>fetch(base+path,{...init,redirect:'manual'})
+const post=(path,data,headers={})=>request(path,{method:'POST',headers:{'Content-Type':'application/json',Origin:base,...headers},body:JSON.stringify(data)})
+const cookie=response=>response.headers.getSetCookie().map(value=>value.split(';')[0]).join('; ')
+let ready=false
+for(let i=0;i<90;i++){try{const r=await request('/api/admin/database-traffic');if(r.status===403){ready=true;break}}catch{}await new Promise(r=>setTimeout(r,1000))}
+assert(ready,'Server did not become ready')
+const guest=await request('/api/admin/database-traffic')
+assert.equal(guest.status,403);assert.match(guest.headers.get('cache-control'),/no-store/)
+const customer=await post('/api/account/login',{email:'egress-customer@example.test',password:'Egress-test-password-2026'})
+assert.equal(customer.status,200)
+assert.equal((await request('/api/admin/database-traffic',{headers:{Cookie:cookie(customer)}})).status,403)
+const login=await post('/api/users/login',{email:'egress-admin@example.test',password:'Egress-test-password-2026'})
+assert.equal(login.status,200)
+const adminHeaders={Cookie:cookie(login)}
+assert(adminHeaders.Cookie.includes('payload-token='))
+const response=await request('/api/admin/database-traffic',{headers:adminHeaders})
+assert.equal(response.status,200);assert.match(response.headers.get('cache-control'),/no-store/)
+const report=await response.json()
+assert(report.driverAttached);assert(report.total.queries>0)
+assert(report.total.approximateBytes>0)
+const json=JSON.stringify(report)
+assert(!json.includes('example.test'));assert(!json.includes('Egress-test-password'));assert(!json.includes('Fixture introduction'))
+assert(report.breakdown.every((row,i)=>i===0||row.approximateBytes<=report.breakdown[i-1].approximateBytes))
+const view=await request('/admin/database-traffic',{headers:adminHeaders})
+assert.equal(view.status,200)
+const html=await view.text()
+assert(html.includes('Трафик на базата'));assert(html.includes('Изтегли отчет'));assert(html.includes('Обнови'))
+const guestView=await request('/admin/database-traffic')
+assert([302,303,307,308].includes(guestView.status))
+for(const path of ['/blog','/avtomobili','/egress-fixture-0','/avtomobili/egress-car-0','/sitemap.xml']){
+ const r=await request(path);assert.equal(r.status,200,path)
+ const text=await r.text();assert(!text.includes("This page couldn’t load"),path)
+ if(path==='/blog')assert(text.includes('egress-fixture-'))
+ if(path==='/sitemap.xml')assert(text.includes('/egress-fixture-0'))
+}
+const content=await request('/admin/blog-posts',{headers:adminHeaders})
+assert.equal(content.status,200)
+assert((await content.text()).includes('Fixture article'))
+console.log('PASS: anonymous/customer denied; existing administrator cookie accepted; no-store; report privacy and sorting; admin view; public list/detail/sitemap routes.')

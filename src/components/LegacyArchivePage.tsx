@@ -1,3 +1,5 @@
+import { articleCardSelect } from '@/lib/list-projections'
+import { publicContentCache } from '@/lib/public-content-cache'
 import { cache } from 'react'
 import type { Metadata } from 'next'
 import Image from 'next/image'
@@ -10,14 +12,15 @@ const archiveData = cache(async (path: string) => {
   const resolved = resolveArchivePath(path)
   if (!resolved) notFound()
   const { archive, page, canonical } = resolved
-  const articles = await (await cms()).find({
-    collection: 'pages', overrideAccess: false, depth: 1,
+  const payload = await cms()
+  const articles = await publicContentCache.get(JSON.stringify(['archive',archive.path,page]), () => payload.find({
+    collection: 'pages', overrideAccess: false, user: null, depth: 1, select: articleCardSelect,
     where: { and: [
       { kind: { equals: 'article' } },
       { or: [{ slug: { in: archive.slugs } }, { sourceURL: { in: archive.sourceURLs } }] },
     ] },
     sort: ['-publishedAt', '-id'], limit: 6, page,
-  })
+  }))
   // Do not expose an archive's historical titles when all its posts are private.
   if (!articles.totalDocs || page > articles.totalPages) notFound()
   if (path !== canonical) permanentRedirect(canonical)

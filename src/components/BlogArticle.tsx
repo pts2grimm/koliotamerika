@@ -1,3 +1,4 @@
+import type { ArticleCard } from '@/lib/list-projections'
 import Image from 'next/image'
 import type { Page } from '@/payload-types'
 import { SiteLink as Link } from '@/components/SiteLink'
@@ -16,7 +17,7 @@ type Props = {
   brand: string
   reviewedAt?: string
   topics: { path: string; label: string }[]
-  more: Page[]
+  more: ArticleCard[]
 }
 
 export function BlogArticle({ page, brand, reviewedAt, topics, more }: Props) {

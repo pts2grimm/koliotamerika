@@ -1,3 +1,4 @@
+import { DatabaseTrafficView as DatabaseTrafficView_egress } from '../../../components/admin/DatabaseTrafficView'
 import { InvoiceDateField as InvoiceDateField_5ea0a05fdef4531ecd510e2f19df428d } from '../../../../src/components/admin/InvoiceControls'
 import { InvoiceSummary as InvoiceSummary_5ea0a05fdef4531ecd510e2f19df428d } from '../../../../src/components/admin/InvoiceControls'
 import { InvoiceParties as InvoiceParties_5ea0a05fdef4531ecd510e2f19df428d } from '../../../../src/components/admin/InvoiceControls'
@@ -44,6 +45,7 @@ import { CollectionCards as CollectionCards_f9c02e79a4aed9a3924487c0cd4cafb1 } f
 
 /** @type import('payload').ImportMap */
 export const importMap = {
+  "/src/components/admin/DatabaseTrafficView#DatabaseTrafficView": DatabaseTrafficView_egress,
   "/src/components/admin/InvoiceControls#InvoiceDateField": InvoiceDateField_5ea0a05fdef4531ecd510e2f19df428d,
   "/src/components/admin/InvoiceControls#InvoiceSummary": InvoiceSummary_5ea0a05fdef4531ecd510e2f19df428d,
   "/src/components/admin/InvoiceControls#InvoiceParties": InvoiceParties_5ea0a05fdef4531ecd510e2f19df428d,
