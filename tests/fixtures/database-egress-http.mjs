@@ -42,7 +42,7 @@ for(const path of ['/blog','/avtomobili','/egress-fixture-0','/avtomobili/egress
  if(path==='/blog')assert(text.includes('egress-fixture-'))
  if(path==='/sitemap.xml')assert(text.includes('/egress-fixture-0'))
 }
-const content=await request('/admin/blog-posts',{headers:adminHeaders})
+const content=await request('/admin/blog-posts?search=Fixture',{headers:adminHeaders})
 assert.equal(content.status,200)
 assert((await content.text()).includes('Fixture article'))
 // Edit invalidation of the NEW sitemap cache, with normal admin session and CSRF checks.
