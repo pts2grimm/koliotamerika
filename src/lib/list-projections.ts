@@ -5,3 +5,4 @@ export const carCardSelect = {title:true,slug:true,make:true,year:true,price:tru
 export type CarCardData = Pick<Car,'id'|'title'|'slug'|'make'|'year'|'price'|'mileage'|'fuel'|'availability'|'image'|'gallery'>
 export const adminContentSelect = {title:true,slug:true,status:true,publishedAt:true,updatedAt:true} as const
 export const sitemapSelect = {slug:true,updatedAt:true} as const
+export const publicIntegrationSelect = {enabled:true,hostname:true,installation:true,gaEnabled:true,gaId:true,adsEnabled:true,adsId:true,adsLeadLabel:true,gtmId:true,pixelEnabled:true,pixelId:true,clarityEnabled:true,clarityId:true,googleVerification:true,bingVerification:true,metaVerification:true} as const

@@ -1,5 +1,11 @@
 name: Database traffic and read optimization
 on:
+  workflow_dispatch:
+    inputs:
+      production_audit:
+        description: Read-only production sample (no row contents exported)
+        type: boolean
+        default: false
   push:
     branches: ['codex/database-egress-2026-10-23']
 permissions:
@@ -66,7 +72,7 @@ jobs:
           path: egress-fixture-report.json
           retention-days: 14
   production-sample:
-    if: contains(github.event.head_commit.message, '[audit-production]')
+    if: inputs.production_audit == true || contains(github.event.head_commit.message, '[audit-production]')
     runs-on: ubuntu-24.04
     timeout-minutes: 5
     steps:
