@@ -39,7 +39,7 @@ jobs:
           cache: npm
       - run: npm ci --include=dev --no-audit --no-fund
       - name: Inspect periodic work and integration readers
-        run: rg -n 'setInterval|router\.refresh|integrationSettings|cron:' src .github/workflows || true
+        run: grep -RnE 'setInterval|router\.refresh|integrationSettings|cron:' src .github/workflows || true
       - run: npm run typecheck
       - name: Focused privacy and cache tests
         run: node --import tsx --test tests/database-traffic.test.ts tests/expiring-cache.test.ts
@@ -54,7 +54,7 @@ jobs:
           npm run start -- --port 3100 > "$RUNNER_TEMP/egress-server.log" 2>&1 &
           SERVER_PID=$!
           trap 'kill "$SERVER_PID" 2>/dev/null || true' EXIT
-          node tests/fixtures/database-egress-http.mjs
+          node tests/fixtures/database-egress-http.mjs || { tail -n 80 "$RUNNER_TEMP/egress-server.log"; exit 1; }
       - name: Existing regression tests
         run: npm test
         env:
@@ -66,6 +66,7 @@ jobs:
           path: egress-fixture-report.json
           retention-days: 14
   production-sample:
+    if: contains(github.event.head_commit.message, '[audit-production]')
     runs-on: ubuntu-24.04
     timeout-minutes: 5
     steps:

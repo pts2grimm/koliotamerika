@@ -16,8 +16,9 @@ assert.equal((await request('/api/admin/database-traffic',{headers:{Authorizatio
 assert.equal((await request('/api/admin/database-traffic',{headers:{Cookie:cookie(customer)}})).status,403)
 const login=await post('/api/users/login',{email:'egress-admin@example.test',password:'Egress-test-password-2026'})
 assert.equal(login.status,200)
-const adminHeaders={Cookie:cookie(login)}
+const adminHeaders={Cookie:cookie(login),'Sec-Fetch-Site':'same-origin'}
 assert(adminHeaders.Cookie.includes('payload-token='))
+assert.equal((await request('/api/admin/database-traffic',{headers:{...adminHeaders,'Sec-Fetch-Site':'cross-site',Origin:'https://untrusted.example'}})).status,403)
 const response=await request('/api/admin/database-traffic',{headers:adminHeaders})
 assert.equal(response.status,200);assert.match(response.headers.get('cache-control'),/no-store/)
 const report=await response.json()

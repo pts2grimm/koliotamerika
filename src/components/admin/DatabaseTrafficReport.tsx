@@ -19,7 +19,7 @@ export function DatabaseTrafficReport({initial}:{initial:Report}) {
   const a=document.createElement('a');a.href=url;a.download='database-traffic-'+report.measuredThrough.replace(/[:.]/g,'-')+'.json';a.click()
   setTimeout(()=>URL.revokeObjectURL(url),1000)
  }
- return <section className="koa-catalog-report">
+ return <section className="koa-catalog-report koa-database-traffic">
   <p><strong>Приблизителен обем — не е фактурираният egress на Supabase.</strong> Отчетът е отделен за всеки сървърен процес и се нулира при рестарт. При обновяване може да попаднеш на друг процес; провери идентификатора. Архиви, други приложения и други процеси не са включени.</p>
   <p>Измерват се дължините на съобщенията с редове, описания на колони и край на SQL операция. Не се пазят резултати, лични данни, SQL текст или параметри. Няма записи на статистика в базата. Удостоверяването на достъпа използва нормалната сесия и може да направи собствен прочит.</p>
   {!report.driverAttached&&<p role="status"><strong>В този процес още няма свързан измервател за PostgreSQL.</strong> SQLite preview не се измерва.</p>}
@@ -28,13 +28,13 @@ export function DatabaseTrafficReport({initial}:{initial:Report}) {
   <p>Начало: {date(report.startedAt)} · Край на измерването: {date(report.measuredThrough)} · Europe/Sofia</p>
   <p>Процес: <code>{report.processInstance}</code></p>
   <div className="koa-overview__metrics">
-   <article><h3>SQL заявки</h3><strong>{number(report.total.queries)}</strong></article>
-   <article><h3>Върнати записи</h3><strong>{number(report.total.returnedRows)}</strong></article>
-   <article><h3>Приблизителни MB</h3><strong>{number(report.total.approximateMB)}</strong></article>
-   <article><h3>Неуспешни заявки</h3><strong>{number(report.total.errors)}</strong></article>
+   <article className="koa-overview__metric"><h3>SQL заявки</h3><strong>{number(report.total.queries)}</strong></article>
+   <article className="koa-overview__metric"><h3>Върнати записи</h3><strong>{number(report.total.returnedRows)}</strong></article>
+   <article className="koa-overview__metric"><h3>Приблизителни MB</h3><strong>{number(report.total.approximateMB)}</strong></article>
+   <article className="koa-overview__metric"><h3>Неуспешни заявки</h3><strong>{number(report.total.errors)}</strong></article>
   </div>
   <p>1 MB = 1 000 000 байта. Броят е по SQL операции, не по посещения. Вложен JSON се брои като един върнат ред. Обемът на JOIN се отнася към основната външна таблица, без разделяне или двойно броене. „other“ / „multiple“ означава неразпределено. TLS, свързване, COPY и друг служебен трафик не са включени.</p>
-  <div className="koa-catalog-report__table"><table><thead><tr><th>Таблица</th><th>Операция</th><th>Заявки</th><th>Записи</th><th>MB ↓</th><th>Грешки</th></tr></thead><tbody>
+  <div className="koa-catalog-report__table koa-database-traffic__scroll"><table><thead><tr><th>Таблица</th><th>Операция</th><th>Заявки</th><th>Записи</th><th>MB ↓</th><th>Грешки</th></tr></thead><tbody>
    {report.breakdown.map(row=><tr key={row.table+':'+row.operation}><td>{row.table}</td><td>{row.operation}</td><td>{number(row.queries)}</td><td>{number(row.returnedRows)}</td><td>{number(row.approximateBytes/1_000_000)}</td><td>{number(row.errors)}</td></tr>)}
    {!report.breakdown.length&&<tr><td colSpan={6}>Все още няма измерени SQL операции в този процес.</td></tr>}
   </tbody></table></div>

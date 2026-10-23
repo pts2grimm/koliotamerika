@@ -4,6 +4,7 @@ import { Pool, Query } from 'pg'
 import { postgresPool } from '../../src/lib/postgres-pool'
 import { databaseTraffic } from '../../src/lib/database-traffic'
 import { articleCardSelect, carCardSelect, adminContentSelect, sitemapSelect } from '../../src/lib/list-projections'
+import { publicContentCache } from '../../src/lib/public-content-cache'
 import { getPayload } from 'payload'
 import config from '../../src/payload.config'
 assert.equal(process.env.CI,'true')
@@ -42,14 +43,15 @@ await pool.end()
 const payload=await getPayload({config,disableOnInit:true})
 const reports:unknown[]=[]
 try {
+ const media=await payload.create({collection:'media',data:{alt:'Synthetic fixture image'},filePath:'public/images/logo.webp'})
  for(let i=0;i<20;i++)await payload.create({collection:'pages',data:{
   title:'Fixture article '+i,slug:'egress-fixture-'+i,kind:'article',status:'published',intro:'Fixture introduction',
-  publishedAt:'2026-01-01T00:00:00.000Z',
+  publishedAt:'2026-01-01T00:00:00.000Z', image:media.id,
   body:{root:{type:'root',version:1,direction:null,format:'',indent:0,children:[{type:'paragraph',version:1,direction:null,format:'',indent:0,children:[{type:'text',version:1,text:'Само синтетичен текст. '.repeat(500),format:0,detail:0,mode:'normal',style:''}]}]}},
   sections:[{heading:'Fixture section',body:'Подробен текст. '.repeat(300)}],
   seo:{title:'Fixture SEO',description:'Fixture metadata'}
  }})
- for(let i=0;i<3;i++)await payload.create({collection:'cars',data:{title:'Fixture car '+i,slug:'egress-car-'+i,status:'published',make:'BMW',model:'X5',year:2020,description:'Fixture car description '.repeat(600),features:[{label:'Test equipment'}]}})
+ for(let i=0;i<3;i++)await payload.create({collection:'cars',data:{title:'Fixture car '+i,slug:'egress-car-'+i,status:'published',make:'BMW',model:'X5',year:2020,image:media.id,gallery:[{image:media.id}],description:'Fixture car description '.repeat(600),features:[{label:'Test equipment'}]}})
  const measure=async(name:string,read:()=>Promise<{docs:unknown[]}>)=>{
   const start=snap();const result=await read();const end=snap()
   return {name,docs:result.docs,queries:end.queries-start.queries,returnedRows:end.returnedRows-start.returnedRows,approximateBytes:end.approximateBytes-start.approximateBytes}
@@ -65,6 +67,12 @@ try {
  await compare('admin-content-20',()=>payload.find({collection:'pages',depth:0,limit:20,sort:'-updatedAt'}),()=>payload.find({collection:'pages',depth:0,limit:20,sort:'-updatedAt',select:adminContentSelect}),adminContentSelect)
  await compare('sitemap-pages-100',()=>payload.find({collection:'pages',overrideAccess:false,user:null,depth:0,limit:100}),()=>payload.find({collection:'pages',overrideAccess:false,user:null,depth:0,limit:100,select:sitemapSelect}),sitemapSelect)
  await compare('car-cards-3',()=>payload.find({collection:'cars',overrideAccess:false,user:null,limit:3}),()=>payload.find({collection:'cars',overrideAccess:false,user:null,limit:3,depth:1,select:carCardSelect}),carCardSelect)
+ const cachedRead=()=>publicContentCache.get('fixture-cards',()=>payload.find({collection:'pages',overrideAccess:false,user:null,limit:6,select:articleCardSelect,depth:1}))
+ await cachedRead()
+ const warmStart=snap()
+ await cachedRead();await cachedRead()
+ assert.equal(snap().queries-warmStart.queries,0)
+ reports.push({name:'two-warm-anonymous-list-cache-hits',queries:0,approximateBytes:0})
  const admin=await payload.create({collection:'users',data:{email:'egress-admin@example.test',password:'Egress-test-password-2026',name:'Egress test'}})
  await payload.create({collection:'customers',data:{email:'egress-customer@example.test',password:'Egress-test-password-2026',name:'Egress test',consentedAt:new Date().toISOString()}})
  assert(admin.id)
