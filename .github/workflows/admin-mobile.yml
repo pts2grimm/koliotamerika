@@ -4,6 +4,9 @@ on:
     branches: ['codex/admin-mobile-2026-10-23']
 permissions:
   contents: read
+concurrency:
+  group: mobile-admin-verification
+  cancel-in-progress: true
 jobs:
   browser:
     runs-on: ubuntu-24.04
@@ -46,6 +49,7 @@ jobs:
       - run: npm run build
       - run: npm run typecheck
       - run: npx playwright install --with-deps chromium webkit
+        timeout-minutes: 4
       - name: Mobile Chromium and Safari engine checks
         run: |
           npm run start -- --port 3100 > "$RUNNER_TEMP/mobile-server.log" 2>&1 &
