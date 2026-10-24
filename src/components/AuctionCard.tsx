@@ -20,7 +20,13 @@ export function AuctionCard({ car }: { car: AuctionCar }) {
    <p className="auction-damage">{car.damage_pr || 'Щетите се уточняват'}<span>{car.status || 'Без посочено състояние'}</span></p>
    {car.enhanced && <p className="bid-note">Enhanced Vehicles · Не потвърждава, че пали или се движи.</p>}
    {isAuctionClosed(car) ? <div><p className="auction-sold" role="status">{archivedAuctionLabel(car)}</p><p className="bid-note">VIN: {car.vin || 'Не е предоставен'}</p></div> : <><AuctionSchedule date={car.auction_date} auctionStatus={car.auction_status} initialNow={Date.now()} />
-   <div className="auction-price-row"><div><span className="price-label">Текущ залог</span><strong>{car.current_bid != null ? auctionCurrency(car.current_bid, car.currency) : 'Не е предоставен'}</strong><span className="price-disclaimer">Без разходите за внос</span></div><span className="card-detail-arrow" aria-label="Виж автомобила"><ArrowUpRight size={22} /></span></div>
+   <div className="auction-price-row"><div><span className="price-label">Текущ залог</span><strong>{car.current_bid != null ? auctionCurrency(car.current_bid, car.currency) : '0 }</strong><span className="price-disclaimer">Без разходите за внос</span></div><span className="card-detail-arrow" aria-label="Виж автомобила"><ArrowUpRight size={22} /></span></div>
+   <AuctionBuyNow car={car} /></>}
+  </Link>
+  <SaveAuction lot={String(car.lot_id)} site={String(car.site)} title={car.title} />
+ </article>
+}
+}</strong><span className="price-disclaimer">Без разходите за внос</span></div><span className="card-detail-arrow" aria-label="Виж автомобила"><ArrowUpRight size={22} /></span></div>
    <AuctionBuyNow car={car} /></>}
   </Link>
   <SaveAuction lot={String(car.lot_id)} site={String(car.site)} title={car.title} />
