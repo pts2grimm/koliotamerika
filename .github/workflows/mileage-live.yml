@@ -1,0 +1,40 @@
+name: Verify live auction mileage
+on:
+  push:
+    branches: ['codex/mileage-live-2026-10-24']
+permissions:
+  contents: read
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 7
+    steps:
+      - name: Verify kilometres and original miles on public catalogue and detail
+        run: |
+          node --input-type=module <<'JS'
+          import assert from 'node:assert/strict';
+          const origin='https://koliotamerika.bg';
+          const mileage=/\d[\d\s.,]* км \(\d[\d\s.,]* мили\)/;
+          const get=url=>fetch(url,{signal:AbortSignal.timeout(15000),headers:{'Cache-Control':'no-cache'}});
+          let verified=false;
+          for(let attempt=1;attempt<=18;attempt++){
+            try{
+              const r=await get(origin+'/targove?mileage-check='+Date.now());
+              const html=await r.text();
+              const href=html.match(/\/targove\/kola\?lot=\d+(?:&amp;|&)site=[12]/)?.[0]?.replaceAll('&amp;','&');
+              const converted=mileage.test(html);
+              console.log(JSON.stringify({at:new Date().toISOString(),attempt,status:r.status,convertedCatalogue:converted}));
+              if(r.status===200&&converted&&href){
+                const detail=await get(origin+href);
+                const text=await detail.text();
+                if(detail.status===200&&text.includes('technical-facts')&&mileage.test(text)){
+                  console.log(JSON.stringify({path:href,example:text.match(mileage)[0]}));
+                  verified=true;break;
+                }
+              }
+            }catch(e){console.log('Temporary verification failure',e.name)}
+            await new Promise(resolve=>setTimeout(resolve,20000));
+          }
+          assert(verified,'Converted mileage not observed within verification window');
+          console.log('PASS: live catalogue and technical detail show kilometres with original miles.');
+          JS
