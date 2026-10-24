@@ -1,0 +1,30 @@
+name: Public vehicle save control check
+on:
+  push:
+    branches: ['codex/detail-save-live-2026-10-24']
+permissions:
+  contents: read
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Wait for the public detail page to serve the labelled save control
+        run: |
+          node --input-type=module <<'JS'
+          const url = 'https://koliotamerika.bg/targove/kola?lot=54155906&site=1';
+          for (let attempt = 1; attempt <= 18; attempt++) {
+            try {
+              const response = await fetch(url, { signal: AbortSignal.timeout(20000) });
+              const html = await response.text();
+              const visibleMarkup = html.includes('<span class="save-control save-control-detail">') && html.includes('save-detail-button');
+              console.log(JSON.stringify({time: new Date().toISOString(), attempt, status: response.status, visibleMarkup, url}));
+              if (response.ok && visibleMarkup) process.exit(0);
+            } catch (error) { console.log('Public check retry:', error.name); }
+            if (attempt < 18) await new Promise(resolve => setTimeout(resolve, 30000));
+          }
+          process.exit(1);
+          JS
