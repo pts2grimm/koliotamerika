@@ -34,7 +34,7 @@ test('Eridan keeps auction lot identity instead of internal record id; nullable 
  assert.equal(car.id, '1:70000001'); assert.equal(car.lot_id, 70000001)
  assert.equal(car.current_bid, 0); assert.equal(car.make, 'BMW'); assert.equal(car.model, 'X5')
  assert.equal(car.damage_pr, 'Front End'); assert.equal(car.status, 'Run & Drive')
- assert.equal(car.seller_type, car.seller ? 'insurance' : 'dealer'); assert.equal(car.odometer_unit, 'unknown')
+ assert.equal(car.seller_type, car.seller ? 'insurance' : 'dealer'); assert.equal(car.odometer_unit, 'mi')
  assert.equal(normalizeEridanCar({ ...row, auction: 'iaai' })?.id, '2:70000001')
  assert.equal(normalizeEridanCar({ ...row, auction: 'unknown' }), undefined)
  assert.equal(normalizeEridanCar({ ...row, lot_number: undefined }), undefined)
@@ -122,8 +122,8 @@ test('incomplete directories and malformed pagination fail instead of being cach
 test('mileage units are explicit; unknown units are not multiplied by 1.609344', () => {
  assert.match(mileage(1000, 'unknown')!, /мерната единица/)
  assert.doesNotMatch(mileage(1000, 'unknown')!, /mi|km/)
- assert.equal(mileage(1000, 'km')!.replace(/\s/g, ''), '1000km')
- assert.match(mileage(1000)!, /mi/); assert.equal(mileage(undefined, 'unknown'), undefined)
+ assert.equal(mileage(1000, 'km')!.replace(/\s/g, ''), '1000км')
+ assert.equal(mileage(1000)!.replace(/\s/g, ''), '1609км(1000мили)'); assert.equal(mileage(undefined, 'unknown'), undefined)
 })
 test('transport sends Bearer auth only to the fixed Eridan origin and rejects redirects', async () => {
  let seen: { url: URL; init: RequestInit } | undefined
@@ -493,7 +493,7 @@ test('the user-provided JSON maps sale_date, auction, amounts, nested names and 
  assert.equal(car.make, 'FORD'); assert.equal(car.model, 'F550')
  assert.equal(car.current_bid, undefined); assert.equal(car.buy_now, 7500)
  assert.equal(car.price_new, 28872); assert.equal(car.currency, 'USD')
- assert.equal(car.odometer, 56683); assert.equal(car.odometer_unit, 'unknown')
+ assert.equal(car.odometer, 56683); assert.equal(car.odometer_unit, 'mi')
  assert.equal(car.damage_pr, 'SIDE'); assert.equal(car.damage_sec, undefined)
  assert.equal(car.document_old, 'SALVAGE CERTIFICATE UT')
  assert.equal(car.seller, undefined); assert.equal(car.seller_type, car.seller ? 'insurance' : 'dealer')

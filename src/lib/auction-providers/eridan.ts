@@ -43,8 +43,9 @@ export function normalizeEridanCar(value: unknown): AuctionCar | undefined {
  const currency = text(raw.currency)?.toUpperCase()
  const active = raw.status === 'active' && !isAuctionClosed({auction_status: text(raw.status), auction_date: text(raw.sale_date)})
  const knownCurrency = currency && ['USD', 'CAD', 'EUR', 'BGN'].includes(currency)
- // The current documented response does not specify odometer units. Do not assume US == miles.
- const unit = raw.odometer_unit === 'mi' || raw.odometer_unit === 'km' ? raw.odometer_unit : 'unknown'
+ // The site owner confirmed that Eridan's unlabelled readings are miles.
+ // Preserve an explicit kilometre unit so it is never converted a second time.
+ const unit = raw.odometer_unit === 'km' ? 'km' : 'mi'
  return {
   id: site + ':' + lot, lot_id: lot, site, title: text(raw.name) || [year || '', make, model].filter(Boolean).join(' '),
   make, model, year, vehicle_type: raw.item_type === 'VEHTYPE_V' ? 'Automobile' : raw.item_type === 'VEHTYPE_M' ? 'Motorcycle' : raw.item_type === 'VEHTYPE_A' ? 'ATVUTV' : undefined, vin: text(raw.vin), odometer: number(raw.odometer), odometer_unit: unit,

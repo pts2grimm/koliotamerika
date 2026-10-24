@@ -17,9 +17,10 @@ test('Eridan staging remains outside search indexes and keeps secrets out of HTM
  await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href', 'http://localhost:3100/targove?make=BMW&model=X5')
  expect(apiRequests).toEqual([])
 })
-test('Eridan renders next/previous without a fictional total and keeps unknown mileage units honest', async ({ page }) => {
+test('Eridan renders next/previous without a fictional total and shows kilometres before original miles', async ({ page }) => {
  await page.goto('/targove?make=BMW&model=X5')
  await expect(page.locator('.auction-card:visible')).toHaveCount(24)
+ await expect(page.locator('.auction-card:visible').first().locator('.car-specs')).toContainText(/72\s420 км \(45\s000 мили\)/)
  await expect(page.locator('.results-count')).toContainText('Намерени автомобили')
  const pagination = page.getByRole('navigation', { name: 'Страници с търгове' })
  await expect(pagination).toContainText('Страница 1')
@@ -29,12 +30,12 @@ test('Eridan renders next/previous without a fictional total and keeps unknown m
  await expect(pagination.getByRole('link', { name: 'Следваща' })).toHaveCount(0)
  await pagination.getByRole('link', { name: 'Предишна' }).click()
  await page.goto('/targove/kola?lot=70000000&site=1')
- await expect(page.locator('.technical-facts')).toContainText('мерната единица не е посочена')
- await expect(page.locator('.vehicle-seo')).toContainText('мерната единица не е посочена')
+ await expect(page.locator('.technical-facts')).toContainText(/72\s420 км \(45\s000 мили\)/)
+ await expect(page.locator('.vehicle-seo')).toContainText(/72\s420 км \(45\s000 мили\)/)
  const schemas = await page.locator('script[type="application/ld+json"]').allTextContents()
  const vehicle = schemas.flatMap(value => JSON.parse(value)['@graph'] || []).find(value => value['@type'] === 'Vehicle')
  expect(vehicle).toBeTruthy()
- expect(vehicle.mileageFromOdometer).toBeUndefined()
+ expect(vehicle.mileageFromOdometer).toEqual({'@type':'QuantitativeValue',value:45000,unitCode:'SMI'})
 })
 test('seller selection follows the site convention and can be removed without clearing the make', async ({ page }) => {
  await page.goto('/targove?make=BMW&seller_type=dealer')

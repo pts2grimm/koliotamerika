@@ -2,6 +2,7 @@ import { isAuctionClosed, archivedAuctionLabel } from '@/lib/auction-lifecycle'
 import { SiteLink as Link } from '@/components/SiteLink'
 import { ArrowUpRight, CalendarDays, Gauge, Fuel } from 'lucide-react'
 import { auctionCurrency, auctionImages, type AuctionCar } from '@/lib/auctions'
+import { mileage } from '@/lib/vehicle-details'
 import { SaveAuction } from './SaveAuction'
 import { AuctionSchedule } from './AuctionSchedule'
 import { AuctionBuyNow } from './AuctionBuyNow'
@@ -9,12 +10,13 @@ import { CardPhotos } from './CardPhotos'
 
 export function AuctionCard({ car }: { car: AuctionCar }) {
  const href = `/targove/kola?lot=${car.lot_id}&site=${car.site}`
+ const odometer = mileage(car.odometer, car.odometer_unit)
  const fuel = ({ Gasoline: 'Бензин', Diesel: 'Дизел', Hybrid: 'Хибрид', Electric: 'Електрически' } as Record<string, string>)[car.fuel || ''] || car.fuel
  return <article className="car-card auction-card">
   <CardPhotos images={auctionImages(car)} title={car.title} href={href} badge={car.site === 1 ? 'COPART' : 'IAAI'} />
   <Link href={href} className="car-content auction-card-link">
    <span className="eyebrow">ЛОТ {car.lot_id}</span><h3>{car.title}</h3>
-   <div className="car-specs"><span><CalendarDays size={14} />{car.year}</span>{car.odometer != null && <span><Gauge size={14} />{car.odometer.toLocaleString('bg-BG')} {car.odometer_unit === 'km' ? 'км' : car.odometer_unit === 'unknown' ? '(неуточнена единица)' : 'мили'}</span>}{fuel && <span><Fuel size={14} />{fuel}</span>}</div>
+   <div className="car-specs"><span><CalendarDays size={14} />{car.year}</span>{odometer && <span><Gauge size={14} />{odometer}</span>}{fuel && <span><Fuel size={14} />{fuel}</span>}</div>
    <p className="auction-damage">{car.damage_pr || 'Щетите се уточняват'}<span>{car.status || 'Без посочено състояние'}</span></p>
    {car.enhanced && <p className="bid-note">Enhanced Vehicles · Не потвърждава, че пали или се движи.</p>}
    {isAuctionClosed(car) ? <div><p className="auction-sold" role="status">{archivedAuctionLabel(car)}</p><p className="bid-note">VIN: {car.vin || 'Не е предоставен'}</p></div> : <><AuctionSchedule date={car.auction_date} auctionStatus={car.auction_status} initialNow={Date.now()} />
