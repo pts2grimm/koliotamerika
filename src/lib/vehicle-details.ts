@@ -23,8 +23,8 @@ export function sellerHint(value: string, source?: 'seller_presence'): DetailHin
  return { label: value, text: 'Категория на продавача, предоставена от аукциона. Историята и състоянието се проверяват отделно.', tone: 'neutral' }
 }
 export function mileage(value?: number, unit: 'mi' | 'km' | 'unknown' = 'mi') {
- if (value == null) return undefined
+ if (value == null || !Number.isFinite(value) || value < 0) return undefined
  if (unit === 'unknown') return `${value.toLocaleString('bg-BG')} (мерната единица не е посочена)`
- if (unit === 'km') return `${value.toLocaleString('bg-BG')} km`
- return value == null ? undefined : `${value.toLocaleString('bg-BG')} mi (${Math.round(value * 1.609344).toLocaleString('bg-BG')} km)`
+ if (unit === 'km') return `${value.toLocaleString('bg-BG')} км`
+ return `${Math.round(value * 1.609344).toLocaleString('bg-BG')} км (${value.toLocaleString('bg-BG')} мили)`
 }
