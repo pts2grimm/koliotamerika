@@ -1,0 +1,32 @@
+name: Verify live favicon
+on:
+  push:
+    branches: [codex/verify-favicon-live-2026-10-24]
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Verify public icon bytes and metadata
+        run: |
+          node <<'NODE'
+          const {createHash}=require('node:crypto');
+          (async()=>{
+            for(let attempt=1;attempt<=16;attempt++){
+              try{
+                const response=await fetch('https://koliotamerika.bg/favicon.ico',{signal:AbortSignal.timeout(15000)});
+                const buffer=Buffer.from(await response.arrayBuffer());
+                const sha=createHash('sha1').update(Buffer.from('blob '+buffer.length+'\0')).update(buffer).digest('hex');
+                const page=await fetch('https://koliotamerika.bg/',{signal:AbortSignal.timeout(20000)});
+                const html=await page.text();
+                const linked=/<link\b[^>]*rel="(?:shortcut )?icon"[^>]*href="[^"]*favicon\.ico/.test(html)||/<link\b[^>]*href="[^"]*favicon\.ico[^"]*"[^>]*rel="(?:shortcut )?icon"/.test(html);
+                console.log(JSON.stringify({attempt,status:response.status,type:response.headers.get('content-type'),bytes:buffer.length,matchingUpload:sha==='c42e304e4444f2b4a7538d9749bcba297939f550',page:page.status,linked}));
+                if(response.ok&&page.ok&&linked&&sha==='c42e304e4444f2b4a7538d9749bcba297939f550')return;
+              }catch{console.log('Public probe temporarily unavailable');}
+              if(attempt<16)await new Promise(r=>setTimeout(r,30000));
+            }
+            process.exitCode=1;
+          })();
+          NODE
