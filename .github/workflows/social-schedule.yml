@@ -1,0 +1,26 @@
+name: Facebook approved publication schedule
+on:
+  schedule:
+    - cron: '7,22,37,52 * * * *'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: facebook-publication-runner
+  cancel-in-progress: false
+jobs:
+  tick:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - name: Process approved posts and prepare drafts
+        env:
+          SOCIAL_CRON_SECRET: ${{ secrets.SOCIAL_CRON_SECRET }}
+        run: |
+          if [ -z "$SOCIAL_CRON_SECRET" ]; then
+            echo 'Facebook schedule is not connected yet; no request sent.'
+            exit 0
+          fi
+          curl --silent --show-error --fail --max-time 115 --request POST \
+            --header "Authorization: Bearer $SOCIAL_CRON_SECRET" \
+            'https://koliotamerika.bg/api/cron/social'

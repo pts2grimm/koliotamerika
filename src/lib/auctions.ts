@@ -124,3 +124,9 @@ export function auctionImages(car:AuctionCar) {
 }
 export function auctionImage(car:AuctionCar){return auctionImages(car)[0]}
 export function auctionCurrency(value:number,currency='USD'){return formatCurrency(value,['USD','CAD','EUR','BGN'].includes(currency.toUpperCase())?currency.toUpperCase():'USD',0)}
+
+// Social publishing must recheck the provider, bypassing public page snapshots and Next caches.
+export async function freshAuctionCarForSocial(lot:string,site:string){
+ if(!/^\d{5,12}$/.test(lot)||!['1','2'].includes(site))throw new Error('Invalid social vehicle')
+ return provider().detail(lot,site)
+}
