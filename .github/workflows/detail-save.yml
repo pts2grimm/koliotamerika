@@ -1,0 +1,38 @@
+name: Vehicle detail save verification
+on:
+  push:
+    branches: ['codex/detail-save-2026-10-24']
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci --include=dev --no-audit --no-fund
+      - name: Provider and vehicle regression tests
+        run: npx tsx --test tests/vehicle-details.test.ts tests/eridan.test.ts tests/auction-seo.test.ts tests/auction-snapshots.test.ts
+      - name: Production build against isolated preview data
+        run: npm run build
+        env:
+          NEXT_DIST_DIR: .next-eridan
+          PREVIEW_MODE: 'true'
+          PAYLOAD_SECRET: detail-save-build-fixture-not-production
+          NEXT_PUBLIC_SERVER_URL: http://localhost:3100
+          SITE_INDEXABLE: 'false'
+      - run: npm run typecheck
+      - run: npx playwright install --with-deps chromium
+        timeout-minutes: 4
+      - name: Guest and signed-in saving, mobile visibility and bid display
+        run: npx playwright test --config=playwright.eridan.config.ts --grep 'vehicle detail save controls|cards and galleries'
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: detail-save-browser-results
+          path: test-results/
+          retention-days: 5

@@ -113,7 +113,7 @@ test('catalogue offers supported vehicle types and preserves saved motorcycle li
 })
 
 
-test('cards and galleries use full images, and missing bids stay distinct from zero and other prices', async ({page})=>{
+test('cards and galleries use full images and missing card bids display zero without substituting other prices', async ({page})=>{
  const thumbnails: string[] = []
  page.on('request', req => { if(req.url().includes('test-gallery-thumb')) thumbnails.push(req.url()) })
  await page.goto('/targove?make=BMW&model=X5&site=1')
@@ -122,7 +122,7 @@ test('cards and galleries use full images, and missing bids stay distinct from z
  await card.scrollIntoViewIfNeeded()
  await expect.poll(()=>card.locator('.card-photo-link img').evaluate((img:HTMLImageElement)=>img.naturalWidth)).toBeGreaterThanOrEqual(1000)
  expect(thumbnails).toEqual([])
- await expect(card.locator('.auction-price-row')).toContainText('Не е предоставен')
+ await expect(card.locator('.auction-price-row')).toContainText('0 
  await expect(card.locator('.auction-price-row')).not.toContainText('9 999')
  await card.getByRole('button',{name:'Следваща снимка в обявата'}).click()
  await expect(card.locator('.card-photo-link img')).toHaveAttribute('src',/test-gallery-2/)
@@ -864,4 +864,799 @@ test('nearest auction is the default across pages and powersports without a sort
   await page.goto('/targove/motori-atv')
   await expect(page.getByRole('combobox',{name:'Подреди по'})).toHaveValue('auction_soon')
  }finally{await request.post('http://127.0.0.1:3199/test-sort-examples?enabled=false')}
+})
+)
+ await expect(card.locator('.auction-price-row')).not.toContainText('9 999')
+ await card.getByRole('button',{name:'Следваща снимка в обявата'}).click()
+ await expect(card.locator('.card-photo-link img')).toHaveAttribute('src',/test-gallery-2/)
+ await page.goto('/targove/kola?lot=70000001&site=1')
+ await expect(page.locator('.gallery-open img')).toHaveAttribute('src',/test-gallery-1/)
+ await expect(page.getByRole('status').filter({hasText:'Текущ залог: не е предоставен.'})).toBeVisible()
+ await expect(page.locator('.detail-price')).toHaveCount(0)
+ await page.goto('/targove/kola?lot=70000000&site=1')
+ await expect(page.locator('.detail-price')).toContainText('0')
+ await expect(page.getByRole('status').filter({hasText:'Текущ залог: не е предоставен.'})).toHaveCount(0)
+ await page.goto('/targove/kola?lot=70000002&site=1')
+ await expect(page.locator('.detail-price')).toContainText(/5[\s\u00a0]*700/)
+})
+test('opening a catalogue car reuses its fresh data without another exact-lot API request', async({page,request})=>{
+ await page.goto('/targove?make=Ford')
+ const calls = async()=> (await (await request.get('http://127.0.0.1:3199/test-requests')).json()).requests.filter((r:{params:{lot_number?:string}})=>r.params.lot_number==='80000000').length
+ const before=await calls()
+ expect(before).toBe(0)
+ await page.locator('.auction-card:visible .auction-card-link').first().click()
+ await expect(page.getByRole('heading',{level:1})).toContainText('Ford Mustang')
+ await expect(page.locator('.gallery-open img')).toHaveAttribute('src',/test-gallery-1/)
+ expect(await calls()).toBe(before)
+})
+
+test('a direct uncached lot streams a loading state before the delayed provider responds', async({page,request})=>{
+ await page.goto('/targove/kola?lot=79999001&site=1',{waitUntil:'commit'})
+ await expect(page.getByRole('status').filter({hasText:'Зареждаме автомобила…'})).toBeVisible()
+ await expect(page.getByRole('heading',{level:1})).toHaveText('2023 BMW X5 streaming fixture')
+ await expect(page.getByRole('status').filter({hasText:'Зареждаме автомобила…'})).toHaveCount(0)
+ const {requests}=await (await request.get('http://127.0.0.1:3199/test-requests')).json()
+ expect(requests.filter((r:{params:{lot_number?:string}})=>r.params.lot_number==='79999001')).toHaveLength(1)
+})
+
+test('both auctions appear immediately and the advanced auction selector can show only IAAI',async({page})=>{
+ await page.goto('/targove?make=BMW&model=X5')
+ const badges=await page.locator('.auction-card:visible .car-badge').allTextContents()
+ expect(new Set(badges)).toEqual(new Set(['COPART','IAAI']))
+ const filters=page.getByRole('form',{name:'Филтри за автомобили'})
+ await expect(filters.getByLabel('Аукцион',{exact:true})).toBeHidden()
+ await filters.locator('.filter-advanced summary').click()
+ await expect(filters.getByLabel('Аукцион',{exact:true})).toBeVisible()
+ await filters.getByLabel('Аукцион',{exact:true}).selectOption('2')
+ await filters.getByRole('button',{name:'Намери автомобил'}).click()
+ await expect(page.locator('.auction-card:visible')).toHaveCount(12)
+ expect(await page.locator('.auction-card:visible .car-badge').allTextContents()).toEqual(Array(12).fill('IAAI'))
+ await page.locator('.auction-card:visible .auction-card-link').first().click()
+ await expect(page.locator('.detail-summary>.eyebrow')).toContainText('IAAI')
+ await expect(page.locator('.gallery-open img')).toBeVisible()
+})
+
+test('auction routes are not prefetched from the viewport but the intended car is prepared before clicking',async({page})=>{
+ const detailRequests:string[]=[]
+ page.on('request',req=>{if(new URL(req.url()).pathname==='/targove/kola'&&req.resourceType()==='fetch')detailRequests.push(req.url())})
+ await page.goto('/targove?make=BMW&model=X5')
+ const card=page.locator('.auction-card:visible .auction-card-link').first()
+ await card.scrollIntoViewIfNeeded()
+ await page.waitForTimeout(400)
+ expect(detailRequests).toEqual([])
+ const response=page.waitForResponse(res=>new URL(res.url()).pathname==='/targove/kola'&&res.request().resourceType()==='fetch')
+ await card.hover()
+ // RSC prefetch streams may remain open; headers and successful navigation prove readiness.
+ expect((await response).ok()).toBe(true)
+ await page.waitForTimeout(700)
+ // Next 16 can prefetch separate route-tree and page segments for one URL.
+ const preparedRequests=detailRequests.length
+ expect(preparedRequests).toBeGreaterThan(0)
+ expect(detailRequests.every(url=>!new URL(url).searchParams.has('lot')||new URL(url).searchParams.get('lot')==='70000000')).toBe(true)
+ const started=Date.now()
+ await card.click()
+ await expect(page.locator('.detail-summary h1')).toContainText('BMW X5')
+ expect(detailRequests).toHaveLength(preparedRequests)
+ console.log('PREPARED_NAVIGATION',JSON.stringify({clickToHeadingMs:Date.now()-started,detailRequests:detailRequests.length}))
+})
+
+test('clicking with data saving enabled shows feedback while an unprepared route is pending',async({page})=>{
+ await page.addInitScript(()=>Object.defineProperty(navigator,'connection',{value:{saveData:true},configurable:true}))
+ await page.goto('/targove?make=Ford')
+ await page.route('**/targove/kola?*',async route=>{
+  if(route.request().resourceType()==='fetch')await new Promise(resolve=>setTimeout(resolve,700))
+  await route.continue()
+ })
+ await page.locator('.auction-card:visible .auction-card-link').first().click({noWaitAfter:true})
+ await expect(page.getByRole('status').filter({hasText:'Отваряме автомобила…'})).toBeVisible()
+ await expect(page.locator('.detail-summary h1')).toContainText('Ford Mustang')
+ await expect(page.getByRole('status').filter({hasText:'Отваряме автомобила…'})).toHaveCount(0)
+})
+
+for(const viewport of [{width:1280,height:900},{width:390,height:844}]){
+ test('seller categories remain usable in IAAI form submission at width '+viewport.width,async({page})=>{
+  await page.setViewportSize(viewport)
+  await page.goto('/targove?make=BMW&model=X5&site=2&seller_type=insurance')
+  if(viewport.width<900)await page.getByRole('button',{name:/^Филтри/}).click()
+  const form=page.getByRole('form',{name:'Филтри за автомобили'})
+  await expect(form.locator('[name=status]')).toBeEnabled()
+  await expect(form.locator('[name=seller_type]')).toBeEnabled()
+  await expect(form.locator('[name=seller]')).toHaveCount(0)
+  await expect(form.locator('#auction-filter-availability')).toHaveCount(0)
+  await expect(form.locator('[name=site]')).toBeEnabled()
+  await expect(form.locator('[name=fuel]')).toBeEnabled()
+  await form.getByRole('button',{name:'Намери автомобил'}).click()
+  await expect(page.locator('.auction-card:visible')).toHaveCount(12)
+  expect(new URL(page.url()).searchParams.get('seller_type')).toBe('insurance')
+  expect(new URL(page.url()).searchParams.get('status')).toBeNull()
+  expect(await page.locator('.auction-card:visible .car-badge').allTextContents()).toEqual(Array(12).fill('IAAI'))
+ })
+}
+
+test('a stalled model directory times out and can be retried without refreshing or losing filters', async ({ page }) => {
+ let requests = 0
+ let release: (() => void) | undefined
+ await page.route('**/api/auction-models?*', async route => {
+  requests++
+  if (requests === 1) {
+   await new Promise<void>(resolve => { release = resolve })
+   await route.abort().catch(() => {})
+  } else await route.fulfill({contentType: 'application/json', body: JSON.stringify({models: ['X3', 'X5']})})
+ })
+ await page.goto('/targove')
+ await expect(page.locator('.catalogue-loading')).toHaveCount(0)
+ await expect(page.getByRole('form', {name:'Филтри за автомобили'})).toBeVisible()
+ await page.emulateMedia({reducedMotion:'reduce'})
+ await page.clock.install()
+ const form = page.getByRole('form', {name: 'Филтри за автомобили'})
+ await form.locator('[name=year_from]').selectOption('2015')
+ await form.locator('[name=make]').selectOption('BMW')
+ await expect.poll(() => requests).toBe(1)
+ await expect(form.locator('select[name=model]')).toBeDisabled()
+ await page.clock.fastForward(45001)
+ await expect(form.locator('input[name=model]')).toBeEnabled()
+ await form.locator('input[name=model]').fill('X5')
+ const url = page.url()
+ await form.getByRole('button', {name: 'Зареди моделите отново'}).click()
+ await expect(form.locator('select[name=model]')).toBeEnabled()
+ await expect(form.locator('select[name=model]')).toHaveValue('X5')
+ await expect(form.locator('[name=year_from]')).toHaveValue('2015')
+ expect(requests).toBe(2)
+ expect(page.url()).toBe(url)
+ release?.()
+})
+
+test('a temporary catalogue error can recover with the same filters using the retry button', async ({ page, request }) => {
+ await request.post('http://127.0.0.1:3199/test-search-outage?enabled=true')
+ await page.goto('/targove?make=BMW&model=X5&site=2&year_from=2019&year_to=2023')
+ await expect(page.locator('.empty-state')).toContainText('В момента търговете не се зареждат.')
+ const retry = page.getByRole('link', {name: 'Опитай отново', exact: true})
+ const target = new URL((await retry.getAttribute('href'))!, page.url())
+ expect(Object.fromEntries(target.searchParams)).toEqual({make:'BMW',model:'X5',site:'2',year_from:'2019',year_to:'2023'})
+ await request.post('http://127.0.0.1:3199/test-search-outage?enabled=false')
+ await retry.click()
+ await expect(page.locator('.auction-card:visible')).toHaveCount(10)
+ expect(await page.locator('.auction-card:visible .car-badge').allTextContents()).toEqual(Array(10).fill('IAAI'))
+ await expect(page.locator('.empty-state')).toHaveCount(0)
+})
+
+test('a single upstream 503 recovers on the first navigation without a browser refresh', async ({ page, request }) => {
+ await request.post('http://127.0.0.1:3199/test-transient-search')
+ const before = (await (await request.get('http://127.0.0.1:3199/test-requests')).json()).requests.length
+ await page.goto('/targove?make=BMW&model=X5&site=1&year_from=2018&year_to=2023')
+ await expect(page.locator('.auction-card:visible')).toHaveCount(10)
+ await expect(page.locator('.empty-state')).toHaveCount(0)
+ const calls = (await (await request.get('http://127.0.0.1:3199/test-requests')).json()).requests.slice(before)
+ const retried = calls.filter((call: {path: string; params: Record<string,string>}) => call.path === '/lots' && call.params.year_from === '2018' && call.params.item_type === 'VEHTYPE_V')
+ expect(retried).toHaveLength(3)
+ const dated = retried.filter((call: {params: Record<string,string>}) => Boolean(call.params.sale_date__gte))
+ const undated = retried.filter((call: {params: Record<string,string>}) => call.params.sale_date__isnull === 'true')
+ expect(dated).toHaveLength(2)
+ expect(undated).toHaveLength(1)
+ expect(dated[0].params).toEqual(dated[1].params)
+})
+
+test('successive uncached searches keep both auctions available past the former shared budget', async ({ page, request }) => {
+ test.setTimeout(90000)
+ const before = (await (await request.get('http://127.0.0.1:3199/test-requests')).json()).requests.length
+ for (let year = 1990; year < 2002; year++) {
+  await page.goto('/targove?make=BMW&model=X5&year_from=' + year)
+  await expect(page.locator('.auction-card:visible')).toHaveCount(24)
+  const badges = await page.locator('.auction-card:visible .car-badge').allTextContents()
+  expect(badges.filter(text => text === 'COPART').length).toBeGreaterThan(0)
+  expect(badges.filter(text => text === 'IAAI').length).toBeGreaterThan(0)
+ }
+ const after = (await (await request.get('http://127.0.0.1:3199/test-requests')).json()).requests.length
+ expect(after - before).toBeGreaterThan(20)
+})
+
+test('recently imported historical records cannot replace active catalogue dates or detail snapshots', async ({ page, request }) => {
+ await page.goto('/targove?make=BMW&model=X5')
+ await expect(page.locator('.auction-card:visible')).toHaveCount(24)
+ const card=page.locator('.auction-card:visible').filter({has:page.locator('a[href="/targove/kola?lot=70000000&site=1"]')})
+ await expect(card.locator('time')).toHaveAttribute('datetime','2030-10-12T14:00:00.000Z')
+ await expect(card.locator('.auction-countdown')).not.toHaveText('Посоченият час е минал')
+ await card.locator('.auction-card-link').click()
+ await expect(page.locator('.detail-summary > .auction-schedule time')).toHaveAttribute('datetime','2030-10-12T14:00:00.000Z')
+ const requests=(await (await request.get('http://127.0.0.1:3199/test-requests')).json()).requests
+ const searches=requests.filter((call:{path:string;params:Record<string,string>})=>call.path==='/lots'&&call.params.make__name==='BMW')
+ expect(searches.length).toBeGreaterThan(0)
+ expect(searches.every((call:{params:Record<string,string>})=>call.params.status==='active')).toBe(true)
+})
+
+test('an expired unsold lot shows an archive notice without a replacement-date request', async ({ page, request }) => {
+ const before=(await (await request.get('http://127.0.0.1:3199/test-requests')).json()).requests.length
+ await page.goto('/targove/kola?lot=57397516&site=1')
+ await expect(page.getByRole('status').filter({hasText:/^Търгът е минал$/})).toBeVisible()
+ await expect(page.locator('.auction-schedule')).toHaveCount(0)
+ await expect(page.getByRole('link',{name:/Запитване за този автомобил/})).toHaveCount(0)
+ const calls=(await (await request.get('http://127.0.0.1:3199/test-requests')).json()).requests.slice(before).filter((call:{path:string;params:Record<string,string>})=>call.path==='/lots'&&call.params.lot_number==='57397516')
+ expect(calls).toHaveLength(1)
+ expect(calls[0].params.status).toBeUndefined()
+})
+
+test('an active listing with no date stays accessible without inventing a countdown', async ({ page }) => {
+ await page.goto('/targove/kola?lot=64492136&site=1')
+ await expect(page.locator('.detail-summary h1')).toHaveText('2013 BMW 3 SERIES')
+ await expect(page.locator('.detail-summary > .auction-schedule .auction-countdown')).toHaveText('Очаква се дата')
+ await expect(page.locator('.detail-summary > .auction-schedule time')).toHaveCount(0)
+})
+
+test('ATV and UTV are included in both-auction results and seller data is rendered without invented values', async ({ page }) => {
+ await page.goto('/targove?vehicle_type=ATVUTV')
+ await expect(page.locator('.auction-card:visible')).toHaveCount(2)
+ await expect(page.locator('.auction-card:visible').filter({hasText:'Sportsman 570'})).toHaveCount(1)
+ await expect(page.locator('.auction-card:visible').filter({hasText:'UFORCE 1000'})).toHaveCount(1)
+ expect(await page.locator('.auction-card:visible .car-badge').allTextContents()).toEqual(['COPART','IAAI'])
+ await page.locator('.auction-card:visible').filter({hasText:'Sportsman 570'}).locator('.auction-card-link').click()
+ await expect(page.locator('.vehicle-facts').filter({hasText:'Информация за автомобила'})).toContainText('Example ATV Seller')
+ await page.goto('/targove/kola?lot=85000002&site=2')
+ await expect(page.locator('.vehicle-facts').filter({hasText:'Информация за автомобила'})).toContainText('Частно лице')
+ await page.goto('/targove')
+ for (const lot of ['85000003','85000004','85000005','82000000','83000000'])
+  await expect(page.locator('.auction-card:visible a[href*="lot='+lot+'"]')).toHaveCount(0)
+ await expect(page.locator('select[name=make] option[value=POLARIS]')).toHaveCount(0)
+ await page.goto('/targove/motori-atv')
+ await expect(page.locator('select[name=make] option[value=POLARIS]')).toHaveCount(1)
+})
+
+test('Buy Now is visible separately from a missing bid and absent without a positive price',async({page})=>{
+ await page.goto('/targove?make=BMW&model=X5&site=1')
+ const card=page.locator('.auction-card:visible').filter({has:page.locator('a[href="/targove/kola?lot=70000001&site=1"]')})
+ await expect(card.locator('.auction-buy-now')).toContainText('Купи сега (Buy Now)')
+ await expect(card.locator('.auction-buy-now')).toContainText(/9[\\s\\u00a0]*999/)
+ await expect(card.locator('.auction-price-row')).toContainText('Не е предоставен')
+ await card.locator('.auction-card-link').click()
+ await expect(page.locator('.auction-buy-now')).toContainText(/9[\\s\\u00a0]*999/)
+ await page.goto('/targove/kola?lot=70000000&site=1')
+ await expect(page.locator('.auction-buy-now')).toHaveCount(0)
+})
+
+for(const viewport of [{width:1280,height:900},{width:390,height:844}]) {
+ test('condition and seller form filters work at width '+viewport.width,async({page})=>{
+  await page.setViewportSize(viewport)
+  await page.goto('/targove?make=BMW&model=X5&site=1')
+  if(viewport.width<900)await page.getByRole('button',{name:/^Филтри/}).click()
+  const form=page.getByRole('form',{name:'Филтри за автомобили'})
+  await form.locator('[name=status]').selectOption('Starts')
+  await form.locator('[name=seller_type]').selectOption('insurance')
+  await form.getByRole('button',{name:'Намери автомобил'}).click()
+  await expect(page.locator('.auction-card:visible')).toHaveCount(1)
+  await expect(page.locator('.auction-card:visible')).toContainText('ЛОТ 70000002')
+  await page.goto('/targove?make=BMW&site=1&status=Enhanced+Vehicles')
+  await expect(page.locator('.auction-card:visible')).toHaveCount(2)
+  await page.locator('.auction-card:visible').filter({hasText:'ЛОТ 70000003'}).locator('.auction-card-link').click()
+  await expect(page.locator('.vehicle-facts').filter({hasText:'Информация за автомобила'})).toContainText('Enhanced Vehicles')
+  await expect(page.locator('.vehicle-facts dt').filter({hasText:/^Състояние$/})).toHaveCount(0)
+ })
+}
+
+test('sold archive stays separate, retains filters and opens a closed listing without Buy Now or inquiry',async({page,request})=>{
+ await page.goto('/targove')
+ await page.getByRole('link',{name:'Архив',exact:true}).click()
+ await expect(page.getByRole('heading',{level:1})).toHaveText('Архив на търговете')
+ await expect(page.locator('.auction-card:visible')).toHaveCount(5)
+ await expect(page.locator('.auction-sold').filter({hasText:/^Продаден$/})).toHaveCount(2)
+ await expect(page.locator('.auction-sold').filter({hasText:/^Търгът е минал$/})).toHaveCount(3)
+ await expect(page.locator('.auction-card:visible .auction-price-row')).toHaveCount(0)
+ await expect(page.locator('.auction-card:visible .auction-buy-now')).toHaveCount(0)
+ await expect(page.locator('meta[name=robots]')).toHaveAttribute('content',/noindex/)
+ await page.goto('/targove/arhiv?make=BMW&site=1')
+ await expect(page.locator('.auction-card:visible')).toHaveCount(3)
+ await expect(page.getByRole('link',{name:'Премахни филтър: BMW'})).toHaveAttribute('href','/targove/arhiv?site=1')
+ await page.locator('.auction-card-link[href*="lot=86000001"]').click()
+ await expect(page.getByRole('status').filter({hasText:/^Продаден$/})).toBeVisible()
+ await expect(page.locator('.gallery-open img')).toBeVisible()
+ await expect(page.locator('.auction-buy-now')).toHaveCount(0)
+ await expect(page.getByRole('link',{name:/Запитване за този автомобил/})).toHaveCount(0)
+ await expect(page.locator('.auction-schedule')).toHaveCount(0)
+ await expect(page.getByRole('button',{name:'Премахване на обявата',exact:true})).toBeDisabled()
+ await expect(page.locator('.vehicle-facts').filter({hasText:'Информация за автомобила'})).toContainText('TST00000086000001')
+ const calls=(await (await request.get('http://127.0.0.1:3199/test-requests')).json()).requests
+ expect(calls.some((r:{params:Record<string,string>})=>Boolean(r.params.sale_date__lte)&&!r.params.status)).toBe(true)
+})
+
+test('archive VIN search opens a sold listing and keeps the active search separate',async({page})=>{
+ await page.goto('/targove/arhiv?q=TST00000086000001')
+ await expect(page).toHaveURL('http://localhost:3100/targove/kola?lot=86000001&site=1')
+ await expect(page.getByRole('status').filter({hasText:/^Продаден$/})).toBeVisible()
+ await page.goto('/targove?q=TST00000086000001')
+ // Role locators exclude hidden streamed copies and still reject duplicate accessible forms.
+ const search = page.getByRole('form',{name:'Търсене по номер',exact:true})
+ await expect(search).toHaveCount(1)
+ await expect(search).toBeVisible()
+ await expect(search).toHaveAttribute('action','/targove')
+ await expect(search.locator('input[name=q]')).toHaveValue('TST00000086000001')
+ const lookupError = page.getByRole('alert').and(page.locator('.form-error'))
+ await expect(lookupError).toBeVisible()
+ await expect(lookupError).toContainText('Не намерихме съответстваща обява')
+})
+
+test('expired active lot 72239476 goes to archive without being falsely labelled sold',async({page})=>{
+ await page.goto('/targove?make=BMW')
+ await expect(page.locator('.auction-card:visible a[href*="lot=72239476"]')).toHaveCount(0)
+ await page.goto('/targove/kola?lot=72239476&site=1')
+ await expect(page.getByRole('status').filter({hasText:/^Търгът е минал$/})).toBeVisible()
+ await expect(page.locator('.detail-summary')).toContainText('Резултатът от продажбата не е потвърден')
+ await expect(page.locator('.auction-buy-now')).toHaveCount(0)
+ await expect(page.locator('.auction-schedule')).toHaveCount(0)
+ await expect(page.locator('.detail-summary')).not.toContainText('Текущ залог')
+})
+
+test('BMW-only search skips dense expired imports while keeping undated listings and clean filter URLs',async({page,request})=>{
+ await request.post('http://127.0.0.1:3199/test-expired-backfill?enabled=true')
+ try {
+  await page.goto('/targove?make=BMW&model=&year_from=1901&year_to=&site=1%2C2&status=&fuel=&seller=')
+  await expect(page.locator('.auction-card:visible')).toHaveCount(24)
+  await expect(page.locator('.empty-state')).toHaveCount(0)
+  const ids=await page.locator('.auction-card-link').evaluateAll(links=>links.map(link=>link.getAttribute('href')))
+  await page.getByRole('link',{name:'Следваща',exact:true}).click()
+  await expect(page.locator('.auction-card:visible')).toHaveCount(8)
+  const second=await page.locator('.auction-card-link').evaluateAll(links=>links.map(link=>link.getAttribute('href')))
+  expect(new Set([...ids,...second]).size).toBe(32)
+  expect([...ids,...second].some(link=>link?.includes('lot=89000000'))).toBe(true)
+  expect([...ids,...second].some(link=>link?.includes('lot=89000001'))).toBe(true)
+  const form=page.getByRole('form',{name:'Филтри за автомобили'})
+  await form.locator('[name=year_from]').selectOption('')
+  await form.locator('summary').click()
+  await form.locator('[name=status]').selectOption('Run & Drive')
+  await form.locator('[name=seller_type]').selectOption('dealer')
+  await form.getByRole('button',{name:'Намери автомобил'}).click()
+  await expect(page.locator('.auction-card:visible')).toHaveCount(2)
+  const params=new URL(page.url()).searchParams
+  expect(Object.fromEntries(params)).toEqual({make:'BMW',status:'Run & Drive',seller_type:'dealer'})
+  expect(params.getAll('status')).toEqual(['Run & Drive'])
+  await page.getByRole('link',{name:'Изчисти всички',exact:true}).click()
+  await expect(page).toHaveURL('http://localhost:3100/targove')
+ } finally {await request.post('http://127.0.0.1:3199/test-expired-backfill?enabled=false')}
+})
+
+for(const width of [1280,390]){
+ test('grouped BMW selector includes all variants across auctions at width '+width,async({page,request})=>{
+  await request.post('http://127.0.0.1:3199/test-model-families?enabled=true')
+  // This fixture enables new lots mid-suite; the real category directory is cached for an hour.
+  // Seed this browser's directory while still exercising real grouped search and pagination.
+  await page.route('**/api/auction-models?*', route => route.fulfill({contentType:'application/json',body:JSON.stringify({models:['3 SERIES','4 SERIES','X5']})}))
+  try{
+   await page.setViewportSize({width,height:900})
+   await page.goto('/targove?make=BMW')
+   if(width<900)await page.getByRole('button',{name:/^Филтри/}).click()
+   const form=page.getByRole('form',{name:'Филтри за автомобили'})
+   const model=form.locator('select[name=model]')
+   await expect(model.locator('option[value="3 SERIES"]')).toHaveCount(1)
+   await expect(model.locator('option[value="328I"]')).toHaveCount(0)
+   await expect(model.locator('option[value="M340I"]')).toHaveCount(0)
+   await model.selectOption('3 SERIES')
+   await form.getByRole('button',{name:'Намери автомобил'}).click()
+   await expect(page.locator('.auction-card:visible')).toHaveCount(24)
+   expect(new URL(page.url()).searchParams.get('model')).toBe('3 SERIES')
+   await expect(page.locator('.auction-card:visible').filter({hasText:'BMW 4 SERIES'})).toHaveCount(0)
+   const first=await page.locator('.auction-card-link').evaluateAll(links=>links.map(link=>link.getAttribute('href')))
+   await page.getByRole('link',{name:'Следваща',exact:true}).click()
+   await expect(page.locator('.auction-card:visible')).toHaveCount(8)
+   const second=await page.locator('.auction-card-link').evaluateAll(links=>links.map(link=>link.getAttribute('href')))
+   expect(new Set([...first,...second]).size).toBe(32)
+   expect([...first,...second].some(href=>href?.includes('site=1'))).toBe(true)
+   expect([...first,...second].some(href=>href?.includes('site=2'))).toBe(true)
+   await page.goto('/targove?make=BMW&model=328I')
+   await expect(page.locator('.auction-card:visible')).toHaveCount(8)
+   await expect(page.locator('.auction-card:visible').first()).toContainText('BMW 328I')
+   await page.locator('.auction-card-link').first().click()
+   await expect(page.getByRole('heading',{level:1})).toContainText('BMW 328I')
+   await page.goto('/targove?make=BMW&model=3+SERIES')
+   await page.getByRole('link',{name:'Премахни филтър: BMW'}).click()
+   await expect(page).toHaveURL('http://localhost:3100/targove')
+  }finally{await request.post('http://127.0.0.1:3199/test-model-families?enabled=false')}
+ })
+}
+
+for(const width of [1280,390]){
+ test('sorting, category-dependent models and year dropdowns at width '+width,async({page,request})=>{
+  await request.post('http://127.0.0.1:3199/test-sort-examples?enabled=true')
+  try{
+   await page.setViewportSize({width,height:900})
+   // This fixture changes sale dates; keep keys separate from the earlier 1990–2001 cache-budget test.
+   await page.goto('/targove?make=BMW&model=X5&year_from='+ (width===1280?'2004':'2005') +'&pagenum=2')
+   await page.getByRole('combobox',{name:'Подреди по'}).selectOption('auction_soon')
+   await expect(page).toHaveURL(/sort=auction_soon$/)
+   await expect(page.locator('.auction-card:visible')).toHaveCount(24)
+   const first=await page.locator('.auction-card:visible time').evaluateAll(nodes=>nodes.map(n=>Date.parse(n.getAttribute('datetime')!)))
+   const ids=await page.locator('.auction-card:visible .auction-card-link').evaluateAll(nodes=>nodes.map(n=>n.getAttribute('href')))
+   expect(first.every((v,i)=>!i||v>=first[i-1])).toBe(true)
+   await page.getByRole('link',{name:'Следваща',exact:true}).click()
+   await expect(page).toHaveURL(/sort=auction_soon&pagenum=2/)
+   await expect(page.locator('.auction-card:visible')).toHaveCount(6)
+   const second=await page.locator('.auction-card:visible time').evaluateAll(nodes=>nodes.map(n=>Date.parse(n.getAttribute('datetime')!)))
+   expect(second[0]).toBeGreaterThanOrEqual(first.at(-1)!)
+   const more=await page.locator('.auction-card:visible .auction-card-link').evaluateAll(nodes=>nodes.map(n=>n.getAttribute('href')))
+   expect(new Set([...ids,...more]).size, JSON.stringify({ids,more})).toBe(30)
+   await expect(page.locator('.auction-card:visible').last()).toContainText('Очаква се дата')
+   if(width<900)await page.getByRole('button',{name:/^Филтри/}).click()
+   const form=page.getByRole('form',{name:'Филтри за автомобили'})
+   await form.getByLabel('Година от',{exact:true}).selectOption('2023')
+   await expect(form.getByLabel('Година до',{exact:true}).locator('option[value="2022"]')).toHaveJSProperty('disabled', true)
+   await form.getByLabel('Година до',{exact:true}).selectOption('2024')
+   await form.getByRole('button',{name:'Намери автомобил'}).click()
+   await expect(page).toHaveURL(/year_from=2023&year_to=2024&sort=auction_soon$/)
+   await expect(page.getByRole('combobox',{name:'Подреди по'})).toHaveValue('auction_soon')
+   await page.goto('/targove/motori-atv?sort=auction_soon')
+   if(width<900)await page.getByRole('button',{name:/^Филтри/}).click()
+   const motoForm=page.getByRole('form',{name:'Филтри за мотори и ATV'})
+   await motoForm.getByLabel('Вид превозно средство').selectOption('Motorcycle')
+   await expect(motoForm.locator('[name=make]')).toHaveValue('')
+   await expect(motoForm.locator('[name=model]')).toBeDisabled()
+   await expect(motoForm.locator('[name=make] option[value="Ford"]')).toHaveCount(0)
+   await motoForm.locator('[name=make]').selectOption('Honda')
+   await expect(motoForm.locator('[name=model] option[value="CBR600RR"]')).toHaveCount(1)
+   await expect(motoForm.locator('[name=model] option[value="X5"]')).toHaveCount(0)
+   await motoForm.locator('[name=model]').selectOption('CBR600RR')
+   await motoForm.getByLabel('Година от',{exact:true}).selectOption('')
+   await motoForm.getByLabel('Година до',{exact:true}).selectOption('')
+   await motoForm.getByRole('button',{name:'Намери мотор / ATV'}).click()
+   await expect(page).toHaveURL(/vehicle_type=Motorcycle&sort=auction_soon$/)
+   await expect(page.locator('.auction-card:visible')).toHaveCount(1)
+   await expect(page.locator('.auction-card:visible')).toContainText('Honda CBR600RR')
+   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true)
+   await page.screenshot({path:'test-results/sorting-category-'+width+'.png',fullPage:true})
+  } finally {await request.post('http://127.0.0.1:3199/test-sort-examples?enabled=false').catch(()=>undefined)}
+ })
+}
+
+
+// The category path must constrain API results even after clear, sort and archive navigation.
+for (const width of [1280,390]) {
+ test('separate powersports catalogue, navigation and responsive field rows at width '+width,async({page,request})=>{
+  await page.setViewportSize({width,height:900})
+  await page.goto('/targove/motori-atv')
+  await expect(page.getByRole('heading',{level:1})).toHaveText('Търгове за мотори и ATV от Америка')
+  await expect(page.locator('.auction-card:visible')).toHaveCount(3)
+  await expect(page.locator('.auction-card:visible').filter({hasText:'BMW X5'})).toHaveCount(0)
+  await expect(page.locator('link[rel=canonical]')).toHaveAttribute('href','http://localhost:3100/targove/motori-atv')
+  await expect(page.locator('meta[name=robots]')).toHaveAttribute('content','noindex, nofollow')
+  if(width<900)await page.getByRole('button',{name:/^Филтри/}).click()
+  const form=page.getByRole('form',{name:'Филтри за мотори и ATV'})
+  expect(await form.locator('[name=vehicle_type] option').allTextContents()).toEqual(['Мотори и ATV / UTV','Мотори','ATV / UTV'])
+  await expect(form.locator('[name=make] option[value=Ford]')).toHaveCount(0)
+  const model=await form.locator('select[name=model]').boundingBox()
+  const from=await form.locator('[name=year_from]').boundingBox()
+  const to=await form.locator('[name=year_to]').boundingBox()
+  expect(model!.width).toBeGreaterThan(from!.width*1.9)
+  expect(from!.y).toBe(to!.y)
+  expect(from!.y).toBeGreaterThan(model!.y)
+  await form.locator('[name=vehicle_type]').selectOption('ATVUTV')
+  await form.locator('[name=make]').selectOption('POLARIS')
+  await expect(form.locator('[name=model] option[value="SPORTSMAN 570"]')).toHaveCount(1)
+  await form.getByRole('button',{name:'Намери мотор / ATV'}).click()
+  await expect(page.locator('.auction-card:visible')).toHaveCount(1)
+  expect(new URL(page.url()).pathname).toBe('/targove/motori-atv')
+  await page.getByRole('link',{name:'Изчисти всички',exact:true}).click()
+  await expect(page).toHaveURL('http://localhost:3100/targove/motori-atv')
+  await expect(page.locator('.auction-card:visible')).toHaveCount(3)
+  await page.getByRole('combobox',{name:'Подреди по'}).selectOption('auction_soon')
+  await expect(page).toHaveURL('http://localhost:3100/targove/motori-atv?sort=auction_soon')
+  await expect(page.locator('.auction-card:visible')).toHaveCount(3)
+  await page.locator('.auction-card:visible').filter({hasText:'Honda CBR600RR'}).locator('.auction-card-link').click()
+  await expect(page.locator('.back-link')).toHaveAttribute('href','/targove/motori-atv')
+  await page.locator('.back-link').click()
+  await page.getByRole('navigation',{name:'Активни и архивни автомобили'}).getByRole('link',{name:'Архив',exact:true}).click()
+  await expect(page).toHaveURL('http://localhost:3100/targove/motori-atv/arhiv')
+  await expect(page.locator('.auction-card:visible')).toHaveCount(0)
+  await page.goto('/targove?vehicle_type=Motorcycle&make=Honda&sort=year_desc')
+  await expect(page).toHaveURL(/targove\/motori-atv\?vehicle_type=Motorcycle&make=Honda&sort=year_desc/)
+  await expect(page.locator('.auction-card:visible')).toHaveCount(1)
+  await page.goto('/targove/motori-atv?vehicle_type=Automobile&make=Ford')
+  await expect(page).toHaveURL('http://localhost:3100/targove?make=Ford')
+  await expect(page.locator('.auction-card:visible')).toContainText('Ford Mustang')
+  if(width<900)await page.getByRole('button',{name:'Отвори менюто',exact:true}).click()
+  await page.getByRole('navigation',{name:'Основна навигация'}).getByRole('button',{name:'Търгове',exact:true}).click()
+  await page.getByRole('link',{name:'Търгове за мотори и ATV',exact:true}).click()
+  await expect(page).toHaveURL('http://localhost:3100/targove/motori-atv')
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true)
+ })
+}
+
+for(const width of [1280,390]){
+ test('merged makes retain alias models, pagination and old links at width '+width,async({page,request})=>{
+  await request.post('http://127.0.0.1:3199/test-make-aliases?enabled=true')
+  try{
+   await page.setViewportSize({width,height:900})
+   await page.goto('/targove?make=MERCEDES+BENZ&model=C-CLASS')
+   await expect(page.locator('.auction-card:visible')).toHaveCount(24)
+   if(width<900)await page.getByRole('button',{name:/^Филтри/}).click()
+   const form=page.getByRole('form',{name:'Филтри за автомобили'})
+   await expect(form.locator('[name=make]')).toHaveValue('MERCEDES-BENZ')
+   const options=await form.locator('[name=make] option').allTextContents()
+   expect(options.filter(name=>name.startsWith('MERCEDES'))).toEqual(['MERCEDES-BENZ'])
+   expect(options.filter(name=>name.startsWith('ROLLS'))).toEqual(['ROLLS-ROYCE'])
+   await expect(form.locator('[name=model] option[value="C-CLASS"]')).toHaveCount(1)
+   await expect(form.locator('[name=model]')).toBeEnabled()
+   await form.getByRole('button',{name:'Намери автомобил'}).click()
+   await expect(page).toHaveURL(/make=MERCEDES-BENZ&model=C-CLASS$/)
+   await expect(page.locator('.auction-card:visible')).toHaveCount(24)
+   const first=await page.locator('.auction-card:visible .auction-card-link').evaluateAll(nodes=>nodes.map(n=>n.getAttribute('href')))
+   await page.getByRole('link',{name:'Следваща',exact:true}).click()
+   await expect(page.locator('.auction-card:visible')).toHaveCount(12)
+   const second=await page.locator('.auction-card:visible .auction-card-link').evaluateAll(nodes=>nodes.map(n=>n.getAttribute('href')))
+   expect(new Set([...first,...second]).size).toBe(36)
+   const oldModels=await request.get('/api/auction-models?make=MERCEDES&vehicle_type=Automobile')
+   expect(oldModels.status()).toBe(200)
+   expect((await oldModels.json()).models).toEqual(['C-CLASS'])
+  } finally {await request.post('http://127.0.0.1:3199/test-make-aliases?enabled=false')}
+ })
+}
+
+// Capture DOM mutations before navigation starts. Evaluating the old document
+// from a held document-request callback deadlocks Playwright's navigation context.
+async function observePending(page:Page, selector:string, key:string) {
+ await page.evaluate(({selector,key})=>{
+  sessionStorage.removeItem(key)
+  new MutationObserver(()=>{
+   const region=document.querySelector(selector)
+   const status=region?.querySelector('[role=status]')
+   if(region?.getAttribute('aria-busy')==='true' && status){
+    const control=region.querySelector('button[type=submit],select[name=sort]')
+    sessionStorage.setItem(key,JSON.stringify({text:status.textContent,disabled:control?.hasAttribute('disabled'),busy:'true'}))
+   }
+  }).observe(document.body,{subtree:true,childList:true,attributes:true})
+ },{selector,key})
+}
+for(const width of [1280,390]){
+ test('filter submission and model loading show progress at width '+width,async({page})=>{
+  await page.setViewportSize({width,height:900})
+  await page.goto('/targove?make=Ford')
+  if(width<900)await page.getByRole('button',{name:/^Филтри/}).click()
+  const form=page.getByRole('form',{name:'Филтри за автомобили'})
+  await page.route('**/api/auction-models?*',async route=>{
+   await new Promise(resolve=>setTimeout(resolve,800))
+   await route.continue()
+  })
+  await form.locator('[name=make]').selectOption('BMW')
+  await expect(form.getByRole('status').filter({hasText:'Зареждаме моделите…'})).toBeVisible()
+  await expect(form.locator('[name=model]')).toBeDisabled()
+  await expect(form.locator('[name=model]')).toBeEnabled()
+  await expect(form.locator('.model-loading')).toHaveCount(0)
+  await observePending(page,'.auction-filters','filter-pending')
+  await page.route('**/targove?*',async route=>{
+   if(route.request().isNavigationRequest())await new Promise(resolve=>setTimeout(resolve,650))
+   await route.continue()
+  })
+  await form.getByRole('button',{name:'Намери автомобил'}).click()
+  await expect(page.locator('.auction-card:visible')).toHaveCount(24)
+  expect(await page.evaluate(()=>JSON.parse(sessionStorage.getItem('filter-pending')||'null'))).toEqual({text:'Търсим…',disabled:true,busy:'true'})
+  await expect(page.getByRole('status').filter({hasText:'Търсим…'})).toHaveCount(0)
+  await page.goBack()
+  await expect(page.locator('.auction-card:visible')).toHaveCount(1)
+  if(width<900 && !await page.getByRole('dialog',{name:'Филтри за търговете'}).isVisible())await page.getByRole('button',{name:/^Филтри/}).click()
+  await expect(page.getByRole('button',{name:'Намери автомобил'})).toBeEnabled()
+ })
+ test('catalogue skeleton fits light/dark screens and respects reduced motion at width '+width,async({page})=>{
+  await page.setViewportSize({width,height:900})
+  await page.emulateMedia({reducedMotion:'reduce'})
+  await page.goto('/targove?make=Ford&year_from=1997&year_to='+ (width===1280?'2028':'2029'),{waitUntil:'commit'})
+  const skeleton=page.locator('.catalogue-loading')
+  await expect(skeleton).toBeVisible()
+  await expect(skeleton.locator('.loading-spinner')).toHaveCSS('animation-name','none')
+  await page.evaluate(()=>document.documentElement.dataset.theme='dark')
+  expect(await skeleton.evaluate(el=>el.getBoundingClientRect().right<=innerWidth)).toBe(true)
+  await page.screenshot({path:'test-results/catalogue-loading-'+width+'.png'})
+  await expect(page.locator('.auction-card:visible')).toHaveCount(1)
+  await expect(skeleton).toHaveCount(0)
+ })
+}
+test('sorting and lot lookup report progress then remove it on completion',async({page})=>{
+ await page.goto('/targove?make=Ford')
+ await observePending(page,'.auction-sort','sort-pending')
+ await page.route('**/targove?*',async route=>{
+  if(route.request().isNavigationRequest())await new Promise(resolve=>setTimeout(resolve,650))
+  await route.continue()
+ })
+ await page.getByRole('combobox',{name:'Подреди по'}).selectOption('auction_soon')
+ await expect(page).toHaveURL(/sort=auction_soon$/)
+ await expect(page.locator('.auction-sort select')).toBeEnabled()
+ expect(await page.evaluate(()=>JSON.parse(sessionStorage.getItem('sort-pending')||'null'))).toEqual({text:'Подреждаме резултатите…',disabled:true,busy:'true'})
+ await observePending(page,'.lot-search','lot-pending')
+ const form=page.getByRole('form',{name:'Търсене по номер'})
+ await form.locator('[name=q]').fill('70000000')
+ await form.getByRole('button',{name:'Намери',exact:true}).click()
+ await expect(page).toHaveURL(/targove\/kola\?lot=70000000&site=1/)
+ await expect(page.locator('.detail-summary h1')).toContainText('BMW X5')
+ expect(await page.evaluate(()=>JSON.parse(sessionStorage.getItem('lot-pending')||'null'))).toEqual({text:'Търсим…',disabled:true,busy:'true'})
+ await expect(page.getByRole('status').filter({hasText:'Търсим…'})).toHaveCount(0)
+})
+
+for (const width of [1600,390]) {
+ test('homepage search keeps its geometry while models and results load at width '+width,async({page})=>{
+  await page.setViewportSize({width,height:1000})
+  await page.goto('/')
+  const finder=page.getByRole('form',{name:'Намери автомобил',exact:true})
+  await expect(finder).toBeVisible()
+  await page.evaluate(async()=>{await document.fonts.ready})
+  const geometry=()=>finder.evaluate(form=>[form,...form.querySelectorAll('select,button[type=submit]')].map(el=>{
+   const r=el.getBoundingClientRect()
+   return {x:r.x+scrollX,y:r.y+scrollY,width:r.width,height:r.height}
+  }))
+  const stable=(actual:Awaited<ReturnType<typeof geometry>>,expected:Awaited<ReturnType<typeof geometry>>)=>{
+   expect(actual.length).toBe(expected.length)
+   actual.forEach((box,i)=>Object.entries(box).forEach(([key,value])=>{
+    expect(Math.abs(value-expected[i][key as keyof typeof box])).toBeLessThan(1)
+   }))
+  }
+  await page.route('**/api/auction-models?*',async route=>{
+   await new Promise(resolve=>setTimeout(resolve,2000))
+   await route.continue()
+  })
+  const before=await geometry()
+  await finder.locator('[name=make]').selectOption('BMW')
+  await expect(finder.locator('.model-loading .loading-spinner')).toBeVisible()
+  stable(await geometry(),before)
+  const spinner=await finder.locator('.model-loading').boundingBox()
+  const model=await finder.locator('[name=model]').boundingBox()
+  expect(spinner!.y).toBeGreaterThan(model!.y)
+  expect(spinner!.y+spinner!.height).toBeLessThan(model!.y+model!.height)
+  await expect(finder.locator('[name=model]')).toBeEnabled()
+  stable(await geometry(),before)
+  await finder.evaluate(form=>{
+   const boxes=()=>[form,...form.querySelectorAll('select,button[type=submit]')].map(el=>{
+    const r=el.getBoundingClientRect()
+    return {x:r.x+scrollX,y:r.y+scrollY,width:r.width,height:r.height}
+   })
+   sessionStorage.removeItem('finder-pending-geometry')
+   new MutationObserver(()=>{
+    if(form.getAttribute('aria-busy')==='true')sessionStorage.setItem('finder-pending-geometry',JSON.stringify(boxes()))
+   }).observe(form,{subtree:true,attributes:true,childList:true})
+  })
+  const ready=await geometry()
+  await finder.getByRole('button',{name:'Разгледай',exact:true}).click()
+  await expect(page).toHaveURL(/targove\?make=BMW$/)
+  await expect(page.locator('.auction-card:visible')).toHaveCount(24)
+  const pending=await page.evaluate(()=>JSON.parse(sessionStorage.getItem('finder-pending-geometry')||'null'))
+  expect(pending).not.toBeNull()
+  stable(pending,ready)
+ })
+}
+
+for(const width of [1280,390]){
+ test('cylinder filter persists through pagination and sort and clears independently at width '+width,async({page})=>{
+  await page.setViewportSize({width,height:900})
+  await page.goto('/targove?make=BMW')
+  if(width<900)await page.getByRole('button',{name:/^Филтри/}).click()
+  let form=page.getByRole('form',{name:'Филтри за автомобили'})
+  await form.locator('.filter-advanced summary').click()
+  await form.getByLabel('Цилиндри',{exact:true}).selectOption('6')
+  await form.getByRole('button',{name:'Намери автомобил'}).click()
+  await expect(page).toHaveURL(/make=BMW&cylinders=6$/)
+  await expect(page.locator('.auction-card:visible')).toHaveCount(24)
+  await expect(page.getByRole('link',{name:'Премахни филтър: 6 цилиндъра',exact:true})).toBeVisible()
+  await page.getByRole('link',{name:'Следваща',exact:true}).click()
+  await expect(page).toHaveURL(/cylinders=6&pagenum=2$/)
+  await expect(page.locator('.auction-card:visible')).toHaveCount(3)
+  await page.getByRole('combobox',{name:'Подреди по'}).selectOption('auction_soon')
+  await expect(page).toHaveURL(/cylinders=6&sort=auction_soon$/)
+  await expect(page.locator('.auction-card:visible')).toHaveCount(24)
+  if(width<900)await page.getByRole('button',{name:/^Филтри/}).click()
+  form=page.getByRole('form',{name:'Филтри за автомобили'})
+  await expect(form.getByLabel('Цилиндри',{exact:true})).toHaveValue('6')
+  await form.getByLabel('Цилиндри',{exact:true}).selectOption('8')
+  await form.getByRole('button',{name:'Намери автомобил'}).click()
+  await expect(page.locator('.auction-card:visible')).toHaveCount(3)
+  await page.getByRole('link',{name:'Премахни филтър: 8 цилиндъра',exact:true}).click()
+  await expect(page).toHaveURL(/make=BMW&sort=auction_soon$/)
+  await expect(page.locator('.auction-card:visible')).toHaveCount(24)
+  await page.goto('/targove/motori-atv?cylinders=1')
+  await expect(page.locator('.auction-card:visible')).toHaveCount(1)
+  await expect(page.locator('.auction-card:visible')).toContainText('Polaris')
+  if(width<900)await page.getByRole('button',{name:/^Филтри/}).click()
+  await expect(page.getByRole('form',{name:'Филтри за мотори и ATV'}).getByLabel('Цилиндри',{exact:true})).toHaveValue('1')
+ })
+}
+
+for(const width of [1280,390]){
+ test('detail hints retain semantic colours and work with pointer and keyboard at width '+width,async({page})=>{
+  await page.setViewportSize({width,height:900})
+  await page.goto('/targove/kola?lot=70000006&site=1')
+  const hints=[
+   {label:'Run & Drive',tone:'good',text:'Това не е гаранция'},
+   {label:'Certificate of Title GA',tone:'good',text:'Това не удостоверява'},
+   {label:'Частно лице',tone:'warn',text:'без посочено име'},
+  ]
+  for(const theme of ['light','dark']){
+   await page.evaluate(value=>document.documentElement.dataset.theme=value,theme)
+   for(const hint of hints){
+    const trigger=page.getByRole('button',{name:'Пояснение: '+hint.label,exact:true})
+    await expect(trigger).toHaveClass(new RegExp('hint-'+hint.tone))
+    await trigger.click()
+    const tip=page.getByRole('tooltip')
+    await expect(tip).toContainText(hint.text)
+    expect(await tip.evaluate(el=>{const r=el.getBoundingClientRect();return r.left>=0&&r.right<=innerWidth})).toBe(true)
+    await page.keyboard.press('Escape')
+    await expect(tip).toHaveCount(0)
+   }
+  }
+  const run=page.getByRole('button',{name:'Пояснение: Run & Drive',exact:true})
+  await run.blur()
+  await run.focus()
+  await expect(page.getByRole('tooltip')).toContainText('Това не е гаранция')
+  await page.keyboard.press('Escape')
+  await page.goto('/targove/kola?lot=70000001&site=1')
+  const price=page.locator('.detail-summary .auction-buy-now')
+  await expect(price).toBeVisible()
+  await expect(price).toContainText('Купи сега (Buy Now)')
+  await expect(price.locator('strong')).toHaveCSS('font-size','34px')
+  expect(await price.evaluate(el=>{const r=el.getBoundingClientRect();return r.right<=innerWidth})).toBe(true)
+ })
+}
+
+test('nearest auction is the default across pages and powersports without a sort query',async({page,request})=>{
+ await request.post('http://127.0.0.1:3199/test-sort-examples?enabled=true')
+ try{
+  await page.goto('/targove?make=BMW&model=X5&year_from=2006')
+  await expect(page.getByRole('combobox',{name:'Подреди по'})).toHaveValue('auction_soon')
+  await expect(page.locator('select[name=sort] option')).toHaveCount(5)
+  const first=await page.locator('.auction-card:visible time').evaluateAll(nodes=>nodes.map(n=>Date.parse(n.getAttribute('datetime')!)))
+  expect(first.length).toBe(24)
+  expect(first.every((v,i)=>!i||v>=first[i-1])).toBe(true)
+  const ids=await page.locator('.auction-card:visible .auction-card-link').evaluateAll(nodes=>nodes.map(n=>n.getAttribute('href')))
+  await page.getByRole('link',{name:'Следваща',exact:true}).click()
+  await expect(page).toHaveURL(/pagenum=2/)
+  await expect(page.locator('.auction-card:visible')).toHaveCount(6)
+  const second=await page.locator('.auction-card:visible time').evaluateAll(nodes=>nodes.map(n=>Date.parse(n.getAttribute('datetime')!)))
+  expect(second[0]).toBeGreaterThanOrEqual(first.at(-1)!)
+  await expect(page.locator('.auction-card:visible').last()).toContainText('Очаква се дата')
+  const more=await page.locator('.auction-card:visible .auction-card-link').evaluateAll(nodes=>nodes.map(n=>n.getAttribute('href')))
+  expect(new Set([...ids,...more]).size, JSON.stringify({ids,more})).toBe(30)
+  await page.goto('/targove/motori-atv')
+  await expect(page.getByRole('combobox',{name:'Подреди по'})).toHaveValue('auction_soon')
+ }finally{await request.post('http://127.0.0.1:3199/test-sort-examples?enabled=false')}
+})
+
+for (const width of [390, 1280]) {
+ test('vehicle detail save controls stay visible and persist guest choices at width ' + width, async ({ page }) => {
+  await page.setViewportSize({ width, height: 900 })
+  await page.goto('/targove/kola?lot=70000000&site=1')
+  const gallery = page.locator('.vehicle-gallery-stage>.save-control button')
+  const detail = page.locator('.detail-summary .save-control-detail button')
+  await expect(gallery).toBeEnabled()
+  await expect(detail).toHaveText('Запази автомобила')
+  const bounds = await gallery.boundingBox()
+  const stage = await page.locator('.vehicle-gallery-stage').boundingBox()
+  expect(bounds).toBeTruthy()
+  expect(stage).toBeTruthy()
+  expect(bounds!.width).toBeGreaterThanOrEqual(44)
+  expect(bounds!.x).toBeGreaterThanOrEqual(stage!.x)
+  expect(bounds!.y).toBeGreaterThanOrEqual(stage!.y)
+  expect(bounds!.x + bounds!.width).toBeLessThanOrEqual(stage!.x + stage!.width)
+  expect(bounds!.y + bounds!.height).toBeLessThanOrEqual(stage!.y + stage!.height)
+  await gallery.click()
+  await expect(detail).toHaveAttribute('aria-pressed', 'true')
+  await expect(detail).toHaveText('Премахни от запазените')
+  await page.reload()
+  await expect(detail).toHaveAttribute('aria-pressed', 'true')
+  await page.goto('/targove/zapazeni')
+  await expect(page.locator('a[href="/targove/kola?lot=70000000&site=1"]').first()).toBeVisible()
+  await page.goto('/targove/kola?lot=70000000&site=1')
+  await detail.click()
+  await expect(gallery).toHaveAttribute('aria-pressed', 'false')
+  await expect(detail).toHaveText('Запази автомобила')
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
+ })
+}
+test('vehicle detail save controls use the signed-in account', async ({ page }) => {
+ const email = 'detail-save-' + Date.now() + '@example.test'
+ const register = await page.request.post('/api/account/register', {
+  headers: { origin: 'http://localhost:3100' },
+  data: { name: 'Detail Save Test', email, password: 'Fixture-only-' + Date.now(), consent: true },
+ })
+ expect(register.status()).toBe(200)
+ await page.goto('/targove/kola?lot=70000000&site=1')
+ const detail = page.locator('.detail-summary .save-control-detail button')
+ await expect(detail).toBeEnabled()
+ await detail.click()
+ await expect(detail).toHaveAttribute('aria-pressed', 'true')
+ const session = await (await page.request.get('/api/account')).json()
+ expect(session.saved).toEqual(expect.arrayContaining([expect.objectContaining({ kind: 'auction', lot: '70000000', site: '1' })]))
+ await page.reload()
+ await expect(detail).toHaveAttribute('aria-pressed', 'true')
+ await detail.click()
+ await expect(detail).toHaveAttribute('aria-pressed', 'false')
+ expect((await (await page.request.get('/api/account')).json()).saved).toEqual([])
 })

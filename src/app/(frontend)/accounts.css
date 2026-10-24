@@ -3,3 +3,12 @@
 @media(max-width:700px){.account-section,.profile-grid{grid-template-columns:1fr;gap:30px}.account-section{padding-top:38px;padding-bottom:55px}.account-panel{padding:22px}.account-intro h1{font-size:2.5rem}.account-nav{margin-left:auto}.inquiry-history{padding:18px}}
 
 .auction-card>.save-control,.saved-item>.save-control{position:absolute;top:12px;right:12px;z-index:3}.section{padding-block:55px 85px}
+
+/* Gallery actions must overlay the image rather than flow below its clipped stage. */
+.vehicle-gallery-stage>.save-control,.detail-photo>.save-control{position:absolute;top:12px;right:12px;z-index:3}
+.vehicle-gallery-stage>.save-control .save-auction,.detail-photo>.save-control .save-auction{width:44px;height:44px}
+.save-control-detail{display:flex;width:100%;margin:16px 0}
+.save-control-detail .save-detail-button{width:100%;min-height:48px;gap:10px;white-space:normal;text-align:center}
+.save-control-detail .save-detail-button svg{flex-shrink:0}
+.save-control-detail .save-detail-button:disabled{opacity:.6;cursor:wait}
+.save-control-detail .save-error{left:0;right:auto;max-width:100%}
