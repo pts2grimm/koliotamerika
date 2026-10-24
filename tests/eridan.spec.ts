@@ -898,6 +898,10 @@ for (const width of [390, 1280]) {
  })
 }
 test('vehicle detail save controls use the signed-in account', async ({ page }) => {
+ const setup = await page.request.post('/api/users/first-register', {
+  data: { email: 'detail-save-admin@example.test', password: 'Fixture-admin-' + Date.now() },
+ })
+ expect([200, 403]).toContain(setup.status())
  const email = 'detail-save-' + Date.now() + '@example.test'
  const register = await page.request.post('/api/account/register', {
   headers: { origin: 'http://localhost:3100' },
