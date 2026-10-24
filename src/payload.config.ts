@@ -43,6 +43,7 @@ export default buildConfig({
     components: {
       beforeNavLinks: ['/src/components/admin/ContentNav#ContentNav'],
       views: {
+        social: { Component: '/src/components/admin/SocialView#SocialView', path: '/social', exact: true, meta: { title: 'Facebook публикации' } },
         databaseTraffic: { Component: '/src/components/admin/DatabaseTrafficView#DatabaseTrafficView', path: '/database-traffic', exact: true, meta: { title: 'Трафик на базата' } },
         catalogActivity: { Component: '/src/components/admin/CatalogActivityView#CatalogActivityView', path: '/catalog-activity', exact: true, meta: { title: 'API лог — каталог' } },
         dashboard: { Component: '/src/components/admin/Overview#Overview', meta: { title: 'Обзор и аналитика' } },

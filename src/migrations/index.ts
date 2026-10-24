@@ -1,3 +1,4 @@
+import * as social from './20261024_150000_social'
 import * as invoices from './20261020_190000_invoices'
 import * as catalogGuard from './20261018_230000_catalog_guard'
 import * as catalogRequestDetails from './20261018_200000_catalog_request_details'
@@ -35,4 +36,5 @@ export const migrations = [
   { up: catalogRequestDetails.up, down: catalogRequestDetails.down, name: '20261018_200000_catalog_request_details' },
   { up: catalogGuard.up, down: catalogGuard.down, name: '20261018_230000_catalog_guard' },
   { up: invoices.up, down: invoices.down, name: '20261020_190000_invoices' },
+  {up:social.up,down:social.down,name:'20261024_150000_social'},
 ]

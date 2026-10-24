@@ -1,3 +1,4 @@
+import '../../components/admin/social.scss'
 import config from '@payload-config'
 import '@payloadcms/next/css'
 import '../../components/admin/content.scss'
