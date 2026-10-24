@@ -113,7 +113,7 @@ test('catalogue offers supported vehicle types and preserves saved motorcycle li
 })
 
 
-test('cards and galleries use full images, and missing bids stay distinct from zero and other prices', async ({page})=>{
+test('cards and galleries use full images and missing card bids display zero without substituting other prices', async ({page})=>{
  const thumbnails: string[] = []
  page.on('request', req => { if(req.url().includes('test-gallery-thumb')) thumbnails.push(req.url()) })
  await page.goto('/targove?make=BMW&model=X5&site=1')
@@ -122,7 +122,7 @@ test('cards and galleries use full images, and missing bids stay distinct from z
  await card.scrollIntoViewIfNeeded()
  await expect.poll(()=>card.locator('.card-photo-link img').evaluate((img:HTMLImageElement)=>img.naturalWidth)).toBeGreaterThanOrEqual(1000)
  expect(thumbnails).toEqual([])
- await expect(card.locator('.auction-price-row')).toContainText('Не е предоставен')
+ await expect(card.locator('.auction-price-row')).toContainText('0 $')
  await expect(card.locator('.auction-price-row')).not.toContainText('9 999')
  await card.getByRole('button',{name:'Следваща снимка в обявата'}).click()
  await expect(card.locator('.card-photo-link img')).toHaveAttribute('src',/test-gallery-2/)
@@ -864,4 +864,60 @@ test('nearest auction is the default across pages and powersports without a sort
   await page.goto('/targove/motori-atv')
   await expect(page.getByRole('combobox',{name:'Подреди по'})).toHaveValue('auction_soon')
  }finally{await request.post('http://127.0.0.1:3199/test-sort-examples?enabled=false')}
+})
+
+for (const width of [390, 1280]) {
+ test('vehicle detail save controls stay visible and persist guest choices at width ' + width, async ({ page }) => {
+  await page.setViewportSize({ width, height: 900 })
+  await page.goto('/targove/kola?lot=70000000&site=1')
+  const gallery = page.locator('.vehicle-gallery-stage>.save-control button')
+  const detail = page.locator('.detail-summary .save-control-detail button')
+  await expect(gallery).toBeEnabled()
+  await expect(detail).toHaveText('Запази автомобила')
+  const bounds = await gallery.boundingBox()
+  const stage = await page.locator('.vehicle-gallery-stage').boundingBox()
+  expect(bounds).toBeTruthy()
+  expect(stage).toBeTruthy()
+  expect(bounds!.width).toBeGreaterThanOrEqual(44)
+  expect(bounds!.x).toBeGreaterThanOrEqual(stage!.x)
+  expect(bounds!.y).toBeGreaterThanOrEqual(stage!.y)
+  expect(bounds!.x + bounds!.width).toBeLessThanOrEqual(stage!.x + stage!.width)
+  expect(bounds!.y + bounds!.height).toBeLessThanOrEqual(stage!.y + stage!.height)
+  await gallery.click()
+  await expect(detail).toHaveAttribute('aria-pressed', 'true')
+  await expect(detail).toHaveText('Премахни от запазените')
+  await page.reload()
+  await expect(detail).toHaveAttribute('aria-pressed', 'true')
+  await page.goto('/targove/zapazeni')
+  await expect(page.locator('a[href="/targove/kola?lot=70000000&site=1"]').first()).toBeVisible()
+  await page.goto('/targove/kola?lot=70000000&site=1')
+  await detail.click()
+  await expect(gallery).toHaveAttribute('aria-pressed', 'false')
+  await expect(detail).toHaveText('Запази автомобила')
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
+ })
+}
+test('vehicle detail save controls use the signed-in account', async ({ page }) => {
+ const setup = await page.request.post('/api/users/first-register', {
+  data: { email: 'detail-save-admin@example.test', password: 'Fixture-admin-' + Date.now() },
+ })
+ expect([200, 403]).toContain(setup.status())
+ const email = 'detail-save-' + Date.now() + '@example.test'
+ const register = await page.request.post('/api/account/register', {
+  headers: { origin: 'http://localhost:3100' },
+  data: { name: 'Detail Save Test', email, password: 'Fixture-only-' + Date.now(), consent: true },
+ })
+ expect(register.status()).toBe(200)
+ await page.goto('/targove/kola?lot=70000000&site=1')
+ const detail = page.locator('.detail-summary .save-control-detail button')
+ await expect(detail).toBeEnabled()
+ await detail.click()
+ await expect(detail).toHaveAttribute('aria-pressed', 'true')
+ const session = await (await page.request.get('/api/account')).json()
+ expect(session.saved).toEqual(expect.arrayContaining([expect.objectContaining({ kind: 'auction', lot: '70000000', site: '1' })]))
+ await page.reload()
+ await expect(detail).toHaveAttribute('aria-pressed', 'true')
+ await detail.click()
+ await expect(detail).toHaveAttribute('aria-pressed', 'false')
+ expect((await (await page.request.get('/api/account')).json()).saved).toEqual([])
 })
