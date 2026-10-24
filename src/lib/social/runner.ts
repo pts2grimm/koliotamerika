@@ -29,6 +29,11 @@ export async function runSocial(payload:Payload,now=Date.now()){
   if(post.page_id!==meta.pageId){await finish(payload,post.id,'failed','PAGE_CHANGED');continue}
   if(now-Date.parse(post.scheduled_at)>30*60000){await finish(payload,post.id,'failed','MISSED_WINDOW');continue}
   try{await validateSource(payload,post)}catch{await finish(payload,post.id,'failed','SOURCE_UNAVAILABLE');continue}
+  const latest=(await readSettings(payload)).settings
+  if(!latest.enabled||latest.verifiedPageId!==meta.pageId){
+   await db.run(q("UPDATE social_posts SET status='scheduled',started_at='',revision=revision+1 WHERE id=? AND status='publishing'",[post.id]))
+   break
+  }
   const result=await publishPage(meta,post.message,post.link)
   await finish(payload,post.id,result.status,result.code||'',result.id||'')
   if(result.status==='published')sent++

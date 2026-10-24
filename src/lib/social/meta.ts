@@ -1,6 +1,6 @@
 import { SocialError } from './validation'
 export type MetaConfig={pageId:string;token:string;version:string}
-export function metaConfig(env:NodeJS.ProcessEnv=process.env):MetaConfig|null {
+export function metaConfig(env:Partial<NodeJS.ProcessEnv>=process.env):MetaConfig|null {
  const pageId=env.FACEBOOK_PAGE_ID||'',token=env.FACEBOOK_PAGE_ACCESS_TOKEN||'',version=env.FACEBOOK_GRAPH_VERSION||'v26.0'
  if(!/^\d{5,30}$/.test(pageId)||!token||!/^v\d{1,3}\.\d{1,2}$/.test(version))return null
  return {pageId,token,version}

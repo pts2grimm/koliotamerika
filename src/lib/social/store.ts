@@ -12,8 +12,12 @@ export function q(statement:string,values:unknown[]=[]){
 const stamp=()=>new Date().toISOString()
 export async function readSettings(payload:Payload) {
  const db=database(payload)
- await db.run(q('INSERT INTO social_settings(id,config) VALUES(1,?) ON CONFLICT(id) DO NOTHING',[JSON.stringify(defaultSettings)]))
- const [row]=await db.all<{config:string;revision:number;last_prepared:string;last_tick:string}>(q('SELECT config,revision,last_prepared,last_tick FROM social_settings WHERE id=1'))
+ type Row={config:string;revision:number;last_prepared:string;last_tick:string}
+ let [row]=await db.all<Row>(q('SELECT config,revision,last_prepared,last_tick FROM social_settings WHERE id=1'))
+ if(!row){
+  await db.run(q('INSERT INTO social_settings(id,config) VALUES(1,?) ON CONFLICT(id) DO NOTHING',[JSON.stringify(defaultSettings)]))
+  ;[row]=await db.all<Row>(q('SELECT config,revision,last_prepared,last_tick FROM social_settings WHERE id=1'))
+ }
  return {...row,settings:{...defaultSettings,...JSON.parse(row.config)} as SocialSettings}
 }
 export async function writeSettings(payload:Payload,settings:SocialSettings,revision:number) {

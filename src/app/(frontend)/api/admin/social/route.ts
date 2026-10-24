@@ -29,7 +29,7 @@ export async function GET(request:Request){
   const {payload}=await admin(request),page=Number(new URL(request.url).searchParams.get('page')||1)
   if(!Number.isInteger(page)||page<1||page>167)throw new SocialError('Невалидна страница.')
   const state=await readSettings(payload),meta=metaConfig()
-  return json({...await listPosts(payload,page),settings:state.settings,settingsRevision:state.revision,lastTick:state.last_tick,articles:await articleOptions(payload),tips:starterTips,connection:{configured:!!meta,pageId:meta?.pageId||'',cronConfigured:!!process.env.SOCIAL_CRON_SECRET}})
+  return json({...await listPosts(payload,page),settings:state.settings,settingsRevision:state.revision,lastTick:state.last_tick,articles:await articleOptions(payload),tips:starterTips,connection:{configured:!!meta,pageId:meta?.pageId||'',cronConfigured:(process.env.SOCIAL_CRON_SECRET||'').length>=32}})
  }catch(error){return failure(error)}
 }
 export async function POST(request:Request){
@@ -39,7 +39,7 @@ export async function POST(request:Request){
   if(action==='settings'){
    const state=await readSettings(payload),settings=settingsInput(body.settings as Record<string,unknown>,state.settings)
    const meta=metaConfig()
-   if(settings.enabled&&(!meta||settings.verifiedPageId!==meta.pageId||!process.env.SOCIAL_CRON_SECRET))throw new SocialError('Първо свържи и провери страницата и настрой автоматичния график.')
+   if(settings.enabled&&(!meta||settings.verifiedPageId!==meta.pageId||(process.env.SOCIAL_CRON_SECRET||'').length<32))throw new SocialError('Първо свържи и провери страницата и настрой автоматичния график.')
    await writeSettings(payload,settings,Number(body.revision));return json({ok:true})
   }
   if(action==='verify'){
