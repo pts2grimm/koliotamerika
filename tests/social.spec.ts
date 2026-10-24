@@ -1,4 +1,5 @@
 import { test,expect } from '@playwright/test'
+test.afterEach(async({page},info)=>{if(info.status!==info.expectedStatus)console.log('SOCIAL_FIXTURE_UI',page.url(),await page.locator('body').innerText().catch(()=>''))})
 test('social panel protects admin operations and prepares editable drafts without posting',async({page,request,browser})=>{
  expect((await request.get('/api/admin/social')).status()).toBe(403)
  expect((await request.post('/api/cron/social')).status()).toBe(403)
