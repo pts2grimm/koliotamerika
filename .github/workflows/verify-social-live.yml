@@ -1,0 +1,41 @@
+name: Verify deployed social routes
+on:
+  push:
+    branches: [codex/verify-social-live-2026-10-24]
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Read public routes without credentials
+        shell: bash
+        run: |
+          node <<'NODE'
+          const base='https://koliotamerika.bg';
+          async function get(path, options={}) {
+            const r=await fetch(base+path,{...options,signal:AbortSignal.timeout(20000)});
+            return {status:r.status,cache:r.headers.get('cache-control'),text:await r.text()};
+          }
+          (async()=>{
+            for(let attempt=1;attempt<=16;attempt++) {
+              try {
+                const admin=await get('/api/admin/social');
+                const cron=await get('/api/cron/social',{method:'POST'});
+                const login=await get('/admin/login');
+                const css=[...login.text.matchAll(/href="([^"]+\.css[^"]*)"/g)].map(m=>m[1].replaceAll('&amp;','&'));
+                let marker=false;
+                for(const path of [...new Set(css)]) {
+                  if(!path.startsWith('/'))continue;
+                  const file=await get(path);
+                  if(file.text.includes('.koa-social__'))marker=true;
+                }
+                console.log(JSON.stringify({attempt,admin:admin.status,private:admin.cache,cron:cron.status,login:login.status,socialCss:marker}));
+                if(admin.status===403&&cron.status===403&&login.status===200&&marker&&admin.cache?.includes('no-store'))return;
+              } catch {console.log('Public route probe unavailable; retrying.');}
+              if(attempt<16)await new Promise(r=>setTimeout(r,30000));
+            }
+            process.exitCode=1;
+          })();
+          NODE
