@@ -1,3 +1,4 @@
+import { SEOAnalysis } from '../../../components/admin/SEOAnalysis'
 import { SocialView } from '../../../components/admin/SocialView'
 import { DatabaseTrafficView as DatabaseTrafficView_egress } from '../../../components/admin/DatabaseTrafficView'
 import { InvoiceDateField as InvoiceDateField_5ea0a05fdef4531ecd510e2f19df428d } from '../../../../src/components/admin/InvoiceControls'
@@ -46,6 +47,7 @@ import { CollectionCards as CollectionCards_f9c02e79a4aed9a3924487c0cd4cafb1 } f
 
 /** @type import('payload').ImportMap */
 export const importMap = {
+  "/src/components/admin/SEOAnalysis#SEOAnalysis": SEOAnalysis,
   "/src/components/admin/SocialView#SocialView": SocialView,
   "/src/components/admin/DatabaseTrafficView#DatabaseTrafficView": DatabaseTrafficView_egress,
   "/src/components/admin/InvoiceControls#InvoiceDateField": InvoiceDateField_5ea0a05fdef4531ecd510e2f19df428d,
