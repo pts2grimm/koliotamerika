@@ -1,0 +1,1 @@
+.home-live-status{position:fixed;bottom:12px;left:50%;transform:translateX(-50%);z-index:1000;max-width:calc(100% - 24px);width:max-content;padding:9px 14px;border:1px solid #31545d;border-radius:12px;background:#10242dee;color:#dceef2;font-size:12px;line-height:1.5;box-shadow:0 3px 18px #0004;pointer-events:none}.save-control{pointer-events:none;opacity:.65}
