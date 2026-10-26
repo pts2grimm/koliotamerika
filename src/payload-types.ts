@@ -113,12 +113,14 @@ export interface Config {
   };
   fallbackLocale: null;
   globals: {
+    homepage: Homepage;
     'invoice-settings': InvoiceSetting;
     'site-settings': SiteSetting;
     'calculator-settings': CalculatorSetting;
     integrations: Integration;
   };
   globalsSelect: {
+    homepage: HomepageSelect<false> | HomepageSelect<true>;
     'invoice-settings': InvoiceSettingsSelect<false> | InvoiceSettingsSelect<true>;
     'site-settings': SiteSettingsSelect<false> | SiteSettingsSelect<true>;
     'calculator-settings': CalculatorSettingsSelect<false> | CalculatorSettingsSelect<true>;
@@ -1080,6 +1082,323 @@ export interface PayloadMigrationsSelect<T extends boolean = true> {
   createdAt?: T;
 }
 /**
+ * Всички секции и SEO на началната. Запазването прилага редакциите публично. Списъците поддържат добавяне, премахване и пренареждане. Автомобилите и статиите се редактират в съответните раздели.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "homepage".
+ */
+export interface Homepage {
+  id: number;
+  initialized?: boolean | null;
+  seo: {
+    title: string;
+    description: string;
+    image?: (number | null) | Media;
+    imageAlt?: string | null;
+  };
+  hero: {
+    eyebrow?: string | null;
+    title: string;
+    description?: string | null;
+    image?: (number | null) | Media;
+    imagePath?: string | null;
+    imageAlt?: string | null;
+    note?: string | null;
+    button?: string | null;
+    href?: string | null;
+    secondaryButton?: string | null;
+    secondaryHref?: string | null;
+  };
+  search?: {
+    enabled?: boolean | null;
+    eyebrow?: string | null;
+    title?: string | null;
+    button?: string | null;
+    popularLabel?: string | null;
+    popular?:
+      | {
+          label: string;
+          id?: string | null;
+        }[]
+      | null;
+  };
+  strip?: {
+    enabled?: boolean | null;
+    items?:
+      | {
+          label: string;
+          id?: string | null;
+        }[]
+      | null;
+  };
+  catalogue?: {
+    enabled?: boolean | null;
+    eyebrow?: string | null;
+    title?: string | null;
+    emptyTitle?: string | null;
+    description?: string | null;
+    emptyDescription?: string | null;
+    button?: string | null;
+    href?: string | null;
+    auctionHref?: string | null;
+    note?: string | null;
+    fallbackEyebrow?: string | null;
+    fallbackTitle?: string | null;
+    fallbackText?: string | null;
+    fallbackButton?: string | null;
+    artLabel?: string | null;
+  };
+  price?: {
+    enabled?: boolean | null;
+    eyebrow?: string | null;
+    title?: string | null;
+    body?: {
+      root: {
+        type: string;
+        children: {
+          type: any;
+          version: number;
+          [k: string]: unknown;
+        }[];
+        direction: ('ltr' | 'rtl') | null;
+        format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+        indent: number;
+        version: number;
+      };
+      [k: string]: unknown;
+    } | null;
+    button?: string | null;
+    href?: string | null;
+    secondaryButton?: string | null;
+    secondaryHref?: string | null;
+  };
+  commission?: {
+    eyebrow?: string | null;
+    title?: string | null;
+    /**
+     * Променя само текста на началната страница, не тарифата в калкулатора. Съгласувай цените преди редакция.
+     */
+    amount?: string | null;
+    description?: string | null;
+    items?:
+      | {
+          label: string;
+          id?: string | null;
+        }[]
+      | null;
+    note?: string | null;
+    button?: string | null;
+    href?: string | null;
+  };
+  trust?: {
+    enabled?: boolean | null;
+    eyebrow?: string | null;
+    title?: string | null;
+    description?: string | null;
+    button?: string | null;
+    href?: string | null;
+    photos?:
+      | {
+          image?: (number | null) | Media;
+          path?: string | null;
+          caption?: string | null;
+          alt?: string | null;
+          href?: string | null;
+          id?: string | null;
+        }[]
+      | null;
+    reviews?:
+      | {
+          name?: string | null;
+          car?: string | null;
+          quote?: string | null;
+          id?: string | null;
+        }[]
+      | null;
+    googleLabel?: string | null;
+    googleHref?: string | null;
+  };
+  process?: {
+    enabled?: boolean | null;
+    eyebrow?: string | null;
+    title?: string | null;
+    button?: string | null;
+    href?: string | null;
+    steps?:
+      | {
+          title?: string | null;
+          text?: string | null;
+          id?: string | null;
+        }[]
+      | null;
+    note?: {
+      root: {
+        type: string;
+        children: {
+          type: any;
+          version: number;
+          [k: string]: unknown;
+        }[];
+        direction: ('ltr' | 'rtl') | null;
+        format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+        indent: number;
+        version: number;
+      };
+      [k: string]: unknown;
+    } | null;
+    guide?:
+      | {
+          title?: string | null;
+          body?: {
+            root: {
+              type: string;
+              children: {
+                type: any;
+                version: number;
+                [k: string]: unknown;
+              }[];
+              direction: ('ltr' | 'rtl') | null;
+              format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+              indent: number;
+              version: number;
+            };
+            [k: string]: unknown;
+          } | null;
+          id?: string | null;
+        }[]
+      | null;
+  };
+  services?: {
+    enabled?: boolean | null;
+    eyebrow?: string | null;
+    title?: string | null;
+    button?: string | null;
+    href?: string | null;
+    items?:
+      | {
+          title?: string | null;
+          text?: string | null;
+          href?: string | null;
+          id?: string | null;
+        }[]
+      | null;
+  };
+  dealers?: {
+    enabled?: boolean | null;
+    eyebrow?: string | null;
+    title?: string | null;
+    description?: string | null;
+    button?: string | null;
+    href?: string | null;
+    sideTitle?: string | null;
+    sideBody?: {
+      root: {
+        type: string;
+        children: {
+          type: any;
+          version: number;
+          [k: string]: unknown;
+        }[];
+        direction: ('ltr' | 'rtl') | null;
+        format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+        indent: number;
+        version: number;
+      };
+      [k: string]: unknown;
+    } | null;
+    sideButton?: string | null;
+    sideHref?: string | null;
+  };
+  faq?: {
+    enabled?: boolean | null;
+    eyebrow?: string | null;
+    title?: string | null;
+    items?:
+      | {
+          question: string;
+          answer?: {
+            root: {
+              type: string;
+              children: {
+                type: any;
+                version: number;
+                [k: string]: unknown;
+              }[];
+              direction: ('ltr' | 'rtl') | null;
+              format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+              indent: number;
+              version: number;
+            };
+            [k: string]: unknown;
+          } | null;
+          id?: string | null;
+        }[]
+      | null;
+    more?: {
+      root: {
+        type: string;
+        children: {
+          type: any;
+          version: number;
+          [k: string]: unknown;
+        }[];
+        direction: ('ltr' | 'rtl') | null;
+        format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+        indent: number;
+        version: number;
+      };
+      [k: string]: unknown;
+    } | null;
+  };
+  news?: {
+    enabled?: boolean | null;
+    eyebrow?: string | null;
+    title?: string | null;
+    button?: string | null;
+    href?: string | null;
+    readMore?: string | null;
+  };
+  community?: {
+    enabled?: boolean | null;
+    eyebrow?: string | null;
+    title?: string | null;
+    description?: string | null;
+    button?: string | null;
+    href?: string | null;
+    image?: (number | null) | Media;
+    imagePath?: string | null;
+    imageAlt?: string | null;
+  };
+  company?: {
+    enabled?: boolean | null;
+    body?: {
+      root: {
+        type: string;
+        children: {
+          type: any;
+          version: number;
+          [k: string]: unknown;
+        }[];
+        direction: ('ltr' | 'rtl') | null;
+        format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+        indent: number;
+        version: number;
+      };
+      [k: string]: unknown;
+    } | null;
+  };
+  cta?: {
+    enabled?: boolean | null;
+    eyebrow?: string | null;
+    title?: string | null;
+    description?: string | null;
+    button?: string | null;
+    href?: string | null;
+  };
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
  * Платежните номера се съхраняват само в защитената база. Попълни ги еднократно преди създаване на първия Invoice. Промяната им важи само за нови документи; старите запазват своето копие.
  *
  * This interface was referenced by `Config`'s JSON-Schema
@@ -1108,10 +1427,22 @@ export interface SiteSetting {
   facebookURL?: string | null;
   workingHours?: string | null;
   address?: string | null;
+  /**
+   * Редактирай съдържанието от Съдържание → Начална страница. Тази стойност се пази за първоначалното пренасяне.
+   */
   heroTitle?: string | null;
+  /**
+   * Редактирай съдържанието от Съдържание → Начална страница. Тази стойност се пази за първоначалното пренасяне.
+   */
   heroDescription?: string | null;
+  /**
+   * Редактирай съдържанието от Съдържание → Начална страница. Тази стойност се пази за първоначалното пренасяне.
+   */
   heroImage?: (number | null) | Media;
   defaultDescription?: string | null;
+  /**
+   * Редактирай съдържанието от Съдържание → Начална страница. Тази стойност се пази за първоначалното пренасяне.
+   */
   faq?:
     | {
         question: string;
@@ -1226,6 +1557,252 @@ export interface Integration {
   metaVerification?: string | null;
   updatedAt?: string | null;
   createdAt?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "homepage_select".
+ */
+export interface HomepageSelect<T extends boolean = true> {
+  initialized?: T;
+  seo?:
+    | T
+    | {
+        title?: T;
+        description?: T;
+        image?: T;
+        imageAlt?: T;
+      };
+  hero?:
+    | T
+    | {
+        eyebrow?: T;
+        title?: T;
+        description?: T;
+        image?: T;
+        imagePath?: T;
+        imageAlt?: T;
+        note?: T;
+        button?: T;
+        href?: T;
+        secondaryButton?: T;
+        secondaryHref?: T;
+      };
+  search?:
+    | T
+    | {
+        enabled?: T;
+        eyebrow?: T;
+        title?: T;
+        button?: T;
+        popularLabel?: T;
+        popular?:
+          | T
+          | {
+              label?: T;
+              id?: T;
+            };
+      };
+  strip?:
+    | T
+    | {
+        enabled?: T;
+        items?:
+          | T
+          | {
+              label?: T;
+              id?: T;
+            };
+      };
+  catalogue?:
+    | T
+    | {
+        enabled?: T;
+        eyebrow?: T;
+        title?: T;
+        emptyTitle?: T;
+        description?: T;
+        emptyDescription?: T;
+        button?: T;
+        href?: T;
+        auctionHref?: T;
+        note?: T;
+        fallbackEyebrow?: T;
+        fallbackTitle?: T;
+        fallbackText?: T;
+        fallbackButton?: T;
+        artLabel?: T;
+      };
+  price?:
+    | T
+    | {
+        enabled?: T;
+        eyebrow?: T;
+        title?: T;
+        body?: T;
+        button?: T;
+        href?: T;
+        secondaryButton?: T;
+        secondaryHref?: T;
+      };
+  commission?:
+    | T
+    | {
+        eyebrow?: T;
+        title?: T;
+        amount?: T;
+        description?: T;
+        items?:
+          | T
+          | {
+              label?: T;
+              id?: T;
+            };
+        note?: T;
+        button?: T;
+        href?: T;
+      };
+  trust?:
+    | T
+    | {
+        enabled?: T;
+        eyebrow?: T;
+        title?: T;
+        description?: T;
+        button?: T;
+        href?: T;
+        photos?:
+          | T
+          | {
+              image?: T;
+              path?: T;
+              caption?: T;
+              alt?: T;
+              href?: T;
+              id?: T;
+            };
+        reviews?:
+          | T
+          | {
+              name?: T;
+              car?: T;
+              quote?: T;
+              id?: T;
+            };
+        googleLabel?: T;
+        googleHref?: T;
+      };
+  process?:
+    | T
+    | {
+        enabled?: T;
+        eyebrow?: T;
+        title?: T;
+        button?: T;
+        href?: T;
+        steps?:
+          | T
+          | {
+              title?: T;
+              text?: T;
+              id?: T;
+            };
+        note?: T;
+        guide?:
+          | T
+          | {
+              title?: T;
+              body?: T;
+              id?: T;
+            };
+      };
+  services?:
+    | T
+    | {
+        enabled?: T;
+        eyebrow?: T;
+        title?: T;
+        button?: T;
+        href?: T;
+        items?:
+          | T
+          | {
+              title?: T;
+              text?: T;
+              href?: T;
+              id?: T;
+            };
+      };
+  dealers?:
+    | T
+    | {
+        enabled?: T;
+        eyebrow?: T;
+        title?: T;
+        description?: T;
+        button?: T;
+        href?: T;
+        sideTitle?: T;
+        sideBody?: T;
+        sideButton?: T;
+        sideHref?: T;
+      };
+  faq?:
+    | T
+    | {
+        enabled?: T;
+        eyebrow?: T;
+        title?: T;
+        items?:
+          | T
+          | {
+              question?: T;
+              answer?: T;
+              id?: T;
+            };
+        more?: T;
+      };
+  news?:
+    | T
+    | {
+        enabled?: T;
+        eyebrow?: T;
+        title?: T;
+        button?: T;
+        href?: T;
+        readMore?: T;
+      };
+  community?:
+    | T
+    | {
+        enabled?: T;
+        eyebrow?: T;
+        title?: T;
+        description?: T;
+        button?: T;
+        href?: T;
+        image?: T;
+        imagePath?: T;
+        imageAlt?: T;
+      };
+  company?:
+    | T
+    | {
+        enabled?: T;
+        body?: T;
+      };
+  cta?:
+    | T
+    | {
+        enabled?: T;
+        eyebrow?: T;
+        title?: T;
+        description?: T;
+        button?: T;
+        href?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema

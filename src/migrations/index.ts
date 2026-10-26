@@ -1,3 +1,4 @@
+import * as homepage from './20261026_120000_homepage'
 import * as social from './20261024_150000_social'
 import * as invoices from './20261020_190000_invoices'
 import * as catalogGuard from './20261018_230000_catalog_guard'
@@ -37,4 +38,5 @@ export const migrations = [
   { up: catalogGuard.up, down: catalogGuard.down, name: '20261018_230000_catalog_guard' },
   { up: invoices.up, down: invoices.down, name: '20261020_190000_invoices' },
   {up:social.up,down:social.down,name:'20261024_150000_social'},
+ {up:homepage.up,down:homepage.down,name:'20261026_120000_homepage'},
 ]

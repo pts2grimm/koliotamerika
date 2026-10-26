@@ -1,3 +1,4 @@
+import { HomePage } from './globals/HomePage'
 import { postgresAdapter } from '@payloadcms/db-postgres'
 import { postgresPool } from './lib/postgres-pool'
 import { migrations as postgresMigrations } from './migrations-postgres'
@@ -54,7 +55,7 @@ export default buildConfig({
   },
   i18n: { fallbackLanguage: 'bg', supportedLanguages: { bg, en } },
   collections: [CatalogEvents, Invoices, BillsOfSale, ConsentEvents, Users, Customers, SavedVehicles, Media, Cars, Pages, Inquiries, AuctionQuotes, Redirects, RateLimits],
-  globals: [InvoiceSettings, SiteSettings, CalculatorSettings, Integrations],
+  globals: [HomePage, InvoiceSettings, SiteSettings, CalculatorSettings, Integrations],
   ...(smtp ? { email: nodemailerAdapter(smtp) } : {}),
   db: postgres ? postgresAdapter({
     pool: postgresPool(), schemaName: 'payload', push: false, disableCreateDatabase: true,
