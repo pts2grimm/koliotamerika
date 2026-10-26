@@ -8,7 +8,14 @@ export const HomePage:GlobalConfig={
  access:{read:()=>true,update:({req})=>req.user?.collection==='users'},
  hooks:{
   afterRead:[async({doc,req})=>doc.initialized?doc:{...doc,...await legacyHomeDefaults(req.payload),initialized:false}],
-  beforeValidate:[async({data,originalDoc,req})=>originalDoc?.initialized?data:mergeHome(await legacyHomeDefaults(req.payload),data||{})],
+  beforeOperation:[async({args,operation,req})=>{
+   if(operation==='update'&&'data' in args){
+    // Populate before field hooks insert empty arrays for absent fields.
+    const existing=await req.payload.db.findGlobal({slug:'homepage',req})
+    if(!existing?.initialized)Object.assign(args,{data:mergeHome(await legacyHomeDefaults(req.payload),(args.data||{}) as Record<string,any>)})
+   }
+   return args
+  }],
   beforeChange:[({data})=>({...data,initialized:true})],
   afterChange:[invalidatePublicContent],
  },
