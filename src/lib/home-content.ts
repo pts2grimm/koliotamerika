@@ -34,5 +34,5 @@ export function richPlain(value:unknown):string{
  const node=value as {root?:unknown;text?:unknown;children?:unknown[]}
  if(node.root)return richPlain(node.root)
  if(typeof node.text==='string')return node.text
- return (node.children||[]).map(richPlain).join(' ').replace(/\\s+/g,' ').trim()
+ return (node.children||[]).map(richPlain).join(' ').replace(/\s+/g,' ').trim()
 }

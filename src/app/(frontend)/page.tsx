@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import { carCardSelect } from '@/lib/list-projections'
-import { cms, mediaUrl } from '@/lib/data'
+import { cms, mediaUrl, settings } from '@/lib/data'
 import { homepage } from '@/lib/homepage'
 import { resolveHome } from '@/lib/home-content'
 import { EditableHome } from '@/components/EditableHome'
@@ -9,10 +9,11 @@ import './home-clarity.css'
 import './home-editor.css'
 export async function generateMetadata():Promise<Metadata>{
  const home=resolveHome(await homepage())
+ const site=await settings()
  const image=mediaUrl(home.seo.image)||'/images/hero.png'
  return {
   title:{absolute:home.seo.title},description:home.seo.description,alternates:{canonical:'/'},
-  openGraph:{type:'website',locale:'bg_BG',url:'/',title:home.seo.title,description:home.seo.description,images:[{url:image,alt:home.seo.imageAlt}]},
+  openGraph:{type:'website',locale:'bg_BG',siteName:site.brand,url:'/',title:home.seo.title,description:home.seo.description,images:[{url:image,alt:home.seo.imageAlt}]},
   twitter:{card:'summary_large_image',title:home.seo.title,description:home.seo.description,images:[image]},
  }
 }

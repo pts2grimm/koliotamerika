@@ -10,7 +10,7 @@ import { editorialImage } from '@/lib/editorial-images'
 import { mediaUrl, imageAlt } from '@/lib/data'
 import { homeImage, richPlain, type HomeContent } from '@/lib/home-content'
 import { homeLink } from '@/lib/home-links'
-import type { Car } from '@/payload-types'
+import type { CarCardData } from '@/lib/list-projections'
 
 function Lines({text}:{text:string}){return <>{text.split('\n').map((line,i)=><span key={i}>{i>0&&<br/>}{line}</span>)}</>}
 function Copy({data,className='home-copy'}:{data:HomeContent['price']['body'];className?:string}){return data?<div className={className}><EditorialContent data={data}/></div>:null}
@@ -21,7 +21,7 @@ function Button({label,href,className='text-link'}:{label:string;href:string;cla
 function Heading({section}:{section:{eyebrow:string;title:string;button?:string;href?:string}}){
  return <div className="section-heading"><div><span className="eyebrow orange">{section.eyebrow}</span><h2><Lines text={section.title}/></h2></div><Button label={section.button||''} href={section.href||''}/></div>
 }
-export async function EditableHome({content:c,cars,makes}:{content:HomeContent;cars:Car[];makes:Record<string,string[]>}){
+export async function EditableHome({content:c,cars,makes}:{content:HomeContent;cars:CarCardData[];makes:Record<string,string[]>}){
  const heroImage=homeImage(c.hero.image,c.hero.imagePath)
  const articles=c.news.enabled?(await publicArticles(1,undefined,3)).docs:[]
  const qr=homeImage(c.community.image,c.community.imagePath)

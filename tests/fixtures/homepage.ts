@@ -8,7 +8,7 @@ const payload=await getPayload({config,disableOnInit:true})
 try{
  if(process.env.DATABASE_PROVIDER!=='postgres'){
   const {migrations}=await import('../../src/migrations')
-  await payload.db.migrate({migrations})
+  await payload.db.migrate({migrations:migrations.map(m=>({name:m.name,up:(args:unknown)=>m.up(args as Parameters<typeof m.up>[0]),down:(args:unknown)=>m.down(args as Parameters<typeof m.down>[0])}))})
  }
  const {legacyHomeDefaults}=await import('../../src/lib/home-defaults')
  const original=await payload.findGlobal({slug:'homepage',depth:1})
@@ -27,6 +27,13 @@ try{
  assert.equal(edited.process!.steps!.length,4)
  assert.equal(edited.initialized,true)
  await assert.rejects(()=>payload.updateGlobal({slug:'homepage',data:{hero:{href:'javascript:alert(1)'}},overrideAccess:false,user:admin}))
+ const sharp=(await import('sharp')).default
+ const bytes=await sharp({create:{width:10,height:10,channels:3,background:'#123456'}}).png().toBuffer()
+ const photo=await payload.create({collection:'media',data:{alt:'Homepage fixture image'},file:{data:bytes,mimetype:'image/png',name:'homepage-fixture.png',size:bytes.length}})
+ await payload.updateGlobal({slug:'homepage',data:{hero:{image:photo.id},seo:{image:photo.id}},overrideAccess:false,user:admin})
+ const withImage=await payload.findGlobal({slug:'homepage',depth:1})
+ assert.equal(typeof withImage.hero.image,'object')
+ assert.equal((withImage.hero.image as {id:number}).id,photo.id)
  // Restore fixture content without touching any production database.
  await payload.updateGlobal({slug:'homepage',data:await legacyHomeDefaults(payload),overrideAccess:false,user:admin})
  const again=await payload.findGlobal({slug:'homepage'})
