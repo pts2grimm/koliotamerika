@@ -872,6 +872,11 @@ const definitions = [
   }
 ]
 function materialize(items: any[]): Field[] {
- return items.map(({link,fields,...field}) => ({...field,...(fields?{fields:materialize(fields)}:{}),...(link?{validate:(v:unknown)=>!v||validHomeLink(v)?true:'Въведи локална връзка /… или HTTPS адрес.'}:{}),...(field.name==='imagePath'||field.name==='path'?{validate:(v:unknown)=>!v||(typeof v==='string'&&/^\\/(?!\\/)[^\\\\\\s]+$/.test(v))?true:'Избери снимка от Медия или локален адрес /images/…'}:{})})) as Field[]
+ return items.map(({link,fields,...field}) => ({
+  ...field,
+  ...(fields?{fields:materialize(fields)}:{}),
+  ...(link?{validate:(v:unknown)=>!v||validHomeLink(v)?true:'Въведи локална връзка /… или HTTPS адрес.'}:{}),
+  ...(field.name==='imagePath'||field.name==='path'?{validate:(v:unknown)=>!v||(validHomeLink(v)&&v.startsWith('/'))?true:'Избери снимка от Медия или локален адрес /images/…'}:{}),
+ })) as Field[]
 }
 export const homeFields = materialize(definitions)
