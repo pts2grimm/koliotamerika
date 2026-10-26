@@ -39,7 +39,7 @@ test('homepage editor saves sections, metadata and FAQ with admin-only access',a
  await expect(page).toHaveTitle('SEO заглавие за проверка')
  await expect(page.locator('h1')).toHaveText('Редактиран първи екран')
  await expect(page.locator('meta[name=description]')).toHaveAttribute('content','Описание от редактора.')
- await expect(page.locator('link[rel=canonical]')).toHaveAttribute('href','http://localhost:3100/')
+ expect(new URL((await page.locator('link[rel=canonical]').getAttribute('href'))!).href).toBe('http://localhost:3100/')
  expect(await page.locator('.home-service-cards').count()).toBe(0)
  expect(await page.locator('.home-faq details').count()).toBe(0)
  const schemas=await page.locator('script[type="application/ld+json"]').allTextContents()
