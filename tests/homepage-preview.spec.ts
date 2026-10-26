@@ -26,7 +26,7 @@ test('native full-page live preview updates unsaved content without database wri
  await expect(frame.locator('.site-header')).toBeVisible()
  await expect(frame.locator('footer')).toBeAttached()
  expect(await frame.locator('script[src*="googletagmanager"],script[src*="connect.facebook"]').count()).toBe(0)
- const previewResponse=await page.request.get('/home-preview')
+ const previewResponse=await page.request.get('/home-preview',{headers:origin})
  expect(previewResponse.status()).toBe(200)
  expect(previewResponse.headers()['cache-control']).toContain('no-store')
  console.log('PREVIEW_STEP ready')
@@ -99,6 +99,6 @@ test('native full-page live preview updates unsaved content without database wri
 
  const customer=await browser.newContext()
  expect((await customer.request.post('/api/account/register',{headers:origin,data:{email:'preview-customer@example.test',name:'Fixture',password,consent:true}})).status()).toBe(200)
- expect((await customer.request.get('/home-preview')).status()).toBe(404)
+ expect((await customer.request.get('/home-preview',{headers:origin})).status()).toBe(404)
  await customer.close()
 })
