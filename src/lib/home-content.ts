@@ -2,7 +2,7 @@ import type { ComponentProps } from 'react'
 import type { Media } from '../payload-types'
 import type { EditorialContent } from '../components/EditorialContent'
 import { homeFields } from '../globals/home-fields'
-import { mediaUrl } from './data'
+import { homeMediaURL as mediaUrl } from './home-media'
 import { homeLink } from './home-links'
 type RichData=ComponentProps<typeof EditorialContent>['data']
 export type HomeContent={seo:{title:string;description:string;image:number|Media|null;imageAlt:string};

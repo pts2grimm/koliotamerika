@@ -1,12 +1,10 @@
 import type { HomeContent } from '@/lib/home-content'
 import { AuctionSearchForm } from './AuctionSearchForm'
 import { isEridanRoadMake } from '@/lib/auction-providers/eridan-scope'
-import { auctionProviderName } from '@/lib/auctions'
 import { SlidersHorizontal } from 'lucide-react'
 import { MakeModelFields } from './MakeModelFields'
 
-export function HomeSearch({ makes, content }: { makes: Record<string, string[]>; content?: HomeContent['search'] }) {
-  const eridan = auctionProviderName() === 'eridan'
+export function HomeSearch({ makes, content, eridan = false }: { makes: Record<string, string[]>; content?: HomeContent['search']; eridan?:boolean }) {
   const carMakes = eridan ? Object.fromEntries(Object.entries(makes).filter(([make]) => isEridanRoadMake(make, 'Automobile'))) : makes
   const latestYear = new Date().getUTCFullYear() + 1
   const years = Array.from({ length: latestYear - 1989 }, (_, index) => latestYear - index)
