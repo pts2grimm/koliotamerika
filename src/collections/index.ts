@@ -1,3 +1,4 @@
+import { seoAnalysisFields } from '../fields/seo-analysis'
 import { invalidatePublicContent } from '../lib/content-cache-hooks'
 import { lexicalEditor, EXPERIMENTAL_TableFeature } from '@payloadcms/richtext-lexical'
 import { publishedPages } from '../lib/page-access'
@@ -7,7 +8,7 @@ import type { Access, CollectionConfig, Field } from 'payload'
 import path from 'node:path'
 const staff: Access = ({ req }) => req.user?.collection === 'users'
 const published: Access = ({ req }) => req.user?.collection === 'users' ? true : { status: { equals: 'published' } }
-export const seoFields: Field[] = [{ name: 'seo', label: 'SEO и споделяне', type: 'group', fields: [
+export const seoFields: Field[] = [...seoAnalysisFields, { name: 'seo', label: 'SEO и споделяне', type: 'group', fields: [
   { name: 'title', label: 'SEO заглавие', type: 'text', maxLength: 70 },
   { name: 'description', label: 'SEO описание', type: 'textarea', maxLength: 180 },
   { name: 'image', label: 'Изображение при споделяне', type: 'upload', relationTo: 'media' },

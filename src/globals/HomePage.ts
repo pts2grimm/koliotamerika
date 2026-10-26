@@ -1,3 +1,4 @@
+import { seoAnalysisFields } from '../fields/seo-analysis'
 import type { GlobalConfig } from 'payload'
 import { homeFields } from './home-fields'
 import { invalidatePublicContent } from '../lib/content-cache-hooks'
@@ -20,6 +21,7 @@ export const HomePage:GlobalConfig={
   afterChange:[invalidatePublicContent],
  },
  fields:[
+  ...seoAnalysisFields,
   {name:'initialized',type:'checkbox',admin:{hidden:true}},
   ...homeFields.map(field=>({type:'collapsible' as const,label:'label' in field?field.label:undefined,admin:{initCollapsed:true},fields:[field]})),
  ],
