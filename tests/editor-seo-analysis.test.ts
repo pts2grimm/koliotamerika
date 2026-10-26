@@ -48,3 +48,5 @@ test('car description and equipment use car URL; SEO description is excluded fro
  assert.match(input.text,/Втори абзац/);assert.match(input.text,/Кожен салон/)
  assert.doesNotMatch(input.text,/Невидима метафраза/)
 })
+
+test('empty copy has no readability pass',()=>{assert.equal(state({},'paragraphs'),'info')})

@@ -463,6 +463,10 @@ export interface Car {
         id?: string | null;
       }[]
     | null;
+  /**
+   * Редакционна цел за тази страница. Запазва се с документа; не се изпраща на търсачките.
+   */
+  focusKeyphrase?: string | null;
   seo?: {
     title?: string | null;
     description?: string | null;
@@ -513,6 +517,10 @@ export interface Page {
         id?: string | null;
       }[]
     | null;
+  /**
+   * Редакционна цел за тази страница. Запазва се с документа; не се изпраща на търсачките.
+   */
+  focusKeyphrase?: string | null;
   seo?: {
     title?: string | null;
     description?: string | null;
@@ -944,6 +952,7 @@ export interface CarsSelect<T extends boolean = true> {
         label?: T;
         id?: T;
       };
+  focusKeyphrase?: T;
   seo?:
     | T
     | {
@@ -978,6 +987,7 @@ export interface PagesSelect<T extends boolean = true> {
         body?: T;
         id?: T;
       };
+  focusKeyphrase?: T;
   seo?:
     | T
     | {
@@ -1089,6 +1099,10 @@ export interface PayloadMigrationsSelect<T extends boolean = true> {
  */
 export interface Homepage {
   id: number;
+  /**
+   * Редакционна цел за тази страница. Запазва се с документа; не се изпраща на търсачките.
+   */
+  focusKeyphrase?: string | null;
   initialized?: boolean | null;
   seo: {
     title: string;
@@ -1563,6 +1577,7 @@ export interface Integration {
  * via the `definition` "homepage_select".
  */
 export interface HomepageSelect<T extends boolean = true> {
+  focusKeyphrase?: T;
   initialized?: T;
   seo?:
     | T

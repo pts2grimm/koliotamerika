@@ -1,6 +1,10 @@
 import {test,expect} from '@playwright/test'
 test('SEO analysis updates in native editors, saves privately and works on mobile',async({page,request,browser})=>{
  page.setDefaultTimeout(15000);page.setDefaultNavigationTimeout(30000)
+ const adminHTML=await (await request.get('/admin/login')).text()
+ const styles=[...adminHTML.matchAll(/<link[^>]+href="([^"]+\\.css[^\"]*)"/g)].map(m=>m[1])
+ const sheets=await Promise.all(styles.map(async path=>(await request.get(path)).text()))
+ console.log('SEO_CSS_DEPLOYMENT_MARKER',sheets.some(css=>css.includes('.koa-seo-analysis')))
  const origin={origin:'http://localhost:3100'},email='seo-admin@example.test',password='SEO-fixture-only-123'
  expect((await request.post('/api/users/first-register',{data:{email,password}})).status()).toBe(200)
  await page.goto('/admin/login',{waitUntil:'domcontentloaded'})

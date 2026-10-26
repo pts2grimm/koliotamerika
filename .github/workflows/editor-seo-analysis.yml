@@ -40,13 +40,8 @@ jobs:
       - run: npm ci --include=dev --no-audit --no-fund
       - run: npm run generate:types
       - run: npm run generate:importmap
-      - name: Capture generated source
-        run: |
-          node --input-type=module <<'NODE'
-          import fs from 'node:fs';
-          console.log('GENERATED_TYPES='+JSON.stringify(fs.readFileSync('src/payload-types.ts','utf8')));
-          console.log('GENERATED_IMPORTMAP='+JSON.stringify(fs.readFileSync('src/app/(payload)/admin/importMap.js','utf8')));
-          NODE
+      - name: Check generated source
+        run: git diff --exit-code -- src/payload-types.ts 'src/app/(payload)/admin/importMap.js'
       - run: node --import tsx --test tests/editor-seo-analysis.test.ts tests/page-seo.test.ts
       - run: node --import tsx scripts/prepare-postgres.ts
       - run: node --import tsx tests/fixtures/homepage.ts

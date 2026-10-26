@@ -123,7 +123,7 @@ export function analyzeSEO(content:SEOContent,siteOrigin='https://koliotamerika.
  const unknown=c.alts.filter(x=>x===null).length,empty=c.alts.filter(x=>x!==null&&!x.trim()).length
  add('images','Описания на изображенията',empty?'review':unknown||!c.alts.length?'info':'pass',empty?empty+' изображения са с празно описание; провери дали са декоративни.':unknown?'За '+unknown+' изображения alt текстът не е наличен във формата. Провери го в „Медия“; не се правят допълнителни заявки.':c.alts.length?'Наличните описания са попълнени. Те трябва да описват снимката, без насилено добавяне на фразата.':'Няма изображения за проверка в редактираното съдържание.')
  const long=c.paragraphs.filter(p=>words(p).length>120).length
- add('paragraphs','Четимост',long?'review':'pass',long?long+' дълги абзаца (над 120 думи). Обмисли разделяне за по-лесно четене.':'Няма абзаци над 120 думи. Това е ориентир, а не езикова или Google оценка.')
+ add('paragraphs','Четимост',!c.paragraphs.length?'info':long?'review':'pass',!c.paragraphs.length?'Няма абзаци за проверка.':long?long+' дълги абзаца (над 120 думи). Обмисли разделяне за по-лесно четене.':'Няма абзаци над 120 думи. Това е ориентир, а не езикова или Google оценка.')
  if(c.noIndex)add('noindex','Настройка за индексиране','review','Включено е „Скриване от търсачките“. Ако е умишлено, запази настройката. Анализът не я променя.')
  const count=phraseCount(c.text,c.phrase),wordCount=words(c.text).length
  if(count>=4&&count*words(c.phrase).length/Math.max(wordCount,1)>.12)add('repetition','Повторения','review','Фразата заема голяма част от текста. Прочети го за неестествени повторения; няма задължителна SEO плътност.')
