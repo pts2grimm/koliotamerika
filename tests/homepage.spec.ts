@@ -16,7 +16,7 @@ test('homepage editor saves sections, metadata and FAQ with admin-only access',a
  console.log('HOME_STEP editor')
  await expect(page.getByRole('heading',{name:'Начална страница',exact:true}).first()).toBeVisible()
  // Use the actual Payload form controls and Save workflow.
- await page.getByText('Първи екран',{exact:true}).first().click()
+ await page.locator('.collapsible').filter({has:page.getByText('Първи екран',{exact:true})}).first().locator('.collapsible__toggle').first().click()
  const h1=page.locator('#field-hero__title')
  await expect(h1).toBeVisible({timeout:15000})
  console.log('HOME_STEP expanded')
