@@ -22,7 +22,7 @@ test('native full-page live preview updates unsaved content without database wri
  await page.locator('#live-preview-toggler').click()
  const frame=page.frameLocator('#live-preview-iframe')
  await expect(frame.locator('.home-live-status')).toContainText('реално време',{timeout:30000})
- await expect(frame.locator('h1')).toHaveText(saved.hero.title)
+ await expect(frame.locator('h1')).toHaveText(saved.hero.title.replace(/\n/g,''))
  await expect(frame.locator('.site-header')).toBeVisible()
  await expect(frame.locator('footer')).toBeAttached()
  expect(await frame.locator('script[src*="googletagmanager"],script[src*="connect.facebook"]').count()).toBe(0)
@@ -67,6 +67,17 @@ test('native full-page live preview updates unsaved content without database wri
  await expect.poll(()=>previewFrame.evaluate(()=>innerWidth)).toBe(390)
  expect(await previewFrame.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true)
  console.log('PREVIEW_STEP mobile')
+ // Rich text and an upload selected by ID update without persisting the document.
+ const media=await (await page.request.get('/api/media?limit=1')).json()
+ const photo=media.docs[0]
+ expect(photo.id).toBeTruthy()
+ const rich={root:{type:'root',version:1,format:'',indent:0,direction:null,children:[{type:'paragraph',version:1,format:'',indent:0,direction:null,children:[{type:'text',version:1,text:'Незапазен подробен текст',format:0,mode:'normal',style:'',detail:0}]}]}}
+ await page.evaluate(data=>(document.getElementById('live-preview-iframe') as HTMLIFrameElement).contentWindow!.postMessage({type:'payload-live-preview',globalSlug:'homepage',data},location.origin),{...saved,hero:{...saved.hero,image:photo.id,imageAlt:'Нова снимка в прегледа'},price:{...saved.price,enabled:true,body:rich}})
+ await expect(frame.getByText('Незапазен подробен текст',{exact:true})).toBeVisible()
+ await expect(frame.locator('.hero-photo')).toHaveAttribute('alt','Нова снимка в прегледа')
+ const source=await frame.locator('.hero-photo').getAttribute('src')
+ expect(decodeURIComponent(source||'')).toContain(photo.filename)
+ expect(writes).toBe(0)
  // Native form changes still work after switching viewport.
  await title.fill('Запазен след преглед')
  await expect(frame.locator('h1')).toHaveText('Запазен след преглед')
@@ -76,6 +87,16 @@ test('native full-page live preview updates unsaved content without database wri
  expect((await (await page.request.get('/api/globals/homepage')).json()).hero.title).toBe('Запазен след преглед')
  await expect.poll(async()=> (await (await request.get('/')).text()).includes('Запазен след преглед'),{timeout:40000}).toBe(true)
  console.log('PREVIEW_STEP saved')
+ // A separate full-page window receives edits from the same native form.
+ const opened=page.waitForEvent('popup')
+ await page.locator('.live-preview-toolbar-controls__external').click()
+ const popup=await opened
+ await popup.waitForLoadState('domcontentloaded')
+ await expect(popup.locator('.home-live-status')).toContainText('реално време',{timeout:30000})
+ await title.fill('Преглед в отделен прозорец')
+ await expect(popup.locator('h1')).toHaveText('Преглед в отделен прозорец')
+ await popup.close()
+
  const customer=await browser.newContext()
  expect((await customer.request.post('/api/account/register',{headers:origin,data:{email:'preview-customer@example.test',name:'Fixture',password,consent:true}})).status()).toBe(200)
  expect((await customer.request.get('/home-preview')).status()).toBe(404)
