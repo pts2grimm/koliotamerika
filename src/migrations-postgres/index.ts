@@ -1,3 +1,4 @@
+import * as homepage from './20261026_120000_homepage'
 import * as social from './20261024_150000_social'
 import * as migration_20261022_135903_initial from './20261022_135903_initial';
 
@@ -8,4 +9,5 @@ export const migrations = [
     name: '20261022_135903_initial'
   },
   {up:social.up,down:social.down,name:'20261024_150000_social'},
-];
+ {up:homepage.up,down:homepage.down,name:'20261026_120000_homepage'},
+]
