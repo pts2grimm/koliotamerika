@@ -9,7 +9,7 @@ concurrency:
   cancel-in-progress: true
 jobs:
   verify:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 18
     env:
       CI: 'true'
@@ -39,8 +39,8 @@ jobs:
           cache: npm
       - run: npm ci --include=dev --no-audit --no-fund
       - run: npm run generate:types
-      - name: Export generated types for review
-        run: node -e 'console.log("HOME_TYPES="+JSON.stringify(require("fs").readFileSync("src/payload-types.ts","utf8")))'
+      - name: Check generated types
+        run: git diff --exit-code -- src/payload-types.ts
       - run: node --import tsx scripts/prepare-postgres.ts
       - run: node --import tsx tests/fixtures/homepage.ts
       - run: node --import tsx tests/fixtures/homepage.ts
