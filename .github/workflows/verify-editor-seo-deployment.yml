@@ -1,0 +1,40 @@
+name: Verify editor SEO deployment
+on:
+  push:
+    branches: ['codex/verify-editor-seo-live-2026-10-26']
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Read admin assets and public content
+        run: |
+          node --input-type=module <<'NODE'
+          const base='https://koliotamerika.bg',cache=new Map();
+          const options=()=>({signal:AbortSignal.timeout(20000),headers:{'User-Agent':'Koliotamerika-deployment-verification'}});
+          let ready=false;
+          for(let attempt=1;attempt<=20;attempt++){
+            try{
+              const admin=await fetch(base+'/admin/login',options()),html=await admin.text();
+              const paths=[...html.matchAll(/<link[^>]+href="([^"]+[.]css[^"]*)"/g)].map(m=>new URL(m[1],base)).filter(u=>u.origin===base&&u.pathname.startsWith('/_next/')).slice(0,30);
+              const styles=await Promise.all(paths.map(async u=>{const key=u.href;if(!cache.has(key)){const r=await fetch(key,options());if(r.ok)cache.set(key,await r.text());}return cache.get(key)||''}));
+              const marker=styles.some(css=>css.includes('.koa-seo-analysis'));
+              console.log(JSON.stringify({attempt,admin:admin.status,styles:paths.length,seoAnalysis:marker}));
+              if(admin.ok&&marker){
+                const [home,api,pages,cars]=await Promise.all(['/', '/api/globals/homepage?depth=0', '/api/pages?limit=1&depth=0&select[slug]=true','/api/cars?limit=1&depth=0&select[slug]=true'].map(path=>fetch(base+path,options())));
+                const body=await home.text(),doc=api.ok?await api.json():{};
+                const canonical=body.includes('rel="canonical" href="'+base+'/"')||body.includes('rel="canonical" href="'+base+'"');
+                const privatePhrase=!Object.hasOwn(doc,'focusKeyphrase');
+                console.log(JSON.stringify({homepage:home.status,homepageAPI:api.status,pages:pages.status,cars:cars.status,canonical,privatePhrase}));
+                if(home.ok&&api.ok&&pages.ok&&cars.ok&&canonical&&privatePhrase){ready=true;break}
+              }
+            }catch(error){console.log(JSON.stringify({attempt,error:error.name}))}
+            if(attempt<20)await new Promise(resolve=>setTimeout(resolve,30000));
+          }
+          if(!ready)throw new Error('Editor SEO deployment not verified');
+          NODE
