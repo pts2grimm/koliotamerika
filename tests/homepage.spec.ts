@@ -12,10 +12,9 @@ test('homepage editor saves sections, metadata and FAQ with admin-only access',a
  await page.goto('/admin/globals/homepage')
  await expect(page.getByRole('heading',{name:'Начална страница',exact:true}).first()).toBeVisible()
  // Use the actual Payload form controls and Save workflow.
- const hero=page.locator('.collapsible').filter({has:page.locator('#field-hero__title')})
- if(await hero.count())await hero.first().locator('.collapsible__toggle').click()
+ await page.getByText('Първи екран',{exact:true}).first().click()
  const h1=page.locator('#field-hero__title')
- if(!(await h1.isVisible()))await page.getByText('Първи екран',{exact:true}).first().click()
+ await expect(h1).toBeVisible({timeout:15000})
  await h1.fill('Редактиран първи екран')
  const response=page.waitForResponse(r=>r.url().includes('/api/globals/homepage')&&['POST','PATCH'].includes(r.request().method()))
  await page.getByRole('button',{name:/^(Запази|Save)$/}).first().click()
