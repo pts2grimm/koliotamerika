@@ -10,12 +10,13 @@ test('archive metadata and schema distinguish confirmed sale from expired date',
   expect(d.querySelector('meta[name="description"]')!.getAttribute('content')).toContain(label)
   expect(d.querySelector('link[rel="canonical"]')!.getAttribute('href')).toBe('http://localhost:3100/targove/kola?lot='+lot+'&site=1')
   const graph=[...d.querySelectorAll('script[type="application/ld+json"]')].flatMap(el=>JSON.parse(el.textContent!)['@graph']||[])
-  const vehicle=graph.find(item=>item['@type']==='Vehicle')
-  expect(vehicle.vehicleIdentificationNumber).toBe('TST000000'+lot)
-  expect(vehicle.offers).toBeUndefined()
+  const webPage=graph.find(item=>item['@type']==='WebPage')
+  expect(webPage.url).toBe('http://localhost:3100/targove/kola?lot='+lot+'&site=1')
+  expect(d.body.textContent).toContain('TST000000'+lot)
+  expect(JSON.stringify(graph)).not.toMatch(/"(?:Vehicle|Product|Car|Offer|AggregateOffer|offers|review|aggregateRating)"/)
   expect(graph.some(item=>item['@type']==='BreadcrumbList')).toBe(true)
   expect(d.querySelector('#archived-vehicle-heading')).not.toBeNull()
-  if(lot==='72239476')expect(vehicle.description).not.toContain('Продаден')
+  if(lot==='72239476')expect(webPage.description).not.toContain('Продаден')
   dom.window.close()
  }
 })
@@ -51,4 +52,28 @@ test('sitemap index, four catalogue feeds, canonical host guard and robots disco
  const recovered=await request.get('/sitemap-auctions.xml?section=powersports-archive')
  expect(recovered.status()).toBe(200)
  expect(parse(await recovered.text())).toHaveLength(0)
+})
+
+test('active auction pages keep metadata and facts without claiming product offers',async({request})=>{
+ // Zero bid, missing bid with buy-now, nonzero bid, IAAI, motorcycle and ATV.
+ for(const [lot,site] of [['70000000','1'],['70000001','1'],['70000002','1'],['70000015','2'],['81000000','1'],['85000002','2']]){
+  const response=await request.get('/targove/kola?lot='+lot+'&site='+site)
+  expect(response.status()).toBe(200)
+  const dom=new JSDOM(await response.text()),d=dom.window.document
+  const schemas=[...d.querySelectorAll('script[type="application/ld+json"]')].map(el=>JSON.parse(el.textContent!))
+  const graph=schemas.flatMap(value=>value['@graph']||[value])
+  expect(JSON.stringify(schemas)).not.toMatch(/"(?:Vehicle|Product|Car|Offer|AggregateOffer|offers|review|aggregateRating)"/)
+  const page=graph.find(item=>item['@type']==='WebPage')
+  const canonical='http://localhost:3100/targove/kola?lot='+lot+'&site='+site
+  expect(page.url).toBe(canonical)
+  expect(page.name).toBe(d.querySelector('h1')!.textContent)
+  expect(page.image.length).toBeGreaterThan(0)
+  expect(d.querySelector('link[rel="canonical"]')!.getAttribute('href')).toBe(canonical)
+  expect(d.querySelector('meta[name="robots"]')!.getAttribute('content')).not.toContain('noindex')
+  expect(graph.some(item=>item['@type']==='BreadcrumbList')).toBe(true)
+  expect(graph.some(item=>item['@type']==='FAQPage')).toBe(true)
+  expect(d.querySelector('.technical-facts')!.textContent).toMatch(/72\s420 км/)
+  expect(d.querySelector('#vehicle-seo-heading')).not.toBeNull()
+  dom.window.close()
+ }
 })

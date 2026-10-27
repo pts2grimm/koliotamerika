@@ -19,14 +19,8 @@ export function archivedVehicleData(car: AuctionCar, base: string, images: strin
  const catalogue=powersports?'/targove/motori-atv':'/targove'
  const {description}=auctionSEO(car)
  return {'@context':'https://schema.org','@graph':[
-  {'@type':'WebPage','@id':url+'#page',url,name:car.title,description,inLanguage:'bg-BG',about:{'@id':url+'#vehicle'}},
-  {'@type':'Vehicle','@id':url+'#vehicle',url,name:car.title,description,
-   ...(car.make?{brand:{'@type':'Brand',name:car.make}}:{}),...(car.model?{model:car.model}:{}),
-   ...(car.year?{vehicleModelDate:String(car.year)}:{}),
-   ...(car.vin&&/^[A-HJ-NPR-Z0-9]{17}$/i.test(car.vin)?{vehicleIdentificationNumber:car.vin}:{}),
-   ...(car.odometer!=null&&(car.odometer_unit==='mi'||car.odometer_unit==='km')?{mileageFromOdometer:{'@type':'QuantitativeValue',value:car.odometer,unitCode:car.odometer_unit==='km'?'KMT':'SMI'}}:{}),
-   ...(images.length?{image:images}:{}),...(car.fuel?{fuelType:car.fuel}:{}),
-   ...(car.transmission?{vehicleTransmission:car.transmission}:{})},
+  // Archives have no current offer; Vehicle inherits Product and triggers product validation.
+  {'@type':'WebPage','@id':url+'#page',url,name:car.title,description,inLanguage:'bg-BG',...(images.length?{image:images}:{})},
   {'@type':'BreadcrumbList',itemListElement:[
    ['Начало','/'],[powersports?'Мотори и ATV':'Търгове',catalogue],['Архив',catalogue+'/arhiv'],[car.title,lotPath(car)]
   ].map(([name,path],index)=>({'@type':'ListItem',position:index+1,name,item:new URL(path,base).href}))}
