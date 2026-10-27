@@ -1,0 +1,33 @@
+name: Image recovery and text encoding verification
+on:
+  push:
+    branches: ['codex/image-recovery-utf8-2026-10-27']
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci --include=dev --no-audit --no-fund
+      - run: npm run build
+        env:
+          NEXT_DIST_DIR: .next-eridan
+          PREVIEW_MODE: 'true'
+          PAYLOAD_SECRET: image-recovery-fixture-only-not-production
+          NEXT_PUBLIC_SERVER_URL: http://localhost:3100
+          SITE_INDEXABLE: 'false'
+      - run: npm run typecheck
+      - run: npx playwright install --with-deps chromium
+      - run: npx playwright test --config=playwright.image-recovery.config.ts
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: image-recovery-results
+          path: test-results/
+          retention-days: 5
