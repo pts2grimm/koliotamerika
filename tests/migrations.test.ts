@@ -44,6 +44,7 @@ function sandbox() {
 function journal(db: DatabaseSync) {
   assert.deepEqual(db.prepare('SELECT name FROM payload_migrations ORDER BY name').all().map(row => row.name), [
     '20261010_120440_initial', '20261010_135337_customer_accounts', '20261012_010000_contact_details', '20261012_020000_integrations', '20261012_030000_calculator_eur', '20261017_120000_consent_events', '20261017_180000_bills_of_sale', '20261018_120000_catalog_events', '20261018_160000_catalog_totals', '20261018_190000_catalog_requests', '20261018_200000_catalog_request_details', '20261018_230000_catalog_guard', '20261020_190000_invoices',
+    '20261024_150000_social', '20261026_120000_homepage', '20261026_160000_seo_analysis',
   ])
   for (const name of ['pages', 'site_settings', 'customers', 'saved_vehicles', 'inquiries', 'integrations', 'consent_events', 'bills_of_sale', 'catalog_events', 'catalog_totals', 'catalog_requests', 'catalog_guard', 'invoices', 'invoices_vehicles', 'invoice_settings']) {
     assert.ok(db.prepare("SELECT name FROM sqlite_master WHERE type = 'table' AND name = ?").get(name))

@@ -362,7 +362,7 @@ test('Buy Now is visible separately from a missing bid and absent without a posi
  const card=page.locator('.auction-card:visible').filter({has:page.locator('a[href="/targove/kola?lot=70000001&site=1"]')})
  await expect(card.locator('.auction-buy-now')).toContainText('Купи сега (Buy Now)')
  await expect(card.locator('.auction-buy-now')).toContainText(/9[\\s\\u00a0]*999/)
- await expect(card.locator('.auction-price-row')).toContainText('Не е предоставен')
+ await expect(card.locator('.auction-price-row')).toContainText('0 $')
  await card.locator('.auction-card-link').click()
  await expect(page.locator('.auction-buy-now')).toContainText(/9[\\s\\u00a0]*999/)
  await page.goto('/targove/kola?lot=70000000&site=1')

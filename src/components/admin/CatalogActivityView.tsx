@@ -113,7 +113,7 @@ export async function CatalogActivityView(props: AdminViewServerProps) {
       <div className="koa-catalog-report__table"><table><thead><tr><th>Кога</th><th>Заявка</th><th>Автомобил / търсене</th><th>Резултат</th><th>Време</th><th>IP адрес</th></tr></thead><tbody>
         {requestRows.map(row=><tr key={row.id}>
           <td>{moment(row.created_at)}</td>
-          <td>{row.kind==='view'?'Автомобил':row.kind==='lookup'?'Проверка по лот / VIN':'Търсене'}<small>{row.provider==='eridan'?'Eridan':row.provider==='apicar'?'ApiCar':row.provider==='legacy'?'Legacy':'Друг доставчик'}</small></td>
+          <td>{row.kind==='view'?'Автомобил':row.kind==='lookup'?'Проверка по лот / VIN':'Търсене'}<small>{row.provider==='eridan'?'Основен каталог':row.provider==='apicar'?'ApiCar':row.provider==='legacy'?'Legacy':'Друг доставчик'}</small></td>
           <td><strong>{[row.make,row.model].filter(Boolean).join(' ') || (row.kind==='lookup'?'Проверка на автомобил':row.kind==='view'?'Автомобил':'Каталог без марка / модел')}</strong>
             {row.lot && row.site && <small><a href={'/targove/kola?'+new URLSearchParams({lot:row.lot,site:row.site})} target="_blank" rel="noreferrer">{row.site==='1'?'Copart':'IAAI'} · Лот {row.lot} ↗</a></small>}
             {row.vin && <small>VIN <strong>{row.vin}</strong></small>}
