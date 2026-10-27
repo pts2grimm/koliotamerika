@@ -33,9 +33,9 @@ test('Eridan renders next/previous without a fictional total and shows kilometre
  await expect(page.locator('.technical-facts')).toContainText(/72\s420 км \(45\s000 мили\)/)
  await expect(page.locator('.vehicle-seo')).toContainText(/72\s420 км \(45\s000 мили\)/)
  const schemas = await page.locator('script[type="application/ld+json"]').allTextContents()
- const vehicle = schemas.flatMap(value => JSON.parse(value)['@graph'] || []).find(value => value['@type'] === 'Vehicle')
- expect(vehicle).toBeTruthy()
- expect(vehicle.mileageFromOdometer).toEqual({'@type':'QuantitativeValue',value:45000,unitCode:'SMI'})
+ const graph = schemas.flatMap(value => JSON.parse(value)['@graph'] || [])
+ expect(graph.some(value => value['@type'] === 'WebPage')).toBe(true)
+ expect(graph.some(value => value['@type'] === 'Vehicle' || value['@type'] === 'Product')).toBe(false)
 })
 test('seller selection follows the site convention and can be removed without clearing the make', async ({ page }) => {
  await page.goto('/targove?make=BMW&seller_type=dealer')

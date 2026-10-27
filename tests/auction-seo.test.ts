@@ -12,16 +12,19 @@ test('archive metadata preserves lot identity and does not claim a sale from dat
  assert.ok(meta.title.length<=70);assert.ok(meta.description.length<=180)
  assert.ok(meta.title.includes('72239476'))
 })
-test('archived vehicle data uses known facts without offers, invented sale results or masked VINs',()=>{
- const graph=archivedVehicleData(car,'https://koliotamerika.bg',car.link_img_hd!)['@graph']
- const vehicle=graph.find(item=>item['@type']==='Vehicle')!
- assert.equal(vehicle.vehicleIdentificationNumber,car.vin)
- assert.equal(vehicle.mileageFromOdometer,undefined)
- assert.equal('offers' in vehicle,false)
- const masked=archivedVehicleData({...car,vin:'WP1AB2A57L*******'},'https://koliotamerika.bg',[])['@graph'].find(item=>item['@type']==='Vehicle')!
- assert.equal(masked.vehicleIdentificationNumber,undefined)
+test('archive schema describes the page without product eligibility or fabricated offers',()=>{
+ for(const status of ['active','sold']){
+  const graph=archivedVehicleData({...car,auction_status:status,buy_now:15000,current_bid:12000},'https://koliotamerika.bg',car.link_img_hd!)['@graph']
+  const page=graph.find(item=>item['@type']==='WebPage')!
+  assert.equal(page.url,'https://koliotamerika.bg/targove/kola?lot=72239476&site=1')
+  assert.equal(page.name,car.title)
+  assert.deepEqual(page.image,car.link_img_hd)
+  assert.match(page.description,status==='sold'?/Продаден/:/Търгът е минал/)
+  assert.doesNotMatch(JSON.stringify(graph),/"(?:Vehicle|Product|Car|Offer|AggregateOffer|offers|review|aggregateRating|about)"/)
+ }
  const moto=archivedVehicleData({...car,vehicle_type:'ATVUTV'},'https://koliotamerika.bg',[])['@graph']
  assert.match(JSON.stringify(moto),/motori-atv\/arhiv/)
+ assert.equal(moto.find(item=>item['@type']==='WebPage')!.image,undefined)
 })
 test('sitemap separates categories and lifecycle, skips gallery-less rows and de-duplicates lots',()=>{
  const active={...car,auction_date:'2099-01-01T00:00:00Z'}

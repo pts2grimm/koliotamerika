@@ -14,7 +14,8 @@ export function VehicleSEO({ car }: { car: AuctionCar }) {
   { question: 'Колко време отнема доставката?', answer: 'Срокът зависи от местоположението на автомобила, готовността на документите, транспорта и графика на корабите. Екипът ще уточни очаквания срок за конкретния лот.' },
  ]
  const schema = { '@context': 'https://schema.org', '@graph': [
-  { '@type': 'Vehicle', '@id': `${url}#vehicle`, name: car.title, url, ...(car.make ? { brand: { '@type': 'Brand', name: car.make } } : {}), ...(car.model ? { model: car.model } : {}), ...(car.year ? { vehicleModelDate: String(car.year) } : {}), ...(car.vin ? { vehicleIdentificationNumber: car.vin } : {}), ...(car.odometer != null && car.odometer_unit !== 'unknown' ? { mileageFromOdometer: { '@type': 'QuantitativeValue', value: car.odometer, unitCode: car.odometer_unit === 'km' ? 'KMT' : 'SMI' } } : {}), ...(car.fuel ? { fuelType: car.fuel } : {}), ...(car.transmission ? { vehicleTransmission: car.transmission } : {}), image: auctionImages(car), description: `${car.title} от ${auction}, лот ${car.lot_id}. Разгледай наличните данни и изпрати запитване за внос до България.` },
+  // Auction listings are informational pages, not verified retail offers.
+  { '@type': 'WebPage', '@id': `${url}#page`, name: car.title, url, inLanguage: 'bg-BG', image: auctionImages(car), description: `${car.title} от ${auction}, лот ${car.lot_id}. Разгледай наличните данни и изпрати запитване за внос до България.` },
   { '@type': 'BreadcrumbList', itemListElement: [{ '@type': 'ListItem', position: 1, name: 'Начало', item: siteURL() }, { '@type': 'ListItem', position: 2, name: 'Търгове', item: `${siteURL()}/targove` }, { '@type': 'ListItem', position: 3, name: car.title, item: url }] },
   { '@type': 'FAQPage', mainEntity: questions.map(item => ({ '@type': 'Question', name: item.question, acceptedAnswer: { '@type': 'Answer', text: item.answer } })) },
  ] }

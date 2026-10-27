@@ -1,6 +1,15 @@
 # Auction SEO
 
-Archived Eridan lots have factual visible archive text and WebPage, Vehicle and BreadcrumbList JSON-LD. A past date never claims a confirmed sale. No Offer, current price or purchase FAQ is emitted for archives. Full valid VINs appear in structured data; masked values remain visible as supplied but are not asserted as a full Vehicle VIN. Unknown odometer units are omitted from schema. Detail titles preserve auction/lot identity within 70 characters; descriptions stay within 180. Temporary/unknown hosts remain noindex.
+Active and archived auction lots use WebPage and BreadcrumbList JSON-LD. Active lots retain FAQPage markup matching the visible questions; this does not promise Google FAQ rich results. Vehicle/Product nodes are deliberately omitted: Vehicle inherits Product in Schema.org, and product snippets require offers, review or aggregateRating. These pages have no verified retail Offer or genuine review data. Current bids, missing-price UI fallbacks, archive sale results and upstream buy-now values alone must not create an Offer. Any future product markup needs a separately verified offer and its applicable terms.
+
+Visible VINs, mileage, specifications, prices, galleries and page content remain unchanged. No product-specific properties are moved onto WebPage. Archives keep factual text; a past date never claims a confirmed sale. Detail titles preserve auction/lot identity within 70 characters; descriptions stay within 180. Canonicals, robots and sitemaps remain unchanged.
+
+References checked 2026-10-27:
+- https://schema.org/Vehicle
+- https://developers.google.com/search/docs/appearance/structured-data/product-snippet
+
+The audit should be rerun after deployment. Existing errors disappear only after recrawl; removing ineligible product markup is not gaining product rich-result eligibility.
+
 
 ## Sitemaps
 
