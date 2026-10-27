@@ -29,6 +29,29 @@ for(const [name,engine] of Object.entries({chromium,webkit})){
   if(!await page.locator('.nav--nav-open').count())await page.locator('button.nav-toggler:visible').first().click()
   await waitFor(async()=>await page.locator('.nav--nav-open').count()===1 && await page.locator('.nav').evaluate(el=>getComputedStyle(el).opacity==='1'))
  }
+
+ async function checkNavigation(width){
+  const items=await page.locator('.nav .nav__link').evaluateAll(links=>links.filter(el=>el.getBoundingClientRect().height>0).map(el=>{
+   const rect=el.getBoundingClientRect(), icon=getComputedStyle(el,'::before')
+   return {id:el.id,y:rect.y,bottom:rect.bottom,height:rect.height,mask:icon.maskImage||icon.webkitMaskImage}
+  }))
+  for(const item of items)assert(item.mask&&item.mask!=='none','Missing navigation icon: '+item.id)
+  const home=items.find(item=>item.id==='koa-nav-globals/homepage')
+  const social=items.find(item=>item.id==='koa-nav-social')
+  assert(home&&social&&home.mask!==social.mask,'Home and publishing need distinct icons')
+  const ids=['koa-nav-overview','koa-nav-catalog-activity','koa-nav-database-traffic']
+  const top=ids.map(id=>items.find(item=>item.id===id))
+  assert(top.every(Boolean),'Missing analytics navigation')
+  for(let i=1;i<top.length;i++){
+   const gap=top[i].y-top[i-1].bottom
+   assert(gap>=-1&&gap<=4,'Top navigation gap: '+gap)
+  }
+  for(const item of top)assert(width<768?item.height>=44&&item.height<=46:item.height>=36&&item.height<=40,'Unexpected link height: '+JSON.stringify(item))
+  const pageLink=items.find(item=>item.id==='koa-nav-site-pages')
+  assert(pageLink.y-home.bottom>=-1&&pageLink.y-home.bottom<=4,'Content links have excessive spacing')
+  console.log('NAV_METRICS',JSON.stringify({engine:name,width,top:top.map(({id,height,y,bottom})=>({id,height,y,bottom})),contentGap:pageLink.y-home.bottom,icons:items.length}))
+ }
+
  const close=async()=>{
   if(await page.locator('.nav--nav-open').count())await page.locator('.nav__mobile-close').click()
   await waitFor(async()=>await page.locator('.nav--nav-open').count()===0)
@@ -54,7 +77,13 @@ for(const [name,engine] of Object.entries({chromium,webkit})){
   assert(await page.locator('#koa-nav-database-traffic').evaluate(el=>{
    const r=el.getBoundingClientRect();return el.contains(document.elementFromPoint(r.x+r.width/2,r.y+r.height/2))
   }))
+  await checkNavigation(width)
   if(width===390)await page.screenshot({path:'test-results/'+name+'-mobile-menu.jpg',type:'jpeg',quality:65})
+  if(width===390){
+   await page.evaluate(()=>document.documentElement.setAttribute('data-theme','light'))
+   await page.screenshot({path:'test-results/'+name+'-mobile-menu-light.jpg',type:'jpeg',quality:75})
+   await page.evaluate(()=>document.documentElement.setAttribute('data-theme','dark'))
+  }
   await close()
   await waitFor(async()=>{const m=await metrics();return m.document<=width+1&&Math.abs(m.wrap.width-width)<2})
   if(width===390)await page.screenshot({path:'test-results/'+name+'-mobile-report.jpg',type:'jpeg',quality:65})
@@ -80,6 +109,7 @@ for(const [name,engine] of Object.entries({chromium,webkit})){
  await open()
  await waitFor(async()=>{const m=await metrics();return m.wrap.x>150&&m.wrap.width>900&&m.document<=1537})
  assert.notEqual(await page.locator('.nav').evaluate(el=>getComputedStyle(el).position),'fixed')
+ await checkNavigation(1536)
  await page.screenshot({path:'test-results/'+name+'-desktop.jpg',type:'jpeg',quality:60})
  console.log('PASS',name,'custom navigation, built-in collection, desktop sidebar')
  await browser.close()
