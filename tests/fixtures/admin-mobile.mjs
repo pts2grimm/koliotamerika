@@ -81,6 +81,7 @@ for(const [name,engine] of Object.entries({chromium,webkit})){
   if(width===390)await page.screenshot({path:'test-results/'+name+'-mobile-menu.jpg',type:'jpeg',quality:65})
   if(width===390){
    await page.evaluate(()=>document.documentElement.setAttribute('data-theme','light'))
+   await page.waitForTimeout(300) // Wait for the navigation colour transition before visual review.
    await page.screenshot({path:'test-results/'+name+'-mobile-menu-light.jpg',type:'jpeg',quality:75})
    await page.evaluate(()=>document.documentElement.setAttribute('data-theme','dark'))
   }
