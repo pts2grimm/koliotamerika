@@ -10,6 +10,20 @@ test('llms.txt declares UTF-8 and the browser displays Cyrillic correctly', asyn
  await expect(page.locator('body')).toContainText('Български сайт за внос')
 })
 
+
+test('llms.txt stays UTF-8 when the static host omits the charset', async ({ page, request }) => {
+ const response = await request.get('/llms.txt')
+ const body = await response.body()
+ expect([...body.subarray(0, 3)]).toEqual([0xef, 0xbb, 0xbf])
+ await page.route('**/llms.txt', route => route.fulfill({
+  status: 200, headers: {'content-type': 'text/plain'}, body,
+ }))
+ await page.goto('/llms.txt')
+ expect(await page.evaluate(() => document.characterSet)).toBe('UTF-8')
+ await expect(page.locator('body')).toContainText('# Коли от Америка')
+ await expect(page.locator('body')).toContainText('Български сайт за внос')
+})
+
 for (const width of [390, 1280]) {
  test('failed card image can retry or switch photos at width ' + width, async ({ page }) => {
   await page.setViewportSize({width,height:900})
