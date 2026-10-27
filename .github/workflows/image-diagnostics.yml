@@ -16,6 +16,9 @@ jobs:
         run: |
           node --input-type=module <<'JS'
           const base='https://koliotamerika.bg';
+          const llms=await fetch(base+'/llms.txt',{signal:AbortSignal.timeout(20000)});
+          const llmsText=await llms.text();
+          console.log('LLMS',JSON.stringify({status:llms.status,contentType:llms.headers.get('content-type'),prefix:llmsText.slice(0,150)}));
           const samples=[['46181017','2'],['68038486','1']];
           for(const [lot,site] of samples){
             try{
