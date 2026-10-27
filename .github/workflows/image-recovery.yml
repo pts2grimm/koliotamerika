@@ -1,7 +1,7 @@
 name: Image recovery and text encoding verification
 on:
   push:
-    branches: ['codex/image-recovery-utf8-2026-10-27']
+    branches: ['codex/image-recovery-utf8-2026-10-27', 'codex/llms-static-utf8-2026-10-27']
 permissions:
   contents: read
 jobs:
