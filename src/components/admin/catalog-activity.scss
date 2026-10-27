@@ -13,7 +13,6 @@
 .koa-catalog-report th, .koa-catalog-report td { padding:12px; border-bottom:1px solid var(--theme-elevation-200); vertical-align:top; max-width:360px; overflow-wrap:anywhere; }
 .koa-catalog-report td small { display:block; color:var(--theme-elevation-600); font-size:11px; line-height:1.6; margin-top:5px; }
 .koa-catalog-report__pages { display:flex; justify-content:space-between; gap:16px; margin-top:18px; }
-.nav #koa-nav-catalog-activity { margin-top:-12px; margin-bottom:20px; --koa-nav-icon:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.7'%3E%3Cpath d='M3 3v18h18M7 17v-4m5 4V9m5 8V5'/%3E%3C/svg%3E"); }
 @media(max-width:900px) { .koa-catalog-report__rankings { grid-template-columns:1fr; } }
 
 .koa-catalog-report__history { margin:24px 0; scroll-margin-top:30px; }
@@ -49,7 +48,6 @@
 .koa-database-traffic__scroll th { position: sticky; top: 0; background: var(--theme-elevation-100); z-index: 1; }
 .koa-database-traffic code { overflow-wrap: anywhere; }
 .koa-database-traffic button:disabled { opacity: .6; cursor: wait; }
-.nav #koa-nav-database-traffic { margin-bottom: 20px; --koa-nav-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.7'%3E%3Cellipse cx='12' cy='5' rx='8' ry='3'/%3E%3Cpath d='M4 5v14c0 4 16 4 16 0V5M4 12c0 4 16 4 16 0'/%3E%3C/svg%3E"); }
 
 /* Keep complete tab labels and scroll only the wide report table. */
 .koa-analytics-tabs a { flex: 0 0 auto; max-width: 100%; }
