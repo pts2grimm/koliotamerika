@@ -16,7 +16,7 @@ for (const width of [390, 1280]) {
   let fail = true
   let failedRequests = 0
   await page.route('https://cs.copart.com/test-gallery-*.jpg', async route => {
-   if (fail && route.request().url().endsWith('test-gallery-1.jpg')) {
+   if (route.request().url().endsWith('test-gallery-3.jpg') || fail && route.request().url().endsWith('test-gallery-1.jpg')) {
     failedRequests++
     return route.abort('failed')
    }
@@ -36,10 +36,10 @@ for (const width of [390, 1280]) {
   await card.getByRole('button',{name:'Следваща снимка в обявата'}).click()
   await expect(card.locator('.card-photo-count')).toHaveText('2 / 3')
   await expect(card.locator('.card-photo-link img')).toHaveAttribute('src',/test-gallery-2/)
-  fail=true
-  await card.getByRole('button',{name:'Предишна снимка в обявата'}).click()
-  await expect(card.getByRole('status').filter({hasText:'Снимката временно'})).toBeVisible()
+  // Use an unseen URL: browsers can reuse an already decoded successful image.
   await card.getByRole('button',{name:'Следваща снимка в обявата'}).click()
+  await expect(card.getByRole('status').filter({hasText:'Снимката временно'})).toBeVisible()
+  await card.getByRole('button',{name:'Предишна снимка в обявата'}).click()
   await expect.poll(()=>card.locator('.card-photo-link img').evaluate((img:HTMLImageElement)=>img.naturalWidth)).toBeGreaterThan(0)
   await expect(card.locator('.card-photo-link')).toHaveAttribute('href',/\/targove\/kola\?lot=/)
  })
