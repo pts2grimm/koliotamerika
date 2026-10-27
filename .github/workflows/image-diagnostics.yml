@@ -1,4 +1,4 @@
-name: Verify deployed text encoding
+name: Public auction schema diagnosis
 on:
   push:
     branches: ['codex/image-diagnostics-2026-10-27']
@@ -7,25 +7,23 @@ permissions:
 jobs:
   diagnose:
     runs-on: ubuntu-24.04
-    timeout-minutes: 6
+    timeout-minutes: 4
     steps:
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
-      - name: Check deployed UTF-8 marker
+      - name: Read public auction structured data
         run: |
           node --input-type=module <<'JS'
-          for(let attempt=1;attempt<=12;attempt++){
-            const r=await fetch('https://koliotamerika.bg/llms.txt?encoding-check='+Date.now(),{signal:AbortSignal.timeout(10000),headers:{'Cache-Control':'no-cache'}});
-            const b=new Uint8Array(await r.arrayBuffer());
-            const bom=b[0]===239&&b[1]===187&&b[2]===191;
-            console.log('DEPLOY_CHECK',JSON.stringify({attempt,status:r.status,contentType:r.headers.get('content-type'),bom,text:new TextDecoder().decode(b).slice(0,100)}));
-            if(r.ok&&bom){
-              const canonical=await fetch('https://koliotamerika.bg/llms.txt',{signal:AbortSignal.timeout(10000)});
-              const bytes=new Uint8Array(await canonical.arrayBuffer());
-              console.log('CANONICAL',JSON.stringify({status:canonical.status,contentType:canonical.headers.get('content-type'),bom:bytes[0]===239&&bytes[1]===187&&bytes[2]===191,text:new TextDecoder().decode(bytes).slice(0,100)}));
-              break;
-            }
-            if(attempt<12) await new Promise(resolve=>setTimeout(resolve,20000));
+          const samples=[['32894932','2'],['41275545','2'],['54155906','1']];
+          for(const [lot,site] of samples){
+           try{
+            const url='https://koliotamerika.bg/targove/kola?lot='+lot+'&site='+site;
+            const r=await fetch(url,{signal:AbortSignal.timeout(25000)});
+            const html=await r.text();
+            const blocks=[...html.matchAll(/<script\b[^>]*type="application\/ld\+json"[^>]*>([\s\S]*?)<\/script>/g)].map(m=>JSON.parse(m[1]));
+            const nodes=blocks.flatMap(b=>b['@graph']||[b]);
+            console.log('SCHEMA',JSON.stringify({url,status:r.status,title:html.match(/<title>(.*?)<\/title>/)?.[1],types:nodes.map(n=>n['@type']),productNodes:nodes.filter(n=>['Vehicle','Product','Car'].includes(n['@type'])).length,pageNodes:nodes.filter(n=>n['@type']==='WebPage').length}));
+           }catch(e){console.log('FETCH_ERROR',JSON.stringify({lot,name:e.name,message:e.message}))}
           }
           JS
