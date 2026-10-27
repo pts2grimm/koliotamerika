@@ -1,3 +1,4 @@
+import { ConsentChart } from './ConsentChart'
 import { AdminAnalyticsTabs } from './AdminAnalyticsTabs'
 import { Gutter, Link, SetStepNav } from '@payloadcms/ui'
 import { notFound, redirect } from 'next/navigation'
@@ -43,9 +44,6 @@ export async function Overview(props: AdminViewServerProps) {
     { label: 'Само реклама', value: Number(data.current.marketing) - Number(data.current.all_count), tone: 'marketing' },
     { label: 'Само необходимите', value: Number(data.current.necessary), tone: 'necessary' },
   ]
-  const max = Math.max(1, ...data.daily.map(point => point.total))
-  const coords = (key: 'total' | 'accepted') => data.daily.map((point, index) =>
-    (30 + index * 740 / Math.max(1, data.daily.length - 1)) + ',' + (180 - point[key] / max * 150)).join(' ')
   const statusNames: Record<string, string> = { new: 'Ново', progress: 'В процес', done: 'Приключено' }
   return <Gutter className="koa-overview">
       <SetStepNav nav={[{ label: 'Обзор и аналитика' }]} />
@@ -67,13 +65,7 @@ export async function Overview(props: AdminViewServerProps) {
         <section className="koa-overview__panel">
           <header><div><h2>Избори за бисквитки</h2><p>Записани действия по дни, включително промени на избора.</p></div><span className="koa-overview__pill">За периода</span></header>
           {data.eventCount ? <><div className="koa-overview__legend"><span><i className="is-total" /> Всички действия</span><span><i className="is-accepted" /> Приети всички категории</span></div>
-            <svg className="koa-overview__chart" viewBox="0 0 800 220" role="img" aria-label={'Избори за периода: ' + data.eventCount + '. Точните стойности са в таблицата под графиката.'}>
-              {[30, 80, 130, 180].map(y => <line key={y} x1="30" x2="770" y1={y} y2={y} stroke="currentColor" opacity=".12" strokeDasharray="4 6" />)}
-              <polyline points={coords('total')} fill="none" className="koa-overview__line-total" strokeWidth="3" />
-              <polyline points={coords('accepted')} fill="none" className="koa-overview__line-accepted" strokeWidth="2" strokeDasharray="6 5" />
-              {data.daily.length === 1 && <circle cx="30" cy={180 - data.daily[0].total / max * 150} r="4" className="koa-overview__dot" />}
-              <text x="30" y="210">{date(period.start)}</text><text x="770" y="210" textAnchor="end">{date(period.to + 'T12:00:00Z')}</text>
-            </svg>
+            <ConsentChart key={period.from + period.to} daily={data.daily} from={period.from} to={period.to} />
             <details className="koa-overview__daily"><summary>Точни стойности по дни</summary><div className="koa-overview__scroll"><table><thead><tr><th>Дата</th><th>Всички действия</th><th>Всички категории</th></tr></thead><tbody>{data.daily.map(point => <tr key={point.date}><td>{date(point.date + 'T12:00:00Z')}</td><td>{point.total}</td><td>{point.accepted}</td></tr>)}</tbody></table></div></details>
           </> : <div className="koa-overview__empty"><Cookie size={30} /><h3>Все още няма записани избори</h3><p>Данните започват да се събират след внедряването. Посетителите със запазен стар избор ще се появят, когато направят нов избор.</p></div>}
         </section>
