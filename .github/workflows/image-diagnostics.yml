@@ -1,4 +1,4 @@
-name: Public auction image diagnosis
+name: Public text encoding diagnosis
 on:
   push:
     branches: ['codex/image-diagnostics-2026-10-27']
@@ -7,32 +7,18 @@ permissions:
 jobs:
   diagnose:
     runs-on: ubuntu-24.04
-    timeout-minutes: 4
+    timeout-minutes: 3
     steps:
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
-      - name: Inspect public pages and a bounded image sample
+      - name: Inspect public text responses
         run: |
           node --input-type=module <<'JS'
-          const base='https://koliotamerika.bg';
-          const llms=await fetch(base+'/llms.txt',{signal:AbortSignal.timeout(20000)});
-          const llmsText=await llms.text();
-          console.log('LLMS',JSON.stringify({status:llms.status,contentType:llms.headers.get('content-type'),prefix:llmsText.slice(0,150)}));
-          const samples=[['46181017','2'],['68038486','1']];
-          for(const [lot,site] of samples){
-            try{
-              const response=await fetch(base+'/targove/kola?'+new URLSearchParams({lot,site}),{signal:AbortSignal.timeout(30000)});
-              const html=await response.text();
-              const images=[...new Set([...html.matchAll(/<img\b[^>]*\bsrc="([^"]+)"/g)].map(m=>m[1].replaceAll('&amp;','&')).filter(v=>{try{return ['cs.copart.com','vis.iaai.com'].includes(new URL(v).hostname)}catch{return false}}))];
-              console.log('PAGE',JSON.stringify({lot,site,status:response.status,imageCount:images.length,unavailable:html.includes('Няма активен търг')}));
-              for(const [index,url] of images.slice(0,3).entries()){
-                try{
-                  const image=await fetch(url,{signal:AbortSignal.timeout(20000),headers:{'User-Agent':'Mozilla/5.0'}});
-                  const data=new Uint8Array(await image.arrayBuffer());
-                  console.log('IMAGE',JSON.stringify({lot,index,host:new URL(url).hostname,status:image.status,contentType:image.headers.get('content-type'),bytes:data.length,magic:[...data.slice(0,12)]}));
-                }catch(error){console.log('IMAGE_ERROR',JSON.stringify({lot,index,name:error.name,message:error.message}));}
-              }
-            }catch(error){console.log('PAGE_ERROR',JSON.stringify({lot,name:error.name,message:error.message}));}
+          for (const path of ['/llms.txt', '/llms.txt?encoding-check=20261027b']) {
+            const r=await fetch('https://koliotamerika.bg'+path,{signal:AbortSignal.timeout(20000),headers:{'Cache-Control':'no-cache'}});
+            const b=new Uint8Array(await r.arrayBuffer());
+            const h=Object.fromEntries(['content-type','cache-control','age','server','etag','last-modified','x-cache','x-hcdn-cache-status'].map(k=>[k,r.headers.get(k)]));
+            console.log('ENCODING',JSON.stringify({path,status:r.status,headers:h,bytes:[...b.slice(0,30)],text:new TextDecoder().decode(b).slice(0,100)}));
           }
           JS
