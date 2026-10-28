@@ -1,0 +1,23 @@
+name: Hostinger social cron verification
+on:
+  push:
+    branches: ['codex/hostinger-social-cron-2026-10-28']
+  pull_request:
+    branches: ['eridan-staging']
+    paths:
+      - 'scripts/social-cron.mjs'
+      - 'tests/social-cron.test.mjs'
+      - '.github/workflows/social-cron.yml'
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --check scripts/social-cron.mjs
+      - run: node --test tests/social-cron.test.mjs
