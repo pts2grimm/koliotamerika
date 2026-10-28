@@ -42,6 +42,10 @@ export default buildConfig({
     user: 'users',
     meta: { titleSuffix: ' · Коли от Америка' },
     components: {
+      graphics: {
+        Logo: '/src/components/admin/Brand#AdminLogo',
+        Icon: '/src/components/admin/Brand#AdminIcon',
+      },
       beforeNavLinks: ['/src/components/admin/ContentNav#ContentNav'],
       views: {
         social: { Component: '/src/components/admin/SocialView#SocialView', path: '/social', exact: true, meta: { title: 'Facebook публикации' } },
