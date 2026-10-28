@@ -1,7 +1,7 @@
 name: Hostinger social cron verification
 on:
   push:
-    branches: ['codex/hostinger-social-cron-2026-10-28']
+    branches: ['codex/hostinger-social-cron-2026-10-28', 'codex/social-cron-package-2026-10-28']
   pull_request:
     branches: ['eridan-staging']
     paths:
