@@ -1,6 +1,9 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
 import { spawnSync } from 'node:child_process'
+import { mkdtempSync, symlinkSync, rmSync } from 'node:fs'
+import { tmpdir } from 'node:os'
+import { resolve, join } from 'node:path'
 import { runSocialCron } from '../scripts/social-cron.mjs'
 
 const env = {
@@ -103,4 +106,21 @@ test('Node CLI exits nonzero with safe error when no secret is loaded', () => {
   assert.equal(child.status, 1)
   assert.deepEqual(JSON.parse(child.stdout), { ok: false, code: 'INVALID_CRON_SECRET' })
   assert.equal(child.stderr, '')
+})
+
+test('CLI runs through a current symlink instead of silently skipping the task', () => {
+  const directory = mkdtempSync(join(tmpdir(), 'social-cron-link-'))
+  try {
+    symlinkSync(resolve('scripts'), join(directory, 'current'), 'dir')
+    for (const flags of [[], ['--preserve-symlinks-main']]) {
+      const child = spawnSync(process.execPath, [...flags, join(directory, 'current/social-cron.mjs')], {
+        env: { ...process.env, SOCIAL_CRON_SECRET: '' }, encoding: 'utf8',
+      })
+      assert.equal(child.status, 1, 'The CLI must execute, even through a symlink')
+      assert.deepEqual(JSON.parse(child.stdout), { ok: false, code: 'INVALID_CRON_SECRET' })
+      assert.equal(child.stderr, '')
+    }
+  } finally {
+    rmSync(directory, { recursive: true, force: true })
+  }
 })

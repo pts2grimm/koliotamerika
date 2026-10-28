@@ -1,7 +1,7 @@
 name: Facebook scheduling verification
 on:
   push:
-    branches: ['codex/facebook-scheduling-2026-10-24', 'codex/vehicle-social-copy-2026-10-28']
+    branches: ['codex/facebook-scheduling-2026-10-24', 'codex/vehicle-social-copy-2026-10-28', 'codex/social-cron-package-2026-10-28']
 permissions:
   contents: read
 concurrency:
@@ -41,7 +41,9 @@ jobs:
       - run: node --import tsx --test tests/social.test.ts tests/social-vehicle-message.test.ts
       - run: node --import tsx scripts/prepare-postgres.ts
       - run: node --import tsx tests/fixtures/social-store.ts
+      - run: node --test tests/social-cron.test.mjs
       - run: npm run build
+      - run: node --test tests/social-cron-build.test.mjs
       - run: npm run typecheck
       - run: npx playwright install --with-deps chromium
         timeout-minutes: 4
