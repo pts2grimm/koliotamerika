@@ -3,6 +3,7 @@ import { database } from '../database'
 import { q, insertDraft } from './store'
 import { SocialError, siteLink, sourceKey, vehicleLink, text, nextSlots } from './validation'
 import type { SocialPost, SocialSettings } from './types'
+import { vehiclePostMessage } from './vehicle-message'
 export const starterTips=[
  {title:'Проверка преди наддаване',message:'Преди да наддаваш, съпостави VIN в обявата и документите. Прегледай снимките и наличната история, уточни вида на документа и дали има ключ. Снимките сами по себе си не са техническа проверка.',link:'https://koliotamerika.bg/blog/'},
  {title:'Планиране на бюджета',message:'Планирай общия бюджет преди търга: покупка, приложими такси, транспорт, ремонт и процедурата за регистрация. Поискай конкретна разбивка за избрания автомобил — крайната оферта зависи от него и маршрута.',link:'https://koliotamerika.bg/kalkulator'},
@@ -27,7 +28,8 @@ export async function makeDraft(payload:Payload,kind:unknown,source:unknown,mess
   const {isAuctionClosed}=await import('../auction-lifecycle')
   const car=await freshAuctionCarForSocial(target.lot,target.site)
   if(!car||car.auction_status!=='active'||isAuctionClosed(car))throw new SocialError('Автомобилът няма потвърден активен търг.')
-  return {kind,title:car.title,link:target.link,source_key:sourceKey(kind,target.link),message:car.title+'\n\n'+(target.site==='1'?'Copart':'IAAI')+' · Лот '+target.lot+'\n'+(car.damage_pr?'Посочени щети: '+car.damage_pr+'\n':'')+'\nРазгледай снимките и характеристиките. Свържи се с нас за проверка и конкретна оферта за внос. Наличността и условията на търга могат да се променят.'}
+  const contact=await payload.findGlobal({slug:'site-settings',depth:0,overrideAccess:false,user:null})
+  return {kind,title:car.title,link:target.link,source_key:sourceKey(kind,target.link),message:vehiclePostMessage(car,contact.phone)}
  }
  if(kind==='tip'){
   const body=text(message,2000),link=siteLink(source||'/blog/')

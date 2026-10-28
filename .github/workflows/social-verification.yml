@@ -1,7 +1,7 @@
 name: Facebook scheduling verification
 on:
   push:
-    branches: ['codex/facebook-scheduling-2026-10-24']
+    branches: ['codex/facebook-scheduling-2026-10-24', 'codex/vehicle-social-copy-2026-10-28']
 permissions:
   contents: read
 concurrency:
@@ -38,7 +38,7 @@ jobs:
           node-version: '24'
           cache: npm
       - run: npm ci --include=dev --no-audit --no-fund
-      - run: node --import tsx --test tests/social.test.ts
+      - run: node --import tsx --test tests/social.test.ts tests/social-vehicle-message.test.ts
       - run: node --import tsx scripts/prepare-postgres.ts
       - run: node --import tsx tests/fixtures/social-store.ts
       - run: npm run build
