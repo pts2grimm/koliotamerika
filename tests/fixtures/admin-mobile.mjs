@@ -12,6 +12,17 @@ assert(ready,'Server did not become ready')
 for(const [name,engine] of Object.entries({chromium,webkit})){
  const browser=await engine.launch()
  const context=await browser.newContext({viewport:{width:390,height:844},isMobile:true,hasTouch:true,colorScheme:'dark'})
+ // Capture the public login branding before authenticating the test administrator.
+ const loginPage=await context.newPage()
+ for(const theme of ['dark','light']){
+  await loginPage.goto(base+'/admin/login')
+  await loginPage.evaluate(theme=>document.documentElement.setAttribute('data-theme',theme),theme)
+  const logo=loginPage.getByRole('img',{name:'Коли от Америка',exact:true})
+  await logo.waitFor()
+  assert(await logo.evaluate(img=>img.complete&&img.naturalWidth>0),'Login logo must load')
+  await loginPage.screenshot({path:'test-results/'+name+'-login-'+theme+'.jpg',type:'jpeg',quality:75})
+ }
+ await loginPage.close()
  const login=await context.request.post(base+'/api/users/login',{data:{email:'mobile-admin@example.test',password:'Isolated-mobile-test-2026'},headers:{Origin:base}})
  assert.equal(login.status(),200)
  const page=await context.newPage()
