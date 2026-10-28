@@ -64,7 +64,9 @@ PREVIEW_MODE=true блокира заявката. Facebook токенът не 
    File Manager, че скриптът е в текущото внедряване. Самото създаване на PR
    не инсталира или активира cron задачата.
 2. В Advanced → Cron Jobs изберете Node.js. Запазете попълнените от Hostinger
-   Node.js път и --env-file. Въведете пълния път до scripts/social-cron.mjs.
+   Node.js път и --env-file. Ако панелът добавя основната папка автоматично,
+   въведете само scripts/social-cron.mjs в дясното поле. Проверете показаната
+   пълна команда: основният път трябва да присъства само веднъж.
    Според документацията структурата е:
    /home/USERNAME/domains/koliotamerika.bg/hbuilds/current/nodejs/scripts/social-cron.mjs
    Заменете USERNAME с потребителя от попълнения път и потвърдете файла.
@@ -110,3 +112,18 @@ https://www.hostinger.com/support/how-to-run-cron-jobs-for-node-js-websites-at-h
 на текста. Генерираните чернови остават редактируеми преди одобрение.
 Промяната на шаблона не презаписва съществуващи чернови, одобрени или публикувани
 постове. Link preview и снимката продължават да се определят от Facebook.
+
+## Диагностика на Hostinger cron
+
+- MODULE_NOT_FOUND за scripts/social-cron.mjs: проверете внедрения commit и
+  файла в hbuilds/current/nodejs/scripts. Скриптът е добавен изрично към
+  outputFileTracingIncludes за /api/cron/social, за да се запази при
+  пакетирането на Next.js приложението.
+- Празен изход при съществуващ файл: CLI разпознава реалните пътища, включително
+  когато current е символна връзка към текущото внедряване.
+- След внедряване проверете View Output и last tick без ръчно GitHub изпълнение.
+  Успешните CI тестове не потвърждават сами успешна задача в Hostinger.
+
+CI проверява production trace и стартира копието на скрипта от временна
+папка current със символна връзка, --env-file и mock HTTP. Не се използват
+production тайни и не се публикуват тестови Facebook постове.

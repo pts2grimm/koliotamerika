@@ -1,7 +1,7 @@
 import { withPayload } from '@payloadcms/next/withPayload'
 export default withPayload({
   poweredByHeader: false,
-  outputFileTracingIncludes: { '/api/admin/invoices/*/pdf': ['./assets/fonts/*.ttf', './assets/invoice/*.png'], '/api/admin/bos/*/pdf': ['./assets/fonts/*.ttf', './assets/bos/seller-signature.png'] },
+  outputFileTracingIncludes: { '/api/cron/social': ['./scripts/social-cron.mjs'], '/api/admin/invoices/*/pdf': ['./assets/fonts/*.ttf', './assets/invoice/*.png'], '/api/admin/bos/*/pdf': ['./assets/fonts/*.ttf', './assets/bos/seller-signature.png'] },
   devIndicators: false,
   distDir: process.env.NEXT_DIST_DIR || '.next',
   experimental: { cpus: 2 },

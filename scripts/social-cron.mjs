@@ -1,4 +1,4 @@
-import { pathToFileURL } from 'node:url'
+import { realpathSync } from 'node:fs'
 
 // No Payload/database initialization here: use the application's protected runner.
 export async function runSocialCron({
@@ -47,6 +47,6 @@ export async function runSocialCron({
   }
 }
 
-if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+if (process.argv[1] && realpathSync(new URL(import.meta.url)) === realpathSync(process.argv[1])) {
   process.exitCode = await runSocialCron()
 }
