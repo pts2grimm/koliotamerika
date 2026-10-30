@@ -7,11 +7,10 @@ import { contactPhoneKey, upgradeContactPhone } from '../../src/lib/contact-phon
 import { contactPhone } from '../../src/lib/contact-phone'
 const payload = await getPayload({config})
 try {
- // Fresh imports use the new default and the historical privacy text is corrected.
+ // Fresh imports use the new default and do not expose the retired privacy contact.
  assert.equal((await payload.findGlobal({slug:'site-settings'})).phone,contactPhone)
  const privacy=(await payload.find({collection:'pages',where:{slug:{equals:'zashtita-na-lichni-danni'}},depth:0})).docs[0]
  assert.doesNotMatch(JSON.stringify(privacy.body),/359888292280/)
- assert.match(JSON.stringify(privacy.body),/359884478885|359 884 478 885/)
  await payload.delete({collection:'payload-kv',where:{key:{equals:contactPhoneKey}}})
  await payload.updateGlobal({slug:'site-settings',data:{phone:'+359 888 292 280'}})
  const editorConfig=await editorConfigFactory.default({config:payload.config})

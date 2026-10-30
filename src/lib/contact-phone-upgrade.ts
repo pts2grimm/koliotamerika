@@ -19,12 +19,12 @@ export async function upgradeContactPhone(payload: Payload) {
    return 0
   }
   const site = await payload.findGlobal({ slug: 'site-settings', req, depth: 0 })
+  const home = await payload.findGlobal({ slug: 'homepage', req, depth: 0 })
   const sitePatch = contactPhonePatch(site, siteFields)
   if (Object.keys(sitePatch).length) {
    await payload.updateGlobal({ slug: 'site-settings', req, depth: 0, data: sitePatch })
    updated++
   }
-  const home = await payload.findGlobal({ slug: 'homepage', req, depth: 0 })
   // A never-edited homepage is derived from defaults, which contain no old number.
   if (home.initialized) {
    const patch = contactPhonePatch(home, homeFields)
