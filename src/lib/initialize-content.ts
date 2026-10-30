@@ -124,5 +124,12 @@ export async function initializeContent(payload: Payload, options: { preview: bo
   } catch (error) {
     payload.logger.warn({ err: error }, '[bootstrap] Calculator delivery update deferred; existing settings preserved.')
   }
+  try {
+    const { upgradeContactPhone } = await import('./contact-phone-upgrade')
+    const updated = await upgradeContactPhone(payload)
+    if (updated) payload.logger.info(`[bootstrap] Corrected the business contact phone in ${updated} records.`)
+  } catch (error) {
+    payload.logger.warn({ err: error }, '[bootstrap] Contact phone correction deferred; transaction rolled back.')
+  }
   payload.logger.info('[bootstrap] Ready.')
 }
