@@ -4,6 +4,7 @@ import { q, insertDraft } from './store'
 import { SocialError, siteLink, sourceKey, vehicleLink, text, nextSlots } from './validation'
 import type { SocialPost, SocialSettings } from './types'
 import { vehiclePostMessage } from './vehicle-message'
+import { articlePostMessage } from './article-message'
 export const starterTips=[
  {title:'Проверка преди наддаване',message:'Преди да наддаваш, съпостави VIN в обявата и документите. Прегледай снимките и наличната история, уточни вида на документа и дали има ключ. Снимките сами по себе си не са техническа проверка.',link:'https://koliotamerika.bg/blog/'},
  {title:'Планиране на бюджета',message:'Планирай общия бюджет преди търга: покупка, приложими такси, транспорт, ремонт и процедурата за регистрация. Поискай конкретна разбивка за избрания автомобил — крайната оферта зависи от него и маршрута.',link:'https://koliotamerika.bg/kalkulator'},
@@ -20,7 +21,7 @@ export async function makeDraft(payload:Payload,kind:unknown,source:unknown,mess
   const page=result.docs[0]
   if(!page)throw new SocialError('Статията не е публикувана в сайта.')
   const link=siteLink('/'+page.slug)
-  return {kind,title:page.title,link,source_key:sourceKey(kind,link),message:(page.title+'\n\n'+(page.intro||'Прочети практическото ръководство в блога на Коли от Америка.')+'\n\nВиж статията:').slice(0,2000)}
+  return {kind,title:page.title,link,source_key:sourceKey(kind,link),message:articlePostMessage(page)}
  }
  if(kind==='vehicle'){
   const target=vehicleLink(source)
