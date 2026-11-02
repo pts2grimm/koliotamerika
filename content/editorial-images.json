@@ -88,5 +88,15 @@
     "caption": "Илюстрация, създадена с помощта на AI; не показва реален автомобил, аукционна площадка или документ за получаване.",
     "createdAt": "2026-10-30",
     "provenance": "Original AI-generated editorial illustration created for Коли от Америка on 2026-10-30; no third-party reference images, logos or real vehicle identifiers."
+  },
+  {
+    "slug": "bmw-connecteddrive-sasht-bulgaria",
+    "src": "/images/editorial/connected-services-check.png",
+    "alt": "Схематична илюстрация на автомобил от САЩ и телефон в България с въпросителен знак и проверки на VIN, регион и профил.",
+    "width": 1200,
+    "height": 800,
+    "caption": "Авторска схема, създадена с помощта на AI; не показва реален BMW автомобил, интерфейс на My BMW или потвърдена работа на онлайн услуги.",
+    "createdAt": "2026-11-02",
+    "provenance": "Original AI-assisted schematic illustration drawn programmatically for Коли от Америка on 2026-11-02; no third-party images, logos, real VINs or app screenshots."
   }
 ]
