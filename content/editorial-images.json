@@ -98,5 +98,15 @@
     "caption": "Авторска схема, създадена с помощта на AI; не показва реален BMW автомобил, интерфейс на My BMW или потвърдена работа на онлайн услуги.",
     "createdAt": "2026-11-02",
     "provenance": "Original AI-assisted schematic illustration drawn programmatically for Коли от Америка on 2026-11-02; no third-party images, logos, real VINs or app screenshots."
+  },
+  {
+    "slug": "copart-on-approval-nasreshtna-oferta",
+    "src": "/images/editorial/on-approval-decision.png",
+    "alt": "Авторска схема на оферта за автомобил, изчакване с насрещни предложения и решение за приемане или отказ.",
+    "width": 1200,
+    "height": 800,
+    "caption": "Авторска схема, създадена с помощта на AI; илюстрира възможни етапи, а не реален лот, интерфейс на Copart или конкретен краен срок.",
+    "createdAt": "2026-11-04",
+    "provenance": "Original AI-assisted editorial diagram drawn programmatically for Коли от Америка on 2026-11-04; no third-party images, logos, auction screenshots or real vehicle identifiers."
   }
 ]
