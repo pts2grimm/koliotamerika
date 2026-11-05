@@ -10,7 +10,8 @@ export function auctionSort(value: unknown) {
  return auctionSortOptions.find(option => option.value === value) || auctionSortOptions[0]
 }
 
-// Public catalogues default to the next auction, including a bare /targove URL.
-export function catalogueSort(value: unknown) {
- return auctionSort(value).value || 'auction_soon'
+// Active catalogues start with the next auction; archives start with the latest
+// ended auction. Keep explicit sorting choices in both sections.
+export function catalogueSort(value: unknown, archive = false) {
+ return auctionSort(value).value || (archive ? 'auction_late' : 'auction_soon')
 }

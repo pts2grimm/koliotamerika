@@ -3,6 +3,7 @@ import { test } from 'node:test'
 import { createEridanProvider, normalizeEridanCar, UnsupportedEridanFilterError, EridanSearchLimitError } from '../src/lib/auction-providers/eridan'
 import { createEridanTransport } from '../src/lib/auction-providers/eridan-transport'
 import { isEridanRoadModel } from '../src/lib/auction-providers/eridan-scope'
+import { canonicalEridanSearch } from '../src/lib/auction-cache-key'
 import userLot from './fixtures/eridan-user-lot.json'
 import { auctionSchedule, parseAuctionDate } from '../src/lib/auction-schedule'
 import { mileage } from '../src/lib/vehicle-details'
@@ -906,4 +907,32 @@ test('Renegade family searches all CAN-AM spelling variants before paginating AT
  assert.equal(new Set(results.map(r=>r.id)).size,40)
  assert.deepEqual(new Set(results.map(r=>r.model)),new Set(names))
  assert.equal(calls.filter(c=>c.path==='/models').length,3)
+})
+
+test('unfiltered archive fills two newest-first pages without scanning dense old invalid rows',async()=>{
+ const rows=['copart','iaai'].flatMap((auction,site)=>[
+  ...Array.from({length:800},(_,i)=>({...row,auction,id:site*10000+i,lot_number:String(71000000+site*10000+i),model:{id:99,name:'UNKNOWN'},status:'not_sold',sale_date:'2020-01-01T00:00:00Z'})),
+  ...Array.from({length:60},(_,i)=>({...row,auction,id:site*10000+1000+i,lot_number:String(72000000+site*10000+i),status:i%2?'sold':'not_sold',sale_date:new Date(Date.UTC(2021,0,1+i)).toISOString()})),
+ ])
+ const {provider,calls}=fixture((_,p)=>{
+  const items=rows.filter(r=>r.auction===p.get('auction')).sort((a,b)=>
+   (Date.parse(a.sale_date)-Date.parse(b.sale_date)||a.id-b.id)*(p.get('ordering')!.startsWith('-')?-1:1))
+  const page=Number(p.get('page')),size=Number(p.get('page_size'))
+  return envelope(items.slice((page-1)*size,page*size),page,page*size<items.length,size)
+ })
+ const results=[]
+ for(const page of ['1','2']){
+  const data=await provider.search(new URLSearchParams(canonicalEridanSearch('archive=ended&vehicle_type=Automobile&site=1,2&size=12&page='+page)))
+  assert.equal(data.items.length,24)
+  assert.equal(data.hasNext,true)
+  results.push(...data.items)
+ }
+ assert.equal(new Set(results.map(car=>car.id)).size,48)
+ assert.deepEqual(results.map(car=>car.lot_id),rows.filter(r=>r.model.name!=='UNKNOWN')
+  .sort((a,b)=>Date.parse(b.sale_date)-Date.parse(a.sale_date)||b.id-a.id).slice(0,48).map(r=>Number(r.lot_number)))
+ const queries=calls.filter(c=>c.path==='/lots')
+ assert.equal(queries.length,4)
+ assert.ok(queries.every(c=>c.params.get('ordering')==='-sale_date,-id'&&!c.params.has('make__name')&&c.params.has('sale_date__lte')))
+ // Explicit oldest-first remains available and retains the bounded-scan guard.
+ await assert.rejects(()=>provider.search(new URLSearchParams(canonicalEridanSearch('archive=ended&vehicle_type=Automobile&site=1,2&sort=auction_soon'))),EridanSearchLimitError)
 })
