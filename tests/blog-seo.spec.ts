@@ -1,12 +1,43 @@
+import archiveInventory from '../content/legacy-archives.json' with { type: 'json' }
 import schedule from '../content/editorial-schedule.json' with { type: 'json' }
 import { test, expect } from '@playwright/test'
 import redirects from '../content/legacy-redirects.json' with { type: 'json' }
 import snapshot from '../content/wordpress.json' with { type: 'json' }
-test('blog SEO, migration URLs, draft protection and timed release', async ({ page, playwright }) => {
+test('blog SEO, migration URLs, draft protection and timed release', async ({ page, playwright, browser }) => {
  const baseURL = 'http://localhost:3100'
  const visitor = await playwright.request.newContext({ baseURL, userAgent: 'Twitterbot/1.0' })
  const admin = await playwright.request.newContext({ baseURL })
+ const crawler = await browser.newPage({ javaScriptEnabled: false, userAgent: 'Twitterbot/1.0' })
  try {
+  // Inspect server-rendered metadata without JavaScript, as in an HTML-only audit.
+  const descriptions = new Set<string>()
+  const archives = [
+   { path: '/blog', label: '' },
+   ...archiveInventory.archives.filter(archive => archive.slugs.length > 6),
+  ]
+  for (const archive of archives) {
+   let totalPages = 1
+   for (let number = 1; number <= totalPages; number++) {
+    const path = archive.path + (number === 1 ? '' : archive.path === '/blog' ? '?page=' + number : '/page/' + number)
+    expect((await crawler.goto(baseURL + path))?.status(), path).toBe(200)
+    if (number === 1) {
+     const pagination = crawler.locator('nav.pagination > span')
+     if (await pagination.count()) totalPages = Number((await pagination.innerText()).split('/')[1].trim())
+     expect(totalPages).toBeGreaterThan(1)
+    }
+    const meta = crawler.locator('head meta[name="description"]')
+    await expect(meta).toHaveCount(1)
+    const description = await meta.getAttribute('content')
+    expect(description).toBeTruthy()
+    expect(description!.length).toBeLessThanOrEqual(180)
+    if (number > 1) expect(description!.toLowerCase()).toContain('страница ' + number + '.')
+    if (archive.label) expect(description).toContain(archive.label)
+    expect(descriptions.has(description!), path + ' must have a distinct description').toBe(false)
+    descriptions.add(description!)
+    await expect(crawler.locator('head meta[property="og:description"]')).toHaveAttribute('content', description!)
+    await expect(crawler.locator('head link[rel="canonical"]')).toHaveAttribute('href', baseURL + path)
+   }
+  }
   await page.goto('/blog?page=2')
   await expect(page.locator('h1')).toHaveCount(1)
   await expect(page.locator('link[rel=canonical]')).toHaveAttribute('href', baseURL + '/blog?page=2')
@@ -130,5 +161,5 @@ test('blog SEO, migration URLs, draft protection and timed release', async ({ pa
   const featuredImage = page.locator('.journal-featured a[href="/' + slug + '"] img')
   await expect(featuredImage).toHaveAttribute('src', /clean-title/)
   await expect.poll(() => featuredImage.evaluate(img => (img as HTMLImageElement).naturalWidth)).toBeGreaterThan(0)
- } finally { await visitor.dispose(); await admin.dispose() }
+ } finally { await crawler.close(); await visitor.dispose(); await admin.dispose() }
 })

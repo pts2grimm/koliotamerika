@@ -18,9 +18,12 @@ export async function generateMetadata({ searchParams }: BlogProps): Promise<Met
  const page = blogPage((await searchParams).page)
  if (!page) notFound()
  await getArticles(page)
+ const description = page === 1
+  ? 'Съвети, документи, проверки и новини за покупка и внос на автомобили от Америка.'
+  : 'Блог за внос на коли от САЩ — страница ' + page + '. Статии за документи, проверки, търгове и транспорт на автомобили до България.'
  return { title: 'Блог за внос на коли от САЩ' + (page > 1 ? ' — страница ' + page : ''),
-  description: 'Съвети, документи, проверки и новини за покупка и внос на автомобили от Америка.',
-  alternates: { canonical: blogPath(page) }, openGraph: { type: 'website', url: blogPath(page), locale: 'bg_BG' } }
+  description,
+  alternates: { canonical: blogPath(page) }, openGraph: { type: 'website', url: blogPath(page), locale: 'bg_BG', description } }
 }
 export default async function Blog({ searchParams }: BlogProps) {
  const page = blogPage((await searchParams).page)

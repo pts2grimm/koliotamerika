@@ -30,9 +30,10 @@ const archiveData = cache(async (path: string) => {
 export async function legacyArchiveMetadata(path: string): Promise<Metadata> {
   const { archive, page, canonical } = await archiveData(path)
   const title = archiveTitle(archive) + (page > 1 ? ' — страница ' + page : '')
-  const description = archive.kind === 'author'
+  const baseDescription = archive.kind === 'author'
     ? 'Публикации от ' + archive.label + ' в блога на Коли от Америка.'
     : 'Материали по темата „' + archive.label + '“ — съвети, проверки и информация за автомобили от Америка.'
+  const description = (page > 1 ? 'Страница ' + page + '. ' : '') + baseDescription
   return { title, description, alternates: { canonical },
     openGraph: { title, description, url: canonical, type: 'website', locale: 'bg_BG' } }
 }
