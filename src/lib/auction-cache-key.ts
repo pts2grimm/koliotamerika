@@ -21,7 +21,7 @@ export function canonicalEridanSearch(raw: string) {
   output.set(key, String(Math.max(minimum, Math.min(maximum, Math.floor(Number(output.get(key)) || fallback)))))
  }
  if (output.get('archive') === 'sold') output.set('archive','ended')
- output.set('sort', catalogueSort(output.get('sort')))
+ output.set('sort', catalogueSort(output.get('sort'), output.get('archive') === 'ended'))
  output.sort()
  return output.toString()
 }

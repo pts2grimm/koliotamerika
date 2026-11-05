@@ -20,3 +20,14 @@ test('invalid input is retained for validation and duplicates preserve first-val
  assert.equal(key('model=&model=M3'),key(''))
  assert.notEqual(key('site=1'),key('site=2'))
 })
+
+test('archives default to latest ended while active catalogues retain nearest upcoming',()=>{
+ for (const archive of ['ended','sold']) {
+  const raw='archive='+archive
+  assert.equal(key(raw),key(raw+'&sort=auction_late'))
+  assert.equal(key(raw+'&sort=invalid'),key(raw))
+  assert.notEqual(key(raw),key(raw+'&sort=auction_soon'))
+  assert.equal(new URLSearchParams(key(raw+'&sort=year_asc')).get('sort'),'year_asc')
+ }
+ assert.equal(new URLSearchParams(key('')).get('sort'),'auction_soon')
+})
