@@ -223,11 +223,18 @@ export function createEridanProvider(request: AuctionTransport): AuctionProvider
      const stream = new Map<string, { car: AuctionCar; order: number; sortValue?: number }>()
      const seen = new Set<number>()
      let streamPage = 1
+     // Descending dates let us fill broad archive pages from a small date
+     // range. If it cannot fill this stream, restart against the full archive;
+     // this is an optimization, never an implicit filter or a partial result.
+     let recentStart = archive && sorting.value === 'auction_late' && !needsScan &&
+      !make && !valid.get('year_from') && !valid.get('year_to') && !valid.get('fuel')
+      ? new Date(Date.parse(cutoff) - 7 * 86400000).toISOString() : undefined
      while (stream.size < needed) {
       if (++calls > maxCalls || needsScan && Date.now() > scanDeadline) throw new EridanSearchLimitError()
       const query = new URLSearchParams(params)
       query.set('auction', auctions[site])
       query.set('item_type', codes[type])
+      if (recentStart) query.set('sale_date__gte', recentStart)
       if (dateScope === 'upcoming') query.set('sale_date__gte', cutoff)
       if (dateScope === 'undated') query.set('sale_date__isnull', 'true')
       // Live Eridan accepts CSV here; repeated makes= entries silently use only the last value.
@@ -261,7 +268,16 @@ export function createEridanProvider(request: AuctionTransport): AuctionProvider
        if (sellerType && car.seller_type !== sellerType) continue
        if (!stream.has(car.id) || stream.get(car.id)!.order < order) stream.set(car.id, { car, order, sortValue })
       }
-      if (!data.hasNext) break
+      if (!data.hasNext) {
+       if (recentStart && stream.size < needed) {
+        recentStart = undefined
+        stream.clear()
+        seen.clear()
+        streamPage = 1
+        continue
+       }
+       break
+      }
       if (seen.size === before) throw new Error('Eridan pagination made no progress')
       streamPage++
      }
