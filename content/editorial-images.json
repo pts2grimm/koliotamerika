@@ -108,5 +108,15 @@
     "caption": "Авторска схема, създадена с помощта на AI; илюстрира възможни етапи, а не реален лот, интерфейс на Copart или конкретен краен срок.",
     "createdAt": "2026-11-04",
     "provenance": "Original AI-assisted editorial diagram drawn programmatically for Коли от Америка on 2026-11-04; no third-party images, logos, auction screenshots or real vehicle identifiers."
+  },
+  {
+    "slug": "ford-2024-sasht-garanciya-bulgaria",
+    "src": "/images/editorial/ford-warranty-check.png",
+    "alt": "Авторска схема с автомобил от САЩ, проверка на документ по VIN и щит с въпросителен знак за гаранционното покритие в България.",
+    "width": 1200,
+    "height": 800,
+    "caption": "Авторска схема, създадена с помощта на AI; не показва реален Ford, клиентски автомобил, официален документ или потвърдено гаранционно покритие.",
+    "createdAt": "2026-11-06",
+    "provenance": "Original AI-assisted editorial diagram drawn programmatically for Коли от Америка on 2026-11-06; no third-party images, logos, real VINs or official warranty forms."
   }
 ]
