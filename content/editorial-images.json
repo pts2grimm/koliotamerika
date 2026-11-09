@@ -108,5 +108,15 @@
     "caption": "Авторска схема, създадена с помощта на AI; илюстрира възможни етапи, а не реален лот, интерфейс на Copart или конкретен краен срок.",
     "createdAt": "2026-11-04",
     "provenance": "Original AI-assisted editorial diagram drawn programmatically for Коли от Америка on 2026-11-04; no third-party images, logos, auction screenshots or real vehicle identifiers."
+  },
+  {
+    "slug": "benzin-aki-ron-kola-ot-sasht",
+    "src": "/images/editorial/fuel-octane-check.png",
+    "alt": "Авторска схема на американска бензинова колонка с AKI и технически данни с RON и MON, свързани чрез формулата за средна стойност.",
+    "width": 1200,
+    "height": 800,
+    "caption": "Авторска схема, създадена с помощта на AI; обяснява AKI, RON и MON, без да представя реална колонка, горивен продукт или препоръка за конкретен автомобил.",
+    "createdAt": "2026-11-09",
+    "provenance": "Original AI-assisted editorial diagram drawn programmatically for Коли от Америка on 2026-11-09; no third-party photographs, logos, product labels or vehicle identifiers."
   }
 ]
