@@ -108,5 +108,15 @@
     "caption": "Авторска схема, създадена с помощта на AI; илюстрира възможни етапи, а не реален лот, интерфейс на Copart или конкретен краен срок.",
     "createdAt": "2026-11-04",
     "provenance": "Original AI-assisted editorial diagram drawn programmatically for Коли от Америка on 2026-11-04; no third-party images, logos, auction screenshots or real vehicle identifiers."
+  },
+  {
+    "slug": "mpg-v-litri-na-100-km-sasht-kanada",
+    "src": "/images/editorial/mpg-conversion.png",
+    "alt": "Авторска схема: 30 MPG с американски галон са около 7,8 л/100 км, а 30 MPG с имперски галон — около 9,4 л/100 км.",
+    "width": 1200,
+    "height": 800,
+    "caption": "Авторска схема, създадена с помощта на AI. Стойностите са закръглени математически примери, а не измерен разход на реални автомобили.",
+    "createdAt": "2026-11-11",
+    "provenance": "Original AI-assisted editorial comparison drawn programmatically for Коли от Америка on 2026-11-11. Values calculated from NRCan conversion factors; no third-party images, logos, official label reproductions or vehicle identifiers."
   }
 ]
