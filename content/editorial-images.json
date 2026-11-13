@@ -108,5 +108,15 @@
     "caption": "Авторска схема, създадена с помощта на AI; илюстрира възможни етапи, а не реален лот, интерфейс на Copart или конкретен краен срок.",
     "createdAt": "2026-11-04",
     "provenance": "Original AI-assisted editorial diagram drawn programmatically for Коли от Америка on 2026-11-04; no third-party images, logos, auction screenshots or real vehicle identifiers."
+  },
+  {
+    "slug": "honda-acura-eps-akciya-kormilno-upravlenie",
+    "src": "/images/editorial/honda-acura-eps-recall.png",
+    "alt": "Оригинална схема за акция 26V721: проверка по VIN, кормилно управление EPS и софтуерна корекция.",
+    "width": 1200,
+    "height": 800,
+    "caption": "Оригинална концептуална AI илюстрация. Не показва реален автомобил, официален документ или сервизен екран.",
+    "createdAt": "2026-11-13",
+    "provenance": "Original illustration created programmatically with AI assistance for Koli ot Amerika on 2026-11-13. Geometric VIN card, steering wheel and software module; no external assets, photographs, logos or actual VINs."
   }
 ]
