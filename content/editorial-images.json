@@ -108,5 +108,15 @@
     "caption": "Авторска схема, създадена с помощта на AI; илюстрира възможни етапи, а не реален лот, интерфейс на Copart или конкретен краен срок.",
     "createdAt": "2026-11-04",
     "provenance": "Original AI-assisted editorial diagram drawn programmatically for Коли от Америка on 2026-11-04; no third-party images, logos, auction screenshots or real vehicle identifiers."
+  },
+  {
+    "slug": "ford-window-sticker-proverka-oborudvane",
+    "src": "/images/editorial/ford-window-sticker-equipment.png",
+    "alt": "Авторска схема за сравняване на VIN и списък с оборудване с конкретния автомобил преди покупка.",
+    "width": 1200,
+    "height": 800,
+    "caption": "Оригинална концептуална AI илюстрация. Не показва реален Ford, официален window sticker или резултат от технически оглед.",
+    "createdAt": "2026-11-16",
+    "provenance": "Original AI-assisted illustration drawn programmatically for Коли от Америка on 2026-11-16. Geometric equipment checklist and generic car; no third-party images, logos, official label layout or actual VIN."
   }
 ]
