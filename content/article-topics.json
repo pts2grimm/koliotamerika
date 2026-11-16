@@ -1,0 +1,83 @@
+[
+  {
+    "topic": "Документи, собственост и регистрация",
+    "slugs": [
+      "salvage-title-kola-ot-amerika",
+      "clean-title-kola-ot-amerika",
+      "kola-ot-kanada-lien-proverka",
+      "title-pending-copart-dokumenti",
+      "neobhodimi-dokumenti-za-vnos-na-kola-ot-sasth",
+      "parvonachalna-registracziya-v-kat",
+      "homologacia-na-koli"
+    ]
+  },
+  {
+    "topic": "История и проверка на автомобила",
+    "slugs": [
+      "carfax-vnos-na-koli-ot-amerika",
+      "probeg-actual-not-actual-exempt",
+      "kak-da-razchetem-vin-nomera-na-avtomobila",
+      "proverka-servizni-akcii-vin-sasht",
+      "navodneni-koli-ot-amerika",
+      "izmami-pri-pokupka-na-avtomobil"
+    ]
+  },
+  {
+    "topic": "Избор и получаване от аукцион",
+    "slugs": [
+      "kak-da-izberem-kola-ot-targ",
+      "kola-ot-targ-bez-klyuch",
+      "run-and-drive-koli-ot-amerika",
+      "offsite-sale-poluchavane-avtomobil",
+      "copart-on-approval-nasreshtna-oferta",
+      "koli-ot-manheim",
+      "aukcioni-i-upravlenie-na-razhodite"
+    ]
+  },
+  {
+    "topic": "Транспорт и съпътстващи разходи",
+    "slugs": [
+      "morski-transport-na-avtomobili-ot-sasht",
+      "zastrahovka-na-avtomobili-ot-sasht",
+      "manheim-central-dispatch-transportni-ocenki",
+      "vnos-na-elektromobili-ot-sasht"
+    ]
+  },
+  {
+    "topic": "Модели и технологии",
+    "slugs": [
+      "audi-promenya-imenata-na-svoite-modeli",
+      "koli-ot-sasht-regulacii-tehnologii-2025",
+      "bmw-connecteddrive-sasht-bulgaria",
+      "bmw-b58-sreshtu-n55",
+      "avtomobili-ot-amerikanski-aukcioni"
+    ]
+  },
+  {
+    "topic": "Американският пазар",
+    "slugs": [
+      "amerikanski-avtomobilen-pazar",
+      "manheim-indeks-septemvri-2026",
+      "pokupka-na-avtomobili-ot-sasht-2025"
+    ]
+  },
+  {
+    "topic": "Поддръжка след вноса",
+    "slugs": [
+      "obsluzhvane-na-kola-vnos-ot-amerika",
+      "avtochasti-za-koli-ot-turgove-v-amerika",
+      "podgotovka-na-avtomobila-za-zimata"
+    ]
+  },
+  {
+    "topic": "Планиране на покупката и вноса",
+    "slugs": [
+      "zakupuvane-na-koli-ot-amerika",
+      "mitove-za-avtomobilite-ot-amerika",
+      "avtomobili-nov-vnos",
+      "kola-nov-vnos",
+      "avtomobili-ot-sasht-novoto-ime",
+      "motori-i-atv-ta-ot-amerika"
+    ]
+  }
+]

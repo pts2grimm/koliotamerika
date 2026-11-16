@@ -1,4 +1,4 @@
-import { publicPage as getPage, publicArticles } from '@/lib/public-content'
+import { publicPage as getPage, publicRelatedArticles } from '@/lib/public-content'
 import { BlogArticle } from '@/components/BlogArticle'
 import { editorialImage } from '@/lib/editorial-images'
 import { CookiePolicy } from '@/components/CookiePolicy'
@@ -72,7 +72,7 @@ export default async function ContentPage({ params }: Props) {
  const servicesReview = article ? (await payload.find({collection:'payload-kv',depth:0,limit:1,where:{key:{equals:servicesReviewKey(page.slug)}}})).docs[0]?.data as {appliedAt?:string;applied?:{body?:unknown}} | undefined : undefined
  const reviewedAt = servicesReview?.applied?.body ? isoDate(servicesReview.appliedAt) : detailReview?.applied?.body ? isoDate(detailReview.appliedAt) : review?.applied?.body ? isoDate(review.appliedAt) : undefined
  const topics = article ? legacyArchives.filter(archive => archive.kind === 'tag' && archiveContains(archive, page)) : []
- const more = article ? (await publicArticles(1, page.id)).docs : []
+ const more = article ? await publicRelatedArticles(page.slug, page.id) : []
  // Keep the existing article record, URL, metadata and archive links; only its presentation changes.
  if (article && page.slug === 'morski-transport-na-avtomobili-ot-sasht') return <LandingPage page={page} editorial={{
   structuredData: articleStructuredData(page, siteURL(), site!.brand, image || undefined, reviewedAt),
