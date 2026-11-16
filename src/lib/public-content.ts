@@ -1,3 +1,4 @@
+import { relatedArticleSlugs, selectRelatedArticles } from './related-articles'
 import { articleCardSelect } from './list-projections'
 import 'server-only'
 import { cache } from 'react'
@@ -17,4 +18,26 @@ export const publicArticles = cache(async (page: number, excludeID?: number, lim
   payload.find({ collection: 'pages', overrideAccess: false, user: null,
    where: { and: [{ kind: { equals: 'article' } }, ...(excludeID === undefined ? [] : [{ id: { not_equals: excludeID } }])] },
    select: articleCardSelect, depth: 1, sort: '-publishedAt', limit, page }))
+})
+
+export const publicRelatedArticles = cache(async (slug: string, excludeID: number) => {
+ const payload = await cms()
+ return publicContentCache.get(JSON.stringify(['related-articles', slug, excludeID]), async () => {
+  const slugs = relatedArticleSlugs(slug)
+  const candidates = slugs.length ? (await payload.find({
+   collection: 'pages', overrideAccess: false, user: null,
+   where: { and: [
+    { kind: { equals: 'article' } },
+    { id: { not_equals: excludeID } },
+    { slug: { in: slugs } },
+   ] },
+   select: articleCardSelect, depth: 1, limit: slugs.length, pagination: false,
+  })).docs : []
+  const related = selectRelatedArticles(slug, candidates)
+  if (related.length === 3) return related
+  // Up to two topic cards may also occur in the newest list; fetch enough to
+  // fill all three slots after deduplication, without loading article bodies.
+  const fallback = (await publicArticles(1, excludeID, 5)).docs
+  return selectRelatedArticles(slug, candidates, fallback)
+ })
 })
