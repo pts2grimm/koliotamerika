@@ -108,5 +108,15 @@
     "caption": "Авторска схема, създадена с помощта на AI; илюстрира възможни етапи, а не реален лот, интерфейс на Copart или конкретен краен срок.",
     "createdAt": "2026-11-04",
     "provenance": "Original AI-assisted editorial diagram drawn programmatically for Коли от Америка on 2026-11-04; no third-party images, logos, auction screenshots or real vehicle identifiers."
+  },
+  {
+    "slug": "tesla-model-3-battery-health-proverka",
+    "src": "/images/editorial/tesla-battery-health.png",
+    "alt": "Концептуална илюстрация на електромобил и три отделни символа за оставащ заряд, прогнозен пробег и проверка на батерията.",
+    "width": 1536,
+    "height": 1024,
+    "caption": "Оригинална AI илюстрация; не показва реален клиентски автомобил, интерфейс на Tesla или действителен резултат от тест.",
+    "createdAt": "2026-11-18",
+    "provenance": "Original AI-generated editorial illustration created for Коли от Америка on 2026-11-18; no third-party reference images, logos, real VINs or copied manufacturer interface. Conceptual charge, range and battery-evaluation symbols."
   }
 ]
