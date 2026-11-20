@@ -108,5 +108,15 @@
     "caption": "Авторска схема, създадена с помощта на AI; илюстрира възможни етапи, а не реален лот, интерфейс на Copart или конкретен краен срок.",
     "createdAt": "2026-11-04",
     "provenance": "Original AI-assisted editorial diagram drawn programmatically for Коли от Америка on 2026-11-04; no third-party images, logos, auction screenshots or real vehicle identifiers."
+  },
+  {
+    "slug": "manheim-sredata-noemvri-2026",
+    "src": "/images/editorial/manheim-sredata-noemvri.png",
+    "alt": "Концептуална графична илюстрация с три автомобила, лист и лупа за сравняване на пазарна информация",
+    "width": 1200,
+    "height": 800,
+    "caption": "Оригинална AI илюстрация, създадена програмно. Не представя реални лотове, документи или графика с данни на Manheim.",
+    "createdAt": "2026-11-20",
+    "provenance": "Original programmatic illustration created by the AI assistant for Koli ot Amerika on 2026-11-20. Rasterized original geometric shapes, no third-party photos, logos, reference images or reproduced data charts."
   }
 ]
